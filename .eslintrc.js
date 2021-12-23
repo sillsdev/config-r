@@ -25,9 +25,10 @@ module.exports = {
     'plugin:prettier/recommended',
     'plugin:storybook/recommended',
   ],
-  plugins: ['simple-import-sort', 'prettier'],
+  plugins: ['prettier'],
   rules: {
     'react/no-unescaped-entities': 0,
+    'no-unused-vars': 0,
     'prettier/prettier': [
       'error',
       {},
@@ -39,8 +40,6 @@ module.exports = {
     'jsx-a11y/accessible-emoji': 'off',
     'react/prop-types': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
-    'simple-import-sort/imports': 'error',
-    'simple-import-sort/exports': 'error',
     'jsx-a11y/anchor-is-valid': [
       'error',
       {
