@@ -214,7 +214,7 @@ const PaperGroup: React.FunctionComponent<{
         css={css`
           width: 100%;
         `}>
-        {joinChildren(childrenWithStore, <Divider component="li" />)}
+        {joinChildrenWithDivider(childrenWithStore)}
       </List>
     </Paper>
   );
@@ -228,12 +228,11 @@ function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
     } else return null;
   });
 }
-
-function joinChildren(children: any, renderSeparator: any) {
+function joinChildrenWithDivider(children: any) {
   return children
     ? children.reduce((result: any, child: React.ReactNode, index: number) => {
         if (index < children.length - 1) {
-          return result.concat(child, renderSeparator);
+          return result.concat(child, <Divider component="li" key={index} />);
         }
         return result.concat(child);
       }, [])
@@ -309,8 +308,14 @@ export const ConfigrInput: React.FunctionComponent<{
     <ConfigrRowTwoColumns
       {...props}
       control={
-        // <TextField  {...getStringStateProps(props)}></TextField>
-        <Field component={TextField} name={props.name} type="text" label={props.label} />
+        //<TextField  label={props.label}></TextField>
+        <Field
+          component={TextField}
+          variant="standard"
+          name={props.name}
+          type="text"
+          // label={props.label}
+        />
       }></ConfigrRowTwoColumns>
   );
 };

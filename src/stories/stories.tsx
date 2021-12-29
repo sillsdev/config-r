@@ -116,7 +116,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
           <ConfigrForEach
             name="languages"
             render={(prefix: string, index: number) => (
-              <ConfigrSubgroup label={`Language ${index}`}>
+              <ConfigrSubgroup label={`Language ${index}`} key={`${index}`}>
                 <ConfigrInput name={`${prefix}.name`} label="Name" />
                 <ConfigrInput name={`${prefix}.iso`} label="ISO" />
                 <ConfigurSubPage label="Script Settings">
