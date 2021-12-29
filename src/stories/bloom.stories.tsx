@@ -21,7 +21,7 @@ import {
   ConfigrConditional,
   ConfigrSubgroup,
   ConfigrForEach,
-  ConfigurSubPage,
+  ConfigurSubPage as ConfigrSubPage,
 } from '../ConfigrPane';
 
 const initialBloomCollectionValues = {
@@ -63,7 +63,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
               <ConfigrSubgroup label={`Language ${index}`} key={`${index}`}>
                 <ConfigrInput name={`${prefix}.name`} label="Name" />
                 <ConfigrInput name={`${prefix}.iso`} label="ISO" />
-                <ConfigurSubPage label="Script Settings">
+                <ConfigrSubPage label="Script Settings" name={`${prefix}.script`}>
                   <ConfigrBoolean
                     label="This is a right to left script, like Arabic"
                     name={`${prefix}.script.rtl`}
@@ -72,7 +72,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
                     label="Do not use special Asian script word breaking"
                     name={`${prefix}.script.avoidAsianScriptWordBreaking`}
                   />
-                </ConfigurSubPage>
+                </ConfigrSubPage>
               </ConfigrSubgroup>
             )}></ConfigrForEach>
         </ConfigrGroup>

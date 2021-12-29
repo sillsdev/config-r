@@ -40,8 +40,14 @@ const tabBarWidth = '200px';
 const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
+const FocusPageContext = React.createContext({
+  focusPageName: '',
+  setFocusPageName: (p: string) => {},
+});
+
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
   const [currentTab, setCurrentTab] = useState(0);
+  const [currentPage, setCurrentPage] = useState('');
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
       <Tab
@@ -74,72 +80,75 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   );
 
   return (
-    <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
-      {({
-        values,
-        errors,
-        touched,
-        handleChange,
-        handleBlur,
-        handleSubmit,
-        isSubmitting,
-      }) => {
-        if (props.setValueGetter)
-          props.setValueGetter(() => {
-            return values;
-          });
-        return (
-          <form
-            onSubmit={handleSubmit}
-            css={css`
-              flex-grow: 1;
-            `}>
-            <ConfigrAppBar label={props.label} />
-            <div
+    <FocusPageContext.Provider
+      value={{ focusPageName: currentPage, setFocusPageName: setCurrentPage }}>
+      <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting,
+        }) => {
+          if (props.setValueGetter)
+            props.setValueGetter(() => {
+              return values;
+            });
+          return (
+            <form
+              onSubmit={handleSubmit}
               css={css`
-                background-color: #f8f9fa;
-                height: 100%;
-                display: flex;
-
-                .MuiTab-wrapper {
-                  text-align: left;
-                  align-items: start;
-                }
+                flex-grow: 1;
               `}>
-              <Tabs
-                value={currentTab}
-                onChange={(event: React.ChangeEvent<{}>, index: number) => {
-                  setCurrentTab(index);
-                }}
-                centered={false}
-                orientation="vertical"
-                css={css`
-                  width: ${tabBarWidth};
-                  padding-left: 12px;
-                  .MuiTabs-indicator {
-                    display: none;
-                  }
-                  .Mui-selected {
-                    font-weight: bold;
-                  }
-                `}>
-                {groupLinks}
-              </Tabs>
+              <ConfigrAppBar label={props.label} />
               <div
-                id="groups"
                 css={css`
-                  width: 600px;
-                  //overflow-y: scroll; //allows us to scroll the groups without
-                  //scrolling the heading tabs
-                  overflow-y: auto;
+                  background-color: #f8f9fa;
+                  height: 100%;
+                  display: flex;
+
+                  .MuiTab-wrapper {
+                    text-align: left;
+                    align-items: start;
+                  }
                 `}>
-                {wrappedGroups}
+                <Tabs
+                  value={currentTab}
+                  onChange={(event: React.ChangeEvent<{}>, index: number) => {
+                    setCurrentTab(index);
+                  }}
+                  centered={false}
+                  orientation="vertical"
+                  css={css`
+                    width: ${tabBarWidth};
+                    padding-left: 12px;
+                    .MuiTabs-indicator {
+                      display: none;
+                    }
+                    .Mui-selected {
+                      font-weight: bold;
+                    }
+                  `}>
+                  {groupLinks}
+                </Tabs>
+                <div
+                  id="groups"
+                  css={css`
+                    width: 600px;
+                    //overflow-y: scroll; //allows us to scroll the groups without
+                    //scrolling the heading tabs
+                    overflow-y: auto;
+                  `}>
+                  {wrappedGroups}
+                </div>
               </div>
-            </div>
-          </form>
-        );
-      }}
-    </Formik>
+            </form>
+          );
+        }}
+      </Formik>
+    </FocusPageContext.Provider>
   );
 };
 
@@ -329,16 +338,30 @@ export const ConfigrSubgroup: React.FunctionComponent<{
 };
 export const ConfigurSubPage: React.FunctionComponent<{
   label: string;
+  name: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
-  //return <PaperGroup label={props.label}>{props.children}</PaperGroup>;
-  //return <ConfigrGroup {...props}>{props.children}</ConfigrGroup>;
-  const pageButton = (
-    <IconButton>
-      <ArrowRightIcon />
-    </IconButton>
+  return (
+    <FocusPageContext.Consumer>
+      {({ focusPageName, setFocusPageName }) => {
+        console.log('focusPageName is ' + focusPageName);
+        return (
+          <ConfigrRowTwoColumns
+            control={
+              <IconButton
+                onClick={() => setFocusPageName(props.name)}
+                css={css`
+                  background-color: ${focusPageName === props.name ? 'yellow' : 'unset'};
+                `}>
+                <ArrowRightIcon />
+              </IconButton>
+            }
+            {...props}
+          />
+        );
+      }}
+    </FocusPageContext.Consumer>
   );
-  return <ConfigrRowTwoColumns control={pageButton} {...props} />;
 };
 
 // Used to display the child component for each member of an array
