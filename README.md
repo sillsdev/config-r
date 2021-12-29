@@ -1,15 +1,14 @@
-# Vite + React + Typescript + Eslint + Prettier
+![config-r](https://user-images.githubusercontent.com/8448/147490475-b4d6d3bd-85a5-4ccd-941e-7f6926cc8089.png)
 
-A starter for React with Typescript with the fast Vite and all static code testing with Eslint and formatting with Prettier.
+A react library for a settings UI similar to that of Chrome. Uses formik.
 
-![Vite + React + Typescript + Eslint + Prettier](/resources/screenshot.png)
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
-I found out about Vite and I wanted to have a boilerplate for the technologies that I use. You can find more about these in the following links: [Vite](https://github.com/vitejs/vite), [React](https://reactjs.org/), [Typescript](https://www.typescriptlang.org/), [Eslint](https://eslint.org/), [Prettier](https://prettier.io/).
+![image](https://user-images.githubusercontent.com/8448/147491213-140bf201-e4b0-4ff2-b8a8-ea8a1291ebae.png)
 
-## Installation
+## Running
 
-Clone the repo and run `yarn install`
-
-## Start
-
-After the successfull installation of the packages: `yarn dev`
+```
+yarn install
+yarn dev
+```
