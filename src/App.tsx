@@ -1,5 +1,5 @@
 import './App.css';
-
+import { css } from '@emotion/react';
 import React, { useState } from 'react';
 
 import logo from './logo.svg';
@@ -16,7 +16,11 @@ function App() {
           Eslint 🔥+ Prettier
         </p>
 
-        <div className="body">
+        <div
+          css={css`
+            margin-top: 200px;
+          `}
+          className="body">
           <button onClick={() => setCount((count) => count + 1)}>
             🪂 Click me : {count}
           </button>
