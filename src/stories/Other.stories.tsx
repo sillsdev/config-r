@@ -42,7 +42,6 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
       css={css`
         display: flex;
         flex-direction: column;
-        background-color: red;
         height: 300px;
       `}>
       <ConfigrPane
@@ -84,62 +83,6 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
   );
 };
 
-const initialBloomCollectionValues = {
-  languages: [
-    { iso: 'de', name: 'German' },
-    {
-      iso: 'ar',
-      name: 'Arabic',
-      script: {
-        rtl: true,
-        avoidAsianScriptWordBreaking: false,
-        tallerLines: false,
-        fontSizeInTools: false,
-      },
-    },
-  ],
-};
-
-export const BloomCollection: React.FunctionComponent<{}> = (props) => {
-  return (
-    <div
-      css={css`
-        display: flex;
-        flex-direction: column;
-        height: 300px;
-      `}>
-      <ConfigrPane
-        label="Bloom Collection Settings"
-        initialValues={initialBloomCollectionValues}
-        showSearch={true}>
-        <ConfigrGroup label="Languages" hasSubgroups>
-          <ConfigrForEach
-            name="languages"
-            render={(prefix: string, index: number) => (
-              <ConfigrSubgroup label={`Language ${index}`} key={`${index}`}>
-                <ConfigrInput name={`${prefix}.name`} label="Name" />
-                <ConfigrInput name={`${prefix}.iso`} label="ISO" />
-                <ConfigurSubPage label="Script Settings">
-                  <ConfigrBoolean
-                    label="This is a right to left script, like Arabic"
-                    name={`${prefix}.script.rtl`}
-                  />
-                  <ConfigrBoolean
-                    label="Do not use special Asian script word breaking"
-                    name={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                  />
-                </ConfigurSubPage>
-              </ConfigrSubgroup>
-            )}></ConfigrForEach>
-        </ConfigrGroup>
-        <ConfigrGroup label="Book Defaults"></ConfigrGroup>
-        <ConfigrGroup label="Collection"></ConfigrGroup>
-        <ConfigrGroup label="Enterprise"></ConfigrGroup>
-        <ConfigrGroup label="Advanced"></ConfigrGroup>
-      </ConfigrPane>
-    </div>
-  );
-};
 const initialLametaValues = {
   files: { useLargeFileFolder: false },
 };

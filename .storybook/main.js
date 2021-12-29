@@ -26,7 +26,7 @@ module.exports = {
   },
   //suggested by https://github.com/storybookjs/storybook/issues/13145#issuecomment-991906189 , didn't help
   //features: { emotionAlias: false },
-  stories: ['../src/**/stories.@(js|jsx|ts|tsx)'],
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: ['@storybook/addon-links', '@storybook/addon-essentials'],
   framework: '@storybook/react',
   core: {
