@@ -23,8 +23,11 @@ import {
   RadioGroup,
   Button,
   ListItemButton,
+  MenuItem,
+  Select as MuiSelect,
+  Tooltip,
 } from '@mui/material';
-import { TextField, Switch, Checkbox } from 'formik-mui';
+import { TextField, Switch, Checkbox, Select as FormikMuiSelect } from 'formik-mui';
 
 type valueGetter = () => Object;
 
@@ -361,6 +364,45 @@ export const ConfigrInput: React.FunctionComponent<{
       {...props}
       control={
         <Field component={TextField} variant="standard" name={props.path} type="text" />
+      }></ConfigrRowTwoColumns>
+  );
+};
+export const ConfigrSelect: React.FunctionComponent<{
+  path: string;
+  label: string;
+  options: Array<{ value: string; label: string; description?: string }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={
+        <Field
+          name={props.path}
+          component={FormikMuiSelect}
+          sx={{ minWidth: 180 }}
+          css={css`
+            .MuiSelect-select {
+              padding: 3px !important;
+              padding-left: 9px !important;
+              background-color: #f1f1f1;
+            }
+            * {
+              border-style: none;
+            }
+          `}>
+          {props.options.map((o) => (
+            <MenuItem value={o.value} key={o.label}>
+              {o.description ? (
+                <Tooltip title={o.description}>
+                  <span>{o.label}</span>
+                </Tooltip>
+              ) : (
+                <span>{o.label}</span>
+              )}
+            </MenuItem>
+          ))}
+        </Field>
       }></ConfigrRowTwoColumns>
   );
 };

@@ -22,16 +22,19 @@ import {
   ConfigrSubgroup,
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
+  ConfigrSelect,
 } from '../ConfigrPane';
 
 const initialBloomCollectionValues = {
+  pageNumberStyle: 'Decimal',
   languages: [
-    { id: { iso: 'de', name: 'German' } },
+    { id: { iso: 'de', name: 'German' }, font: 'Andika New Basic' },
     {
       id: {
         iso: 'ar',
         name: 'Arabic',
       },
+      font: 'Arial',
       script: {
         rtl: true,
         avoidAsianScriptWordBreaking: false,
@@ -76,7 +79,13 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
                   <ConfigrInput path={`${prefix}.id.name`} label="Name" />
                 </ConfigrSubPage>
 
-                <ConfigrInput path={`${prefix}.font-family`} label="Default Font" />
+                <ConfigrSelect
+                  path={`${prefix}.font`}
+                  label="Default Font"
+                  options={[
+                    { label: 'Arial', value: 'Arial' },
+                    { label: 'Andika New Basic', value: 'Andika New Basic' },
+                  ]}></ConfigrSelect>
 
                 <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                   <ConfigrBoolean
@@ -91,7 +100,27 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
               </ConfigrSubgroup>
             )}></ConfigrForEach>
         </ConfigrGroup>
-        <ConfigrGroup label="Book Defaults"></ConfigrGroup>
+        <ConfigrGroup label="Book Defaults">
+          <ConfigrSelect
+            path={'pageNumberStyle'}
+            label="Page Numbering Style"
+            options={[
+              { label: 'Decimal', value: 'Decimal' },
+              { label: 'Devanagari', value: 'Devanagari' },
+            ]}></ConfigrSelect>
+          <ConfigrSelect
+            path={'xmatterPck'}
+            label="Front/Back Matter Pack"
+            options={[
+              { label: 'Paper Saver', value: 'Paper Saver' },
+              { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+              {
+                label: 'Traditional',
+                value: 'Traditional',
+                description: 'Credits on the back of the title page.',
+              },
+            ]}></ConfigrSelect>
+        </ConfigrGroup>
         <ConfigrGroup label="Collection"></ConfigrGroup>
         <ConfigrGroup label="Enterprise"></ConfigrGroup>
         <ConfigrGroup label="Advanced"></ConfigrGroup>
