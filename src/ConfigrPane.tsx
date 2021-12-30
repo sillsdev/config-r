@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+import { css, SerializedStyles } from '@emotion/react';
 import React, { useMemo, useState, useEffect, ReactElement } from 'react';
 
 import { ConfigrAppBar } from './ConfigrAppBar';
@@ -297,6 +297,7 @@ const FilterForSubPage: React.FunctionComponent<{
 
 export const ConfigrRowTwoColumns: React.FunctionComponent<{
   label: string;
+  labelCss?: SerializedStyles;
   path: string;
   labelSecondary?: string;
   control: React.ReactNode;
@@ -307,10 +308,15 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
   const inner = (
     <React.Fragment>
       <ListItemText
+        title={props.path}
         css={css`
           max-width: 300px;
           color: ${props.disabled ? disabledGrey : 'unset'};
           ${props.height ? 'height:' + props.height : ''}
+          user-select: none;
+          * {
+            ${props.labelCss}
+          }
         `}
         primary={props.label}
         secondary={props.labelSecondary}
@@ -378,6 +384,7 @@ export const ConfigrSubgroup: React.FunctionComponent<{
 // We only allow a single level of nesting.
 export const ConfigrSubPage: React.FunctionComponent<{
   label: string;
+  labelCss?: SerializedStyles;
   path: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
@@ -387,7 +394,7 @@ export const ConfigrSubPage: React.FunctionComponent<{
         if (focussedSubPagePath === props.path) {
           return (
             <React.Fragment>
-              <div>
+              <div css={props.labelCss}>
                 <IconButton onClick={() => setFocussedSubPagePath('')}>
                   <ArrowBackIcon />
                 </IconButton>

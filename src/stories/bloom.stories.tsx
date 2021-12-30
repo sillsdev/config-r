@@ -26,10 +26,12 @@ import {
 
 const initialBloomCollectionValues = {
   languages: [
-    { iso: 'de', name: 'German' },
+    { id: { iso: 'de', name: 'German' } },
     {
-      iso: 'ar',
-      name: 'Arabic',
+      id: {
+        iso: 'ar',
+        name: 'Arabic',
+      },
       script: {
         rtl: true,
         avoidAsianScriptWordBreaking: false,
@@ -64,8 +66,18 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
                 path={`${prefix}`}
                 label={`Language ${index}`}
                 key={`${index}`}>
-                <ConfigrInput path={`${prefix}.name`} label="Name" />
-                <ConfigrInput path={`${prefix}.iso`} label="ISO" />
+                <ConfigrSubPage
+                  label={initialBloomCollectionValues.languages[index].id.name}
+                  path={`${prefix}.id`}
+                  labelCss={css`
+                    font-weight: bold !important;
+                  `}>
+                  <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                  <ConfigrInput path={`${prefix}.id.name`} label="Name" />
+                </ConfigrSubPage>
+
+                <ConfigrInput path={`${prefix}.font-family`} label="Default Font" />
+
                 <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                   <ConfigrBoolean
                     label="This is a right to left script, like Arabic"
