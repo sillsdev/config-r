@@ -21,7 +21,7 @@ import {
   ConfigrConditional,
   ConfigrSubgroup,
   ConfigrForEach,
-  ConfigurSubPage as ConfigrSubPage,
+  ConfigrSubPage as ConfigrSubPage,
 } from '../ConfigrPane';
 
 const initialBloomCollectionValues = {
@@ -60,7 +60,10 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
           <ConfigrForEach
             name="languages"
             render={(prefix: string, index: number) => (
-              <ConfigrSubgroup label={`Language ${index}`} key={`${index}`}>
+              <ConfigrSubgroup
+                name={`${prefix}`}
+                label={`Language ${index}`}
+                key={`${index}`}>
                 <ConfigrInput name={`${prefix}.name`} label="Name" />
                 <ConfigrInput name={`${prefix}.iso`} label="ISO" />
                 <ConfigrSubPage label="Script Settings" name={`${prefix}.script`}>

@@ -21,7 +21,7 @@ import {
   ConfigrConditional,
   ConfigrSubgroup,
   ConfigrForEach,
-  ConfigurSubPage,
+  ConfigrSubPage,
 } from '../ConfigrPane';
 
 interface IPetSettings {

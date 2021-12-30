@@ -3,9 +3,10 @@ import React, { useMemo, useState, useEffect, ReactElement } from 'react';
 
 import { ConfigrAppBar } from './ConfigrAppBar';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import toPath from 'lodash/toPath';
 
-import { Field, FieldArray, Formik, useField, useFormikContext } from 'formik';
+import { Field, Formik, useField, useFormikContext } from 'formik';
 import {
   Tab,
   Tabs,
@@ -41,13 +42,17 @@ const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
 const FocusPageContext = React.createContext({
-  focusPageName: '',
-  setFocusPageName: (p: string) => {},
+  focussedSubPageName: '',
+  setFocussedSubPageName: (p: string) => {},
 });
 
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
   const [currentTab, setCurrentTab] = useState(0);
-  const [currentPage, setCurrentPage] = useState('');
+
+  // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
+  // A stack would be easy but it would put some strain on the UI to help the user not be lost.
+  const [focussedSubPageName, setFocussedSubPageName] = useState('');
+
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
       <Tab
@@ -80,8 +85,7 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   );
 
   return (
-    <FocusPageContext.Provider
-      value={{ focusPageName: currentPage, setFocusPageName: setCurrentPage }}>
+    <FocusPageContext.Provider value={{ focussedSubPageName, setFocussedSubPageName }}>
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
         {({
           values,
@@ -203,27 +207,12 @@ const PaperGroup: React.FunctionComponent<{
         width: 100%;
         margin-bottom: 12px !important;
       `}>
-      {/* {props.label ? (
-        <Typography
-          variant="h2"
-          color="primary" // Review: this comes from a particular use case (Bloom Languages... is it general?)
-          css={css`
-            font-size: 14px !important;
-            padding-top: 10px;
-            padding-left: 17px;
-          `}
-        >
-          {props.label}
-        </Typography>
-      ) : (
-        " "
-      )} */}
       <List
         component="nav"
         css={css`
           width: 100%;
         `}>
-        {joinChildrenWithDivider(childrenWithStore)}
+        <FilterAndJoinWithDividers>{childrenWithStore}</FilterAndJoinWithDividers>
       </List>
     </Paper>
   );
@@ -237,16 +226,31 @@ function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
     } else return null;
   });
 }
-function joinChildrenWithDivider(children: any) {
-  return children
-    ? children.reduce((result: any, child: React.ReactNode, index: number) => {
-        if (index < children.length - 1) {
-          return result.concat(child, <Divider component="li" key={index} />);
-        }
-        return result.concat(child);
-      }, [])
-    : [];
-}
+
+// For each child element, determine if we want it to be visible right now,
+// and if we want to stick a horizontal divider beneath it.
+export const FilterAndJoinWithDividers: React.FunctionComponent<{}> = (props) => {
+  const count = React.Children.toArray(props.children).length;
+  return props.children
+    ? React.Children.toArray(props.children).reduce(
+        (result: any, child: React.ReactNode, index: number) => {
+          if (!React.isValidElement(child)) {
+            throw Error('We only expect to be given full elements not, e.g., strings');
+          }
+          const childElement = child as ReactElement;
+          const wrappedForFiltering = (
+            <FilterForSubPage {...childElement.props} key={'filter' + index}>
+              {childElement}
+              {index < count - 1 && <Divider component="li" key={index} />}
+            </FilterForSubPage>
+          );
+          //if (childElement.props.name)
+          return result.concat(wrappedForFiltering);
+        },
+        [],
+      )
+    : null;
+};
 
 export const ConfigrRowOneColumn: React.FunctionComponent<{
   label: string;
@@ -265,8 +269,31 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
   );
 };
 
+// If a subPage is in effect, only render if we are part of it
+const FilterForSubPage: React.FunctionComponent<{
+  name: string;
+}> = (props) => {
+  return (
+    <FocusPageContext.Consumer>
+      {({ focussedSubPageName }) => {
+        if (focussedSubPageName)
+          if (
+            !(
+              focussedSubPageName.startsWith(props.name) || // we are a parent of the focused thing
+              // we are a child of the focused thing
+              props.name.startsWith(focussedSubPageName)
+            )
+          )
+            return null;
+        return <React.Fragment>{props.children}</React.Fragment>;
+      }}
+    </FocusPageContext.Consumer>
+  );
+};
+
 export const ConfigrRowTwoColumns: React.FunctionComponent<{
   label: string;
+  name: string;
   labelSecondary?: string;
   control: React.ReactNode;
   disabled?: boolean;
@@ -331,34 +358,53 @@ export const ConfigrInput: React.FunctionComponent<{
 
 export const ConfigrSubgroup: React.FunctionComponent<{
   label: string;
+  name: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   //return <PaperGroup label={props.label}>{props.children}</PaperGroup>;
-  return <ConfigrGroup {...props}>{props.children}</ConfigrGroup>;
+  return (
+    <FilterForSubPage {...props}>
+      <ConfigrGroup {...props}>{props.children}</ConfigrGroup>
+    </FilterForSubPage>
+  );
 };
-export const ConfigurSubPage: React.FunctionComponent<{
+
+// In Chrome Settings, most controls live under pages that you get
+// to by clicking on a right-facing triangle control. When clicked,
+// the whole settings area switches to that of the page, and a back
+// button, labeled with the name of the page, is shown at the top.
+// We only allow a single level of nesting.
+export const ConfigrSubPage: React.FunctionComponent<{
   label: string;
   name: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   return (
     <FocusPageContext.Consumer>
-      {({ focusPageName, setFocusPageName }) => {
-        console.log('focusPageName is ' + focusPageName);
-        return (
-          <ConfigrRowTwoColumns
-            control={
-              <IconButton
-                onClick={() => setFocusPageName(props.name)}
-                css={css`
-                  background-color: ${focusPageName === props.name ? 'yellow' : 'unset'};
-                `}>
-                <ArrowRightIcon />
-              </IconButton>
-            }
-            {...props}
-          />
-        );
+      {({ focussedSubPageName, setFocussedSubPageName }) => {
+        if (focussedSubPageName === props.name) {
+          return (
+            <React.Fragment>
+              <div>
+                <IconButton onClick={() => setFocussedSubPageName('')}>
+                  <ArrowBackIcon />
+                </IconButton>
+                {props.label}
+              </div>
+              <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
+            </React.Fragment>
+          );
+        }
+        // We are not the focussed page, so show a row with a button that would make
+        // us the focussed page
+        else
+          return (
+            <ConfigrRowTwoColumns
+              onClick={() => setFocussedSubPageName(props.name)}
+              control={<ArrowRightIcon />}
+              {...props}
+            />
+          );
       }}
     </FocusPageContext.Consumer>
   );
