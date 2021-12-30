@@ -22,6 +22,7 @@ import {
   Radio,
   RadioGroup,
   Button,
+  ListItemButton,
 } from '@mui/material';
 import { TextField, Switch, Checkbox } from 'formik-mui';
 
@@ -298,9 +299,10 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
   control: React.ReactNode;
   disabled?: boolean;
   height?: string;
+  onClick?: () => void;
 }> = (props) => {
-  return (
-    <ListItem>
+  const inner = (
+    <React.Fragment>
       <ListItemText
         css={css`
           max-width: 300px;
@@ -311,7 +313,12 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
         secondary={props.labelSecondary}
       />
       <ListItemSecondaryAction>{props.control}</ListItemSecondaryAction>
-    </ListItem>
+    </React.Fragment>
+  );
+  return props.onClick ? (
+    <ListItemButton onClick={props.onClick}>{inner}</ListItemButton>
+  ) : (
+    <ListItem>{inner}</ListItem>
   );
 };
 
@@ -438,13 +445,29 @@ export const ConfigrBoolean: React.FunctionComponent<{
   labelSecondary?: string;
   immediateEffect?: boolean;
 }> = (props) => {
+  const [field, meta, helpers] = useField(props);
+
+  // we're not supporting indeterminate state here (yet), so treat an undefined value as false
+  if (field.value === undefined || field.value === null) {
+    // get a console error if we make this change while rendering
+    window.setTimeout(() => helpers.setValue(false), 0);
+  }
   const control = props.immediateEffect ? (
     <Field component={Switch} type="checkbox" name={props.name} label={props.label} />
   ) : (
     <Field component={Checkbox} type="checkbox" name={props.name} label={props.label} />
   );
 
-  return <ConfigrRowTwoColumns control={control} {...props} />;
+  return (
+    <ConfigrRowTwoColumns
+      // clicking the row is the same as clicking the toggle control
+      onClick={() => {
+        helpers.setValue(!field.value);
+      }}
+      control={control}
+      {...props}
+    />
+  );
 };
 
 export const ConfigrRadioGroup: React.FunctionComponent<{
