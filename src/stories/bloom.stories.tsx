@@ -58,22 +58,22 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
         showSearch={true}>
         <ConfigrGroup label="Languages" hasSubgroups>
           <ConfigrForEach
-            name="languages"
+            path="languages"
             render={(prefix: string, index: number) => (
               <ConfigrSubgroup
-                name={`${prefix}`}
+                path={`${prefix}`}
                 label={`Language ${index}`}
                 key={`${index}`}>
-                <ConfigrInput name={`${prefix}.name`} label="Name" />
-                <ConfigrInput name={`${prefix}.iso`} label="ISO" />
-                <ConfigrSubPage label="Script Settings" name={`${prefix}.script`}>
+                <ConfigrInput path={`${prefix}.name`} label="Name" />
+                <ConfigrInput path={`${prefix}.iso`} label="ISO" />
+                <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                   <ConfigrBoolean
                     label="This is a right to left script, like Arabic"
-                    name={`${prefix}.script.rtl`}
+                    path={`${prefix}.script.rtl`}
                   />
                   <ConfigrBoolean
                     label="Do not use special Asian script word breaking"
-                    name={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                    path={`${prefix}.script.avoidAsianScriptWordBreaking`}
                   />
                 </ConfigrSubPage>
               </ConfigrSubgroup>

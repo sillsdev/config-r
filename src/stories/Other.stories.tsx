@@ -51,13 +51,13 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         setValueGetter={(fn) => (getCurrentValues = fn)}
         showAllGroups={true}>
         <ConfigrGroup label="Dog">
-          <ConfigrInput name="dog.name" label="Name" />
+          <ConfigrInput path="dog.name" label="Name" />
           <ConfigrBoolean
-            name="dog.friendly"
+            path="dog.friendly"
             label="Friendly"
             labelSecondary="Does this dog like other dogs?"></ConfigrBoolean>
           <ConfigrChooserButton
-            name="dog.photos"
+            path="dog.photos"
             label="Folder of dog photos"
             labelSecondary="What does the dog look like?"
             buttonLabel="Choose..."
@@ -67,13 +67,13 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         </ConfigrGroup>
         <ConfigrGroup label="Bird">
           <ConfigrInput
-            name="bird.name"
+            path="bird.name"
             label="Name"
             getErrorMessage={(d: IPetSettings) =>
               d.bird.name.indexOf('!') > -1 ? 'No punctuation allowed' : undefined
             }
           />
-          <ConfigrRadioGroup name="bird.kind" label="Kind">
+          <ConfigrRadioGroup path="bird.kind" label="Kind">
             <ConfigrRadio label="Parakeet" value="parakeet" />
             <ConfigrRadio label="Parrot" value="parrot" />
           </ConfigrRadioGroup>
@@ -100,13 +100,13 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         showSearch={true}>
         <ConfigrGroup label="Files">
           <ConfigrBoolean
-            name="files.useLargeFileFolder"
+            path="files.useLargeFileFolder"
             label="Use Large File Folder"
             labelSecondary="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."></ConfigrBoolean>
           <ConfigrConditional
             enableWhen={(values: any) => values.files.useLargeFileFolder}>
             <ConfigrChooserButton
-              name="files.largeFileFolder"
+              path="files.largeFileFolder"
               label="Large File Folder Location"
               buttonLabel="Choose..."
               chooseAction={(currentValue: string) => {

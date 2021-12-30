@@ -43,8 +43,8 @@ const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
 const FocusPageContext = React.createContext({
-  focussedSubPageName: '',
-  setFocussedSubPageName: (p: string) => {},
+  focussedSubPagePath: '',
+  setFocussedSubPagePath: (p: string) => {},
 });
 
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
@@ -52,7 +52,7 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
 
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
-  const [focussedSubPageName, setFocussedSubPageName] = useState('');
+  const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
 
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
@@ -86,7 +86,11 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   );
 
   return (
-    <FocusPageContext.Provider value={{ focussedSubPageName, setFocussedSubPageName }}>
+    <FocusPageContext.Provider
+      value={{
+        focussedSubPagePath: focussedSubPagePath,
+        setFocussedSubPagePath: setFocussedSubPagePath,
+      }}>
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
         {({
           values,
@@ -245,7 +249,6 @@ export const FilterAndJoinWithDividers: React.FunctionComponent<{}> = (props) =>
               {index < count - 1 && <Divider component="li" key={index} />}
             </FilterForSubPage>
           );
-          //if (childElement.props.name)
           return result.concat(wrappedForFiltering);
         },
         [],
@@ -272,17 +275,17 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
 
 // If a subPage is in effect, only render if we are part of it
 const FilterForSubPage: React.FunctionComponent<{
-  name: string;
+  path: string;
 }> = (props) => {
   return (
     <FocusPageContext.Consumer>
-      {({ focussedSubPageName }) => {
-        if (focussedSubPageName)
+      {({ focussedSubPagePath }) => {
+        if (focussedSubPagePath)
           if (
             !(
-              focussedSubPageName.startsWith(props.name) || // we are a parent of the focused thing
+              focussedSubPagePath.startsWith(props.path) || // we are a parent of the focused thing
               // we are a child of the focused thing
-              props.name.startsWith(focussedSubPageName)
+              props.path.startsWith(focussedSubPagePath)
             )
           )
             return null;
@@ -294,7 +297,7 @@ const FilterForSubPage: React.FunctionComponent<{
 
 export const ConfigrRowTwoColumns: React.FunctionComponent<{
   label: string;
-  name: string;
+  path: string;
   labelSecondary?: string;
   control: React.ReactNode;
   disabled?: boolean;
@@ -343,7 +346,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
 //   };
 // }
 export const ConfigrInput: React.FunctionComponent<{
-  name: string;
+  path: string;
   label: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
@@ -351,24 +354,16 @@ export const ConfigrInput: React.FunctionComponent<{
     <ConfigrRowTwoColumns
       {...props}
       control={
-        //<TextField  label={props.label}></TextField>
-        <Field
-          component={TextField}
-          variant="standard"
-          name={props.name}
-          type="text"
-          // label={props.label}
-        />
+        <Field component={TextField} variant="standard" name={props.path} type="text" />
       }></ConfigrRowTwoColumns>
   );
 };
 
 export const ConfigrSubgroup: React.FunctionComponent<{
   label: string;
-  name: string;
+  path: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
-  //return <PaperGroup label={props.label}>{props.children}</PaperGroup>;
   return (
     <FilterForSubPage {...props}>
       <ConfigrGroup {...props}>{props.children}</ConfigrGroup>
@@ -383,17 +378,17 @@ export const ConfigrSubgroup: React.FunctionComponent<{
 // We only allow a single level of nesting.
 export const ConfigrSubPage: React.FunctionComponent<{
   label: string;
-  name: string;
+  path: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   return (
     <FocusPageContext.Consumer>
-      {({ focussedSubPageName, setFocussedSubPageName }) => {
-        if (focussedSubPageName === props.name) {
+      {({ focussedSubPagePath, setFocussedSubPagePath }) => {
+        if (focussedSubPagePath === props.path) {
           return (
             <React.Fragment>
               <div>
-                <IconButton onClick={() => setFocussedSubPageName('')}>
+                <IconButton onClick={() => setFocussedSubPagePath('')}>
                   <ArrowBackIcon />
                 </IconButton>
                 {props.label}
@@ -407,7 +402,7 @@ export const ConfigrSubPage: React.FunctionComponent<{
         else
           return (
             <ConfigrRowTwoColumns
-              onClick={() => setFocussedSubPageName(props.name)}
+              onClick={() => setFocussedSubPagePath(props.path)}
               control={<ArrowRightIcon />}
               {...props}
             />
@@ -421,31 +416,31 @@ export const ConfigrSubPage: React.FunctionComponent<{
 // Note, this `render` function leaves it to you to take the index and build
 // out the full path. I originally set out to instead just take some children elements
 // and then render them using relative paths. I figured out how to do it this way sooner,
-// is probably possible with a bunch of cloning so that the name/path prop could be changed
-// to the full path that formik requires. E.g. name="./iso" could be changed to name="project.languages[0].iso"
+// is probably possible with a bunch of cloning so that the path prop could be changed
+// to the full path that formik requires. E.g. path="./iso" could be changed to path="project.languages[0].iso"
 export const ConfigrForEach: React.FunctionComponent<{
-  name: string; // really, `path`
+  path: string; // really, `path`
   render: (pathPrefix: string, index: number) => React.ReactNode;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   const { values } = useFormikContext();
-  const items = getFormValueFromPath(values, props.name);
+  const items = getFormValueFromPath(values, props.path);
   return (
     <React.Fragment>
       {items.map((_item: any, index: number) =>
-        props.render(`${props.name}[${index}]`, index),
+        props.render(`${props.path}[${index}]`, index),
       )}
     </React.Fragment>
   );
 };
 
 export const ConfigrBoolean: React.FunctionComponent<{
-  name: string;
+  path: string;
   label: string;
   labelSecondary?: string;
   immediateEffect?: boolean;
 }> = (props) => {
-  const [field, meta, helpers] = useField(props);
+  const [field, meta, helpers] = useField(props.path);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
   if (field.value === undefined || field.value === null) {
@@ -453,9 +448,9 @@ export const ConfigrBoolean: React.FunctionComponent<{
     window.setTimeout(() => helpers.setValue(false), 0);
   }
   const control = props.immediateEffect ? (
-    <Field component={Switch} type="checkbox" name={props.name} label={props.label} />
+    <Field component={Switch} type="checkbox" name={props.path} label={props.label} />
   ) : (
-    <Field component={Checkbox} type="checkbox" name={props.name} label={props.label} />
+    <Field component={Checkbox} type="checkbox" name={props.path} label={props.label} />
   );
 
   return (
@@ -471,7 +466,7 @@ export const ConfigrBoolean: React.FunctionComponent<{
 };
 
 export const ConfigrRadioGroup: React.FunctionComponent<{
-  name: string;
+  path: string;
   label: string;
 }> = (props) => {
   return (
@@ -486,12 +481,11 @@ export const ConfigrRadioGroup: React.FunctionComponent<{
   );
 };
 export const ConfigrRadioGroupRaw: React.FunctionComponent<{
-  name: string;
+  path: string;
   label: string;
 }> = (props) => {
-  const [field] = useField(props.name); // REVIEW: what are we using out of `field` in the RadioGroup below?
+  const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below?
   return (
-    //<Field component={RadioGroup} name={props.name} label={props.label}>
     <RadioGroup {...field} {...props}>
       {React.Children.map(props.children, (c) => {
         const choice = c as ReactElement<{
@@ -526,7 +520,7 @@ export const ConfigrRadio: React.FunctionComponent<{
 
 // Use for things like a file or folder chooser.
 export const ConfigrChooserButton: React.FunctionComponent<{
-  name: string;
+  path: string;
   label: string;
   labelSecondary?: string;
   buttonLabel: string;
@@ -534,7 +528,7 @@ export const ConfigrChooserButton: React.FunctionComponent<{
   disabled?: boolean;
 }> = (props) => {
   const { setFieldValue } = useFormikContext();
-  const [field] = useField(props.name);
+  const [field] = useField(props.path);
 
   return (
     <ConfigrRowTwoColumns
@@ -550,7 +544,7 @@ export const ConfigrChooserButton: React.FunctionComponent<{
             variant={'outlined'}
             onClick={() => {
               const newValue = props.chooseAction(field.value);
-              setFieldValue(props.name, newValue);
+              setFieldValue(props.path, newValue);
             }}>
             {props.buttonLabel}
           </Button>
