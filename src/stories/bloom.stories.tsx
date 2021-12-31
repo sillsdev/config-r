@@ -121,9 +121,23 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
               },
             ]}></ConfigrSelect>
         </ConfigrGroup>
-        <ConfigrGroup label="Collection"></ConfigrGroup>
-        <ConfigrGroup label="Enterprise"></ConfigrGroup>
-        <ConfigrGroup label="Advanced"></ConfigrGroup>
+        <ConfigrGroup label="Collection">
+          <ConfigrInput path={`foo`} label="Do things the right way." />
+        </ConfigrGroup>
+        <ConfigrGroup label="Enterprise">
+          <ConfigrSubPage label={'Enterprise subpage'} path={`foo-enterprise-sub`}>
+            <ConfigrInput path={`foo-enterprise-sub.blah`} label="Turn right" />
+          </ConfigrSubPage>
+        </ConfigrGroup>
+        <ConfigrGroup label="Advanced">
+          <ConfigrSelect
+            path={`fake`}
+            label="Some other pretend font setting"
+            options={[
+              { label: 'Arial', value: 'Arial' },
+              { label: 'Andika New Basic', value: 'Andika New Basic' },
+            ]}></ConfigrSelect>
+        </ConfigrGroup>
       </ConfigrPane>
     </div>
   );

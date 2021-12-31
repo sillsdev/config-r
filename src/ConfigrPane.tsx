@@ -49,6 +49,10 @@ const FocusPageContext = React.createContext({
   focussedSubPagePath: '',
   setFocussedSubPagePath: (p: string) => {},
 });
+const SearchContext = React.createContext({
+  searchRegEx: null as RegExp | null,
+  setSearchRegEx: (p: RegExp | null) => {},
+});
 
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -56,6 +60,7 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
+  const [searchRegEx, setSearchRegEx] = useState<RegExp | null>(null); //new RegExp('(b)', 'gi'));
 
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
@@ -73,20 +78,20 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
     ));
   }, [props.children]);
 
-  const wrappedGroups = React.Children.map(
-    props.children,
-    (c: React.ReactElement<typeof ConfigrGroup>, index) => {
-      return (
-        <ConfigrGroupWrapper
-          selected={currentTab === index}
-          showAllGroups={!!props.showAllGroups}>
-          {React.cloneElement(c as React.ReactElement<any>, {
-            ...c.props,
-          })}
-        </ConfigrGroupWrapper>
-      );
-    },
-  );
+  // let wrappedGroups = React.Children.map(
+  //   props.children,
+  //   (c: React.ReactElement<typeof ConfigrGroup>, index) => {
+  //     return (
+  //       <ConfigrGroupWrapper
+  //         selected={currentTab === index}
+  //         showAllGroups={!!props.showAllGroups}>
+  //         {React.cloneElement(c as React.ReactElement<any>, {
+  //           ...c.props,
+  //         })}
+  //       </ConfigrGroupWrapper>
+  //     );
+  //   },
+  // );
 
   return (
     <FocusPageContext.Provider
@@ -94,72 +99,94 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
         focussedSubPagePath: focussedSubPagePath,
         setFocussedSubPagePath: setFocussedSubPagePath,
       }}>
-      <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          isSubmitting,
-        }) => {
-          if (props.setValueGetter)
-            props.setValueGetter(() => {
-              return values;
-            });
-          return (
-            <form
-              onSubmit={handleSubmit}
-              css={css`
-                flex-grow: 1;
-              `}>
-              <ConfigrAppBar label={props.label} />
-              <div
+      <SearchContext.Provider
+        value={{ searchRegEx: searchRegEx, setSearchRegEx: setSearchRegEx }}>
+        <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+          }) => {
+            if (props.setValueGetter)
+              props.setValueGetter(() => {
+                return values;
+              });
+            return (
+              <form
+                onSubmit={handleSubmit}
                 css={css`
-                  background-color: #f8f9fa;
-                  height: 100%;
-                  display: flex;
-
-                  .MuiTab-wrapper {
-                    text-align: left;
-                    align-items: start;
-                  }
+                  flex-grow: 1;
                 `}>
-                <Tabs
-                  value={currentTab}
-                  onChange={(event: React.ChangeEvent<{}>, index: number) => {
-                    setCurrentTab(index);
+                <ConfigrAppBar
+                  label={props.label}
+                  onChange={(value: string) => {
+                    if (!value.trim()) {
+                      setSearchRegEx(null);
+                      // this is the behavior in Chrome & Edge... once you search, we forget what the selected group was,
+                      // so that if you cancel the search, you're back to the beginning
+                      setCurrentTab(0);
+                    } else {
+                      const safe = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                      setSearchRegEx(new RegExp(`(${safe})`, 'gi'));
+                      // the ide of current tab goes away during a search, so don't highlight one
+                      setCurrentTab(-1);
+                    }
                   }}
-                  centered={false}
-                  orientation="vertical"
-                  css={css`
-                    width: ${tabBarWidth};
-                    padding-left: 12px;
-                    .MuiTabs-indicator {
-                      display: none;
-                    }
-                    .Mui-selected {
-                      font-weight: bold;
-                    }
-                  `}>
-                  {groupLinks}
-                </Tabs>
+                />
                 <div
-                  id="groups"
                   css={css`
-                    width: 600px;
-                    //overflow-y: scroll; //allows us to scroll the groups without
-                    //scrolling the heading tabs
-                    overflow-y: auto;
+                    background-color: #f8f9fa;
+                    height: 100%;
+                    display: flex;
+
+                    .MuiTab-wrapper {
+                      text-align: left;
+                      align-items: start;
+                    }
                   `}>
-                  {wrappedGroups}
+                  <Tabs
+                    value={currentTab}
+                    onChange={(event: React.ChangeEvent<{}>, index: number) => {
+                      setCurrentTab(index);
+                    }}
+                    centered={false}
+                    orientation="vertical"
+                    css={css`
+                      width: ${tabBarWidth};
+                      padding-left: 12px;
+                      .MuiTabs-indicator {
+                        display: none;
+                      }
+                      .Mui-selected {
+                        font-weight: bold;
+                      }
+                    `}>
+                    {groupLinks}
+                  </Tabs>
+                  <div
+                    id="groups"
+                    css={css`
+                      width: 600px;
+                      //overflow-y: scroll; //allows us to scroll the groups without
+                      //scrolling the heading tabs
+                      overflow-y: auto;
+                    `}>
+                    {searchRegEx
+                      ? props.children
+                      : React.Children.toArray(props.children).filter(
+                          (c: React.ReactNode, index: number) => index === currentTab,
+                        )}
+                  </div>
                 </div>
-              </div>
-            </form>
-          );
-        }}
-      </Formik>
+              </form>
+            );
+          }}
+        </Formik>
+      </SearchContext.Provider>
     </FocusPageContext.Provider>
   );
 };
@@ -185,10 +212,11 @@ export const ConfigrGroup: React.FunctionComponent<{
   // use hasSubgroups when this contains ConfigrSubGroups that provide their own background
   hasSubgroups?: boolean;
 }> = (props) => {
+  // TODO bring this into search
   if (props.hasSubgroups) return <React.Fragment>{props.children}</React.Fragment>;
 
   return (
-    <React.Fragment>
+    <FilterForSearchText label={props.label} kids={props.children}>
       <Typography
         variant="h2"
         css={css`
@@ -196,11 +224,11 @@ export const ConfigrGroup: React.FunctionComponent<{
           margin-top: 21px !important;
           margin-bottom: 12px !important;
         `}>
-        {props.label}
+        <HighlightText text={props.label} />
       </Typography>
 
       <PaperGroup>{props.children}</PaperGroup>
-    </React.Fragment>
+    </FilterForSearchText>
   );
 };
 
@@ -298,6 +326,70 @@ const FilterForSubPage: React.FunctionComponent<{
   );
 };
 
+// If Search is empty, pass through.
+// Else, pass through so long as the given label or kids have the search term
+// TODO: handle subpages
+const FilterForSearchText: React.FunctionComponent<{
+  label: string;
+  kids: React.ReactNode;
+}> = (props) => {
+  return (
+    <SearchContext.Consumer>
+      {({ searchRegEx }) => {
+        console.log(JSON.stringify(searchRegEx));
+        if (!searchRegEx) return <React.Fragment>{props.children}</React.Fragment>;
+        // check the children (rows of the group)
+        if (
+          React.Children.toArray(props.kids).some((c) => {
+            const componentWithLabelProp = (c as any).props?.label;
+            if (componentWithLabelProp && searchRegEx.test(componentWithLabelProp))
+              // this grandchild does the search string, directly
+              return true;
+            // Is this child a subpage? Then it has children we can check.
+            const childrenOfSubPage = (c as any).props?.children;
+            if (childrenOfSubPage) {
+              // among these children...
+              return React.Children.toArray(childrenOfSubPage).some((c: any) => {
+                // ... is there a child (a row of a sub page) that has a label that matches?
+                //React.Children.toArray(c.props?.children).some((k: any) => {
+                if (c.props.label) {
+                  console.log('looking at ' + c.props.label);
+                  // check the label in a great-grand-child (row of a sub page)
+                  return searchRegEx.test(c.props.label);
+                }
+                //});
+              });
+            }
+            return false; // this grandchild does not have the search string
+          })
+        ) {
+          return <React.Fragment>{props.children}</React.Fragment>; // show this child (a group)
+        }
+        return false;
+      }}
+    </SearchContext.Consumer>
+  );
+};
+
+function getHighlightedText(text: string, re: RegExp | null) {
+  if (re === null) return text;
+  const parts = text.split(re);
+  return (
+    <span>
+      {parts.map((part, i) => (re.test(part) ? <mark key={i}>{part}</mark> : part))}
+    </span>
+  );
+}
+export const HighlightText: React.FunctionComponent<{ text: string }> = (props) => {
+  return (
+    <SearchContext.Consumer>
+      {({ searchRegEx }) => {
+        return <span>{getHighlightedText(props.text, searchRegEx)}</span>;
+      }}
+    </SearchContext.Consumer>
+  );
+};
+
 export const ConfigrRowTwoColumns: React.FunctionComponent<{
   label: string;
   labelCss?: SerializedStyles;
@@ -309,23 +401,54 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
   onClick?: () => void;
 }> = (props) => {
   const inner = (
-    <React.Fragment>
-      <ListItemText
-        title={props.path}
-        css={css`
-          max-width: 300px;
-          color: ${props.disabled ? disabledGrey : 'unset'};
-          ${props.height ? 'height:' + props.height : ''}
-          user-select: none;
-          * {
-            ${props.labelCss}
+    <SearchContext.Consumer>
+      {({ searchRegEx }) => {
+        const row = (
+          <React.Fragment>
+            {/* Left side */}
+            <ListItemText
+              title={props.path}
+              css={css`
+                max-width: 300px;
+                color: ${props.disabled ? disabledGrey : 'unset'};
+                ${props.height ? 'height:' + props.height : ''}
+                user-select: none;
+                * {
+                  ${props.labelCss}
+                }
+              `}
+              primary={getHighlightedText(props.label, searchRegEx)}
+              secondary={props.labelSecondary}
+            />
+            {/* Right side */}
+            <ListItemSecondaryAction>{props.control}</ListItemSecondaryAction>
+          </React.Fragment>
+        );
+        if (searchRegEx) {
+          const count = React.Children.toArray(props.children).filter((c) =>
+            searchRegEx.exec((c as any).props.label as string),
+          ).length;
+          if (count) {
+            return (
+              <div>
+                {row}
+                <span
+                  css={css`
+                    background-color: yellow;
+                  `}>
+                  {`${count} matches`}
+                </span>
+              </div>
+              // I haven't managed to get this work yet
+              // <Tooltip open={true} title="hello">
+              //   {row}
+              // </Tooltip>
+            );
           }
-        `}
-        primary={props.label}
-        secondary={props.labelSecondary}
-      />
-      <ListItemSecondaryAction>{props.control}</ListItemSecondaryAction>
-    </React.Fragment>
+        }
+        return row;
+      }}
+    </SearchContext.Consumer>
   );
   return props.onClick ? (
     <ListItemButton onClick={props.onClick}>{inner}</ListItemButton>

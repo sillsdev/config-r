@@ -54,7 +54,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
   },
 }));
-export const ConfigrAppBar: React.FunctionComponent<{ label: string }> = (props) => {
+export const ConfigrAppBar: React.FunctionComponent<{
+  label: string;
+  onChange: (value: string) => void;
+}> = (props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState<null | HTMLElement>(
     null,
@@ -78,6 +81,9 @@ export const ConfigrAppBar: React.FunctionComponent<{ label: string }> = (props)
             <StyledInputBase
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
+              onChange={(
+                event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+              ) => props.onChange(event.target.value)}
             />
           </Search>
         </Toolbar>
