@@ -55,11 +55,11 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
           <ConfigrBoolean
             path="dog.friendly"
             label="Friendly"
-            labelSecondary="Does this dog like other dogs?"></ConfigrBoolean>
+            description="Does this dog like other dogs?"></ConfigrBoolean>
           <ConfigrChooserButton
             path="dog.photos"
             label="Folder of dog photos"
-            labelSecondary="What does the dog look like?"
+            description="What does the dog look like?"
             buttonLabel="Choose..."
             chooseAction={(currentValue: string) => {
               return 'x' + (currentValue || '');
@@ -102,7 +102,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
           <ConfigrBoolean
             path="files.useLargeFileFolder"
             label="Use Large File Folder"
-            labelSecondary="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."></ConfigrBoolean>
+            description="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."></ConfigrBoolean>
           <ConfigrConditional
             enableWhen={(values: any) => values.files.useLargeFileFolder}>
             <ConfigrChooserButton

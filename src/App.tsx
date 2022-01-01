@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import logo from './logo.svg';
 import { BloomCollection } from './stories/bloom.stories';
+import { Pets } from './stories/Other.stories';
 
 function App() {
   const [count, setCount] = useState(0);
