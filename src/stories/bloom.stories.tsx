@@ -57,133 +57,141 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
   // Configr Pane to have this logic instead of the client,
   // but I haven't figured out a way
   // for the outer theme to override the inner (Configr) component yet.
-  const bloomTheme = createTheme(
-    deepmerge(defaultConfigrTheme, {
-      palette: {
-        primary: {
-          main: '#1D94A4',
-        },
+  // const bloomTheme = createTheme(
+  //   //deepmerge(defaultConfigrTheme,
+  //   {
+  //     palette: {
+  //       primary: {
+  //         main: '#1D94A4',
+  //       },
+  //     },
+  //   },
+  //   //),
+  // );
+  const bloomThemeOverrides = {
+    palette: {
+      primary: {
+        main: '#1D94A4',
       },
-    }),
-  );
-
+    },
+  };
+  const bloomTheme = createTheme(bloomThemeOverrides);
   return (
-    <ThemeProvider theme={bloomTheme}>
-      <div
-        css={css`
-          display: flex;
-          flex-direction: column;
-          height: 300px;
-        `}>
-        <ConfigrPane
-          label="Bloom Collection Settings"
-          initialValues={initialBloomCollectionValues}
-          showSearch={true}>
-          <ConfigrGroup label="Languages" level={1}>
-            <ConfigrForEach
-              path="languages"
-              render={(prefix: string, index: number) => (
-                <ConfigrSubgroup
-                  path={`${prefix}`}
-                  label={`Language ${index}`}
-                  key={`${index}`}>
-                  <ConfigrSubPage
-                    label={initialBloomCollectionValues.languages[index].id.name}
-                    path={`${prefix}.id`}
-                    labelCss={css`
-                      font-weight: bold !important;
-                    `}>
-                    <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
-                    <ConfigrInput path={`${prefix}.id.name`} label="Name" />
-                  </ConfigrSubPage>
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 300px;
+      `}>
+      <ConfigrPane
+        label="Bloom Collection Settings"
+        initialValues={initialBloomCollectionValues}
+        themeOverrides={bloomThemeOverrides}
+        showSearch={true}>
+        <ConfigrGroup label="Languages" level={1}>
+          <ConfigrForEach
+            path="languages"
+            render={(prefix: string, index: number) => (
+              <ConfigrSubgroup
+                path={`${prefix}`}
+                label={`Language ${index}`}
+                key={`${index}`}>
+                <ConfigrSubPage
+                  label={initialBloomCollectionValues.languages[index].id.name}
+                  path={`${prefix}.id`}
+                  labelCss={css`
+                    font-weight: bold !important;
+                  `}>
+                  <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                  <ConfigrInput path={`${prefix}.id.name`} label="Name" />
+                </ConfigrSubPage>
 
-                  <ConfigrSelect
-                    path={`${prefix}.font`}
-                    label="Default Font"
-                    options={[
-                      { label: 'Arial', value: 'Arial' },
-                      { label: 'Andika New Basic', value: 'Andika New Basic' },
-                    ]}></ConfigrSelect>
+                <ConfigrSelect
+                  path={`${prefix}.font`}
+                  label="Default Font"
+                  options={[
+                    { label: 'Arial', value: 'Arial' },
+                    { label: 'Andika New Basic', value: 'Andika New Basic' },
+                  ]}></ConfigrSelect>
 
-                  <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
-                    <ConfigrBoolean
-                      label="This is a right to left script, like Arabic"
-                      path={`${prefix}.script.rtl`}
-                    />
-                    <ConfigrBoolean
-                      label="Do not use special Asian script word breaking"
-                      path={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                    />
-                  </ConfigrSubPage>
-                </ConfigrSubgroup>
-              )}></ConfigrForEach>
-          </ConfigrGroup>
-          <ConfigrGroup label="Book Defaults">
-            <ConfigrSelect
-              path={'pageNumberStyle'}
-              label="Page Numbering Style"
-              options={[
-                { label: 'Decimal', value: 'Decimal' },
-                { label: 'Devanagari', value: 'Devanagari' },
-              ]}></ConfigrSelect>
-            <ConfigrSelect
-              path={'xmatterPck'}
-              label="Front/Back Matter Pack"
-              options={[
-                { label: 'Paper Saver', value: 'Paper Saver' },
-                { label: 'Super Paper Saver', value: 'Super Paper Saver' },
-                {
-                  label: 'Traditional',
-                  value: 'Traditional',
-                  description: 'Credits on the back of the title page.',
-                },
-              ]}></ConfigrSelect>
-          </ConfigrGroup>
-          <ConfigrGroup
-            label="Enterprise"
-            description={
-              <span>
-                Bloom Enterprise adds features and services that are important for
-                publishers, governments, and international organizations. This paid
-                subscription meets their unique needs while supporting the development and
-                user support of Bloom for the community at large.&nbsp;
-                <Link href="google.com">Learn More</Link>
-              </span>
-            }>
-            <ConfigrRadioGroup path="enterprise-mode" label="Status">
-              <ConfigrRadio label="Subscribed" value="subscribed" />
-              <ConfigrRadio label="Funded by the local community only" value="local" />
-              <ConfigrRadio label="None" value="none" />
-            </ConfigrRadioGroup>
-          </ConfigrGroup>
-          <ConfigrGroup label="Location">
-            <ConfigrInput path={`country`} label="Country" />
-            <ConfigrInput path={`province`} label="Province" />
-            <ConfigrInput path={`district`} label="District" />
-          </ConfigrGroup>
-          <ConfigrGroup label="Advanced" level={1}>
-            <ConfigrSubgroup label="" path="">
-              <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}
-              <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
-            </ConfigrSubgroup>
-            <ConfigrSubgroup label="Experimental Features" path="feature">
-              <ConfigrBoolean
-                label="Show Experimental Book Sources"
-                path="feature.experimentalBookSources"
-              />
-              <ConfigrBoolean
-                label="Team Collections"
-                path="feature.teamCollections"
-                description="Enabling this will show the settings for creating a Team Collection, which lets your team automatically synchronize your work with each other."
-              />
-              <ConfigrBoolean
-                label="Spreadsheet Import/Export"
-                path="feature.spreadsheet"
-              />
-            </ConfigrSubgroup>
-          </ConfigrGroup>
-        </ConfigrPane>
-      </div>
-    </ThemeProvider>
+                <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
+                  <ConfigrBoolean
+                    label="This is a right to left script, like Arabic"
+                    path={`${prefix}.script.rtl`}
+                  />
+                  <ConfigrBoolean
+                    label="Do not use special Asian script word breaking"
+                    path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                  />
+                </ConfigrSubPage>
+              </ConfigrSubgroup>
+            )}></ConfigrForEach>
+        </ConfigrGroup>
+        <ConfigrGroup label="Book Defaults">
+          <ConfigrSelect
+            path={'pageNumberStyle'}
+            label="Page Numbering Style"
+            options={[
+              { label: 'Decimal', value: 'Decimal' },
+              { label: 'Devanagari', value: 'Devanagari' },
+            ]}></ConfigrSelect>
+          <ConfigrSelect
+            path={'xmatterPck'}
+            label="Front/Back Matter Pack"
+            options={[
+              { label: 'Paper Saver', value: 'Paper Saver' },
+              { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+              {
+                label: 'Traditional',
+                value: 'Traditional',
+                description: 'Credits on the back of the title page.',
+              },
+            ]}></ConfigrSelect>
+        </ConfigrGroup>
+        <ConfigrGroup
+          label="Enterprise"
+          description={
+            <span>
+              Bloom Enterprise adds features and services that are important for
+              publishers, governments, and international organizations. This paid
+              subscription meets their unique needs while supporting the development and
+              user support of Bloom for the community at large.&nbsp;
+              <Link href="google.com">Learn More</Link>
+            </span>
+          }>
+          <ConfigrRadioGroup path="enterprise-mode" label="Status">
+            <ConfigrRadio label="Subscribed" value="subscribed" />
+            <ConfigrRadio label="Funded by the local community only" value="local" />
+            <ConfigrRadio label="None" value="none" />
+          </ConfigrRadioGroup>
+        </ConfigrGroup>
+        <ConfigrGroup label="Location">
+          <ConfigrInput path={`country`} label="Country" />
+          <ConfigrInput path={`province`} label="Province" />
+          <ConfigrInput path={`district`} label="District" />
+        </ConfigrGroup>
+        <ConfigrGroup label="Advanced" level={1}>
+          <ConfigrSubgroup label="" path="">
+            <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}
+            <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Experimental Features" path="feature">
+            <ConfigrBoolean
+              label="Show Experimental Book Sources"
+              path="feature.experimentalBookSources"
+            />
+            <ConfigrBoolean
+              label="Team Collections"
+              path="feature.teamCollections"
+              description="Enabling this will show the settings for creating a Team Collection, which lets your team automatically synchronize your work with each other."
+            />
+            <ConfigrBoolean
+              label="Spreadsheet Import/Export"
+              path="feature.spreadsheet"
+            />
+          </ConfigrSubgroup>
+        </ConfigrGroup>
+      </ConfigrPane>
+    </div>
   );
 };

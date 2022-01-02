@@ -43,6 +43,7 @@ interface IConfigrPaneProps {
   setValueGetter?: (vg: valueGetter) => void;
   showSearch?: boolean;
   showAllGroups?: boolean;
+  themeOverrides?: any;
 }
 const tabBarWidth = '200px';
 const disabledGrey = 'rgba(5, 1, 1, 0.26)';
@@ -96,31 +97,19 @@ export const defaultConfigrTheme = {
     MuiDivider: {
       styleOverrides: { root: { borderColor: 'rgb(234, 234, 234)' } },
     },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          fontSize: '14px',
+          fontWeight: '600', //<-- gives an eslint error about the type but it works
+        },
+      },
+    },
   },
 };
 
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
-  const [currentTab, setCurrentTab] = useState(0);
-  /* Enhance: this just gives us either the client theme or our default.
-  I haven't figured out a way for the outer theme to override the
-  inner (Configr) component yet, because we don't have access to just what options
-  the parent set; we only have the full theme they got from createTheme().
-  So for now, clients have to do the merging, with
-  code like this. Here, we just tweak one part of the Configr theme to change the color.
-   const bloomTheme = createTheme(
-     deepmerge(defaultConfigrTheme, {
-       palette: {
-         primary: {
-           main: '#1D94A4',
-         },
-       },
-     }),
-   );
-  */
-  const clientsOuterTheme = useTheme();
-  const theme = clientsOuterTheme ?? defaultConfigrTheme;
-
-  // console.log('theme:' + JSON.stringify(theme));
+  const [currentTab, setCurrentTab] = useState<number | undefined>(0);
 
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
@@ -142,24 +131,16 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
         `}></Tab>
     ));
   }, [props.children]);
-
-  // let wrappedGroups = React.Children.map(
-  //   props.children,
-  //   (c: React.ReactElement<typeof ConfigrGroup>, index) => {
-  //     return (
-  //       <ConfigrGroupWrapper
-  //         selected={currentTab === index}
-  //         showAllGroups={!!props.showAllGroups}>
-  //         {React.cloneElement(c as React.ReactElement<any>, {
-  //           ...c.props,
-  //         })}
-  //       </ConfigrGroupWrapper>
-  //     );
-  //   },
-  // );
-
+  // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
+  // we'll merge with our own themes such that the outer one wins. But MUI
+  // does the opposite of that, and I haven't figured out a way around it, other
+  // than this kludge of having the client have to hand us overrides as a prop.
+  // We *can* get at the outer theme in a couple ways, but it comes as a complete
+  // set of properties, and I don't see how to know which ones are just defaults
+  // and which the client actually cares about.
+  const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={mergedTheme}>
       <FocusPageContext.Provider
         value={{
           focussedSubPagePath: focussedSubPagePath,
@@ -199,7 +180,7 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
                         const safe = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         setSearchRegEx(new RegExp(`(${safe})`, 'gi'));
                         // the ide of current tab goes away during a search, so don't highlight one
-                        setCurrentTab(-1);
+                        setCurrentTab(undefined);
                       }
                     }}
                   />
@@ -365,11 +346,17 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
 }> = (props) => {
   return (
     <ListItem
-      className={'MuiListItem-alignItemsFlexStart'}
+      //className={'MuiListItem-alignItemsFlexStart'}
       css={css`
         flex-direction: column;
+        // I don't understand why this is needed. Else, it's centered
+        align-items: flex-start;
       `}>
-      <ListItemText primary={props.label} secondary={props.description} />
+      <ListItemText
+        primaryTypographyProps={{ variant: 'h4' }}
+        primary={props.label}
+        secondary={props.description}
+      />
       {props.control}
     </ListItem>
   );
@@ -399,15 +386,14 @@ const FilterForSubPage: React.FunctionComponent<{
 
 // If Search is empty, pass through.
 // Else, pass through so long as the given label or kids have the search term
-// TODO: handle subpages
 const FilterForSearchText: React.FunctionComponent<{
   label: string;
   kids: React.ReactNode;
 }> = (props) => {
+  // enhance: would the "react-children-utilities/Children" utilities simplify this?
   return (
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
-        console.log(JSON.stringify(searchRegEx));
         if (!searchRegEx) return <React.Fragment>{props.children}</React.Fragment>;
         // check the children (rows of the group)
         if (
@@ -422,13 +408,10 @@ const FilterForSearchText: React.FunctionComponent<{
               // among these children...
               return React.Children.toArray(childrenOfSubPage).some((c: any) => {
                 // ... is there a child (a row of a sub page) that has a label that matches?
-                //React.Children.toArray(c.props?.children).some((k: any) => {
-                if (c.props.label) {
-                  console.log('looking at ' + c.props.label);
+                if (c?.props?.label) {
                   // check the label in a great-grand-child (row of a sub page)
                   return searchRegEx.test(c.props.label);
                 }
-                //});
               });
             }
             return false; // this grandchild does not have the search string
@@ -462,7 +445,6 @@ export const HighlightSearchTerms: React.FunctionComponent<{}> = (props) => {
       <SearchContext.Consumer>
         {({ searchRegEx }) => {
           const label = Children.onlyText(props.children);
-          console.log('text=' + label);
           return <span>{getHighlightedText(label, searchRegEx)}</span>;
         }}
       </SearchContext.Consumer>
@@ -500,8 +482,9 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
               secondary={
                 <Typography
                   variant="caption"
-                  // the default component, span, ignores line-height
-                  component={'p'}
+                  // enhance: the default component, span, ignores the line-height of our caption
+                  // but if we use p, we get a console error because the parent is already a p.body2
+                  //component={'p'}
                   css={css`
                     &,
                     * {
