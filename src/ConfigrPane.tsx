@@ -1,7 +1,6 @@
 import { css, SerializedStyles } from '@emotion/react';
 import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
 
-import { ConfigrAppBar } from './ConfigrAppBar';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
@@ -32,11 +31,12 @@ import {
 } from '@mui/material';
 import { TextField, Switch, Checkbox, Select as FormikMuiSelect } from 'formik-mui';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
-import { FilterForSearchText, SearchContext } from './FilterForSearch';
+import { FilterForSearchText } from './FilterForSearch';
+import { SearchContext } from './SearchSystem';
 
 type valueGetter = () => Object;
 
-interface IConfigrPaneProps {
+export interface IConfigrPaneProps {
   label: string;
   initialValues: object;
   children:
@@ -112,12 +112,6 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
-  const defaultSearch = ''; //   new RegExp('(foo)', 'gi'),
-  const [searchString, setSearchString] = useState<string | null>(defaultSearch);
-
-  useEffect(() => {
-    setSearchString(defaultSearch);
-  }, [currentTab]);
 
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
@@ -149,127 +143,107 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
           focussedSubPagePath: focussedSubPagePath,
           setFocussedSubPagePath: setFocussedSubPagePath,
         }}>
-        <SearchContext.Provider
-          value={{
-            searchString,
-
-            searchRegEx: searchString
-              ? new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
-              : null,
-            setSearchString,
-          }}>
-          <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              isSubmitting,
-            }) => {
-              if (props.setValueGetter)
-                props.setValueGetter(() => {
-                  return values;
-                });
-              return (
-                <form
-                  onSubmit={handleSubmit}
+        <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+          }) => {
+            if (props.setValueGetter)
+              props.setValueGetter(() => {
+                return values;
+              });
+            return (
+              <form
+                onSubmit={handleSubmit}
+                css={css`
+                  flex-grow: 1;
+                `}>
+                <div
                   css={css`
-                    flex-grow: 1;
-                  `}>
-                  <ConfigrAppBar
-                    label={props.label}
-                    onChange={(value: string) => {
-                      if (!value.trim()) {
-                        setSearchString(null);
-                        // this is the behavior in Chrome & Edge... once you search, we forget what the selected group was,
-                        // so that if you cancel the search, you're back to the beginning
-                        setCurrentTab(0);
-                      } else {
-                        setSearchString(value);
-                        // the ide of current tab goes away during a search, so don't highlight one
-                        //TODO: this is not allowed (console error)... so how else
-                        // setCurrentTab(undefined);
-                      }
-                    }}
-                  />
-                  <div
-                    css={css`
-                      background-color: #f8f9fa;
-                      height: 100%;
-                      display: flex;
+                    background-color: #f8f9fa;
+                    height: 100%;
+                    display: flex;
 
-                      .MuiTab-wrapper {
-                        text-align: left;
-                        align-items: start;
+                    .MuiTab-wrapper {
+                      text-align: left;
+                      align-items: start;
+                    }
+                  `}>
+                  <Tabs
+                    value={currentTab}
+                    onChange={(event: React.ChangeEvent<{}>, index: number) => {
+                      setCurrentTab(index);
+                    }}
+                    centered={false}
+                    orientation="vertical"
+                    css={css`
+                      width: ${tabBarWidth};
+                      padding-left: 12px;
+                      .MuiTabs-indicator {
+                        display: none;
+                      }
+                      .Mui-selected {
+                        font-weight: bold;
                       }
                     `}>
-                    <Tabs
-                      value={currentTab}
-                      onChange={(event: React.ChangeEvent<{}>, index: number) => {
-                        setCurrentTab(index);
-                      }}
-                      centered={false}
-                      orientation="vertical"
-                      css={css`
-                        width: ${tabBarWidth};
-                        padding-left: 12px;
-                        .MuiTabs-indicator {
-                          display: none;
-                        }
-                        .Mui-selected {
-                          font-weight: bold;
-                        }
-                      `}>
-                      {groupLinks}
-                    </Tabs>
-                    <div
-                      id="groups"
-                      css={css`
-                        width: 600px;
-                        //overflow-y: scroll; //allows us to scroll the groups without
-                        //scrolling the heading tabs
-                        overflow-y: auto;
-                      `}>
-                      {searchString ? (
-                        <HighlightSearchTerms
-                          searchString={searchString}
-                          focussedSubPagePath={focussedSubPagePath}>
-                          {props.children}
-                        </HighlightSearchTerms>
-                      ) : (
-                        React.Children.toArray(props.children).filter(
-                          (c: React.ReactNode, index: number) => index === currentTab,
-                        )
-                      )}
-                    </div>
-                  </div>
-                </form>
-              );
-            }}
-          </Formik>
-        </SearchContext.Provider>
+                    {groupLinks}
+                  </Tabs>
+                  <VisibleGroups
+                    currentTab={currentTab}
+                    focussedSubPagePath={focussedSubPagePath}>
+                    {props.children}
+                  </VisibleGroups>
+                </div>
+              </form>
+            );
+          }}
+        </Formik>
       </FocusPageContext.Provider>
     </ThemeProvider>
   );
 };
 
-// export const ConfigrGroupWrapper: React.FunctionComponent<{
-//   selected: boolean;
-//   // If this is true, then the selected group will get scrolled into view. Otherwise, only the selected group will be visible.
-//   showAllGroups: boolean;
-// }> = (props) => {
-//   const groupRef = React.useRef<HTMLInputElement>(null);
-//   useEffect(() => {
-//     if (props.showAllGroups && props.selected) {
-//       groupRef.current?.scrollIntoView();
-//     }
-//   }, [props.selected, props.showAllGroups]);
-//   if (props.showAllGroups) {
-//     return <div ref={groupRef}>{props.children}</div>;
-//   } else return props.selected ? <React.Fragment>{props.children}</React.Fragment> : null;
-// };
+export const VisibleGroups: React.FunctionComponent<{
+  currentTab?: number;
+  focussedSubPagePath?: string;
+  children:
+    | React.ReactElement<typeof ConfigrGroup>
+    | React.ReactElement<typeof ConfigrGroup>[];
+}> = (props) => {
+  return (
+    <SearchContext.Consumer>
+      {({ searchString }) => {
+        return (
+          <div
+            id="groups"
+            css={css`
+              width: 600px;
+              //overflow-y: scroll; //allows us to scroll the groups without
+              //scrolling the heading tabs
+              overflow-y: auto;
+            `}>
+            {searchString ? (
+              <HighlightSearchTerms
+                searchString={searchString}
+                focussedSubPagePath={props.focussedSubPagePath}>
+                {props.children}
+              </HighlightSearchTerms>
+            ) : (
+              React.Children.toArray(props.children).filter(
+                (c: React.ReactNode, index: number) => index === props.currentTab,
+              )
+            )}
+          </div>
+        );
+      }}
+    </SearchContext.Consumer>
+  );
+};
 
 export const ConfigrGroup: React.FunctionComponent<{
   label: string;

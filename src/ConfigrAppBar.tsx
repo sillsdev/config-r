@@ -12,6 +12,7 @@ import {
   Box,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { SearchContext } from './SearchSystem';
 
 /* this is mostly copy/pasted from the example at https://material-ui.com/components/app-bar/#app-bar */
 
@@ -56,7 +57,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 export const ConfigrAppBar: React.FunctionComponent<{
   label: string;
-  onChange: (value: string) => void;
 }> = (props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState<null | HTMLElement>(
@@ -64,30 +64,34 @@ export const ConfigrAppBar: React.FunctionComponent<{
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ display: { xs: 'none', sm: 'block' } }}>
-            {props.label}
-          </Typography>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-              onChange={(
-                event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-              ) => props.onChange(event.target.value)}
-            />
-          </Search>
-        </Toolbar>
-      </AppBar>
-    </Box>
+    <SearchContext.Consumer>
+      {({ setSearchString }) => (
+        <Box sx={{ flexGrow: 1 }}>
+          <AppBar position="static">
+            <Toolbar>
+              <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{ display: { xs: 'none', sm: 'block' } }}>
+                {props.label}
+              </Typography>
+              <Search>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase
+                  placeholder="Search…"
+                  inputProps={{ 'aria-label': 'search' }}
+                  onChange={(
+                    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+                  ) => setSearchString(event.target.value)}
+                />
+              </Search>
+            </Toolbar>
+          </AppBar>
+        </Box>
+      )}
+    </SearchContext.Consumer>
   );
 };

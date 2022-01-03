@@ -11,6 +11,7 @@ import { Link } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { deepmerge } from '@mui/utils';
 import React from 'react';
+import { ChromeSettings } from '../ChromeSettings';
 
 import {
   ConfigrPane,
@@ -108,7 +109,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
         flex-direction: column;
         height: 300px;
       `}>
-      <ConfigrPane
+      <ChromeSettings
         label="Bloom Collection Settings"
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
@@ -217,7 +218,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
             />
           </ConfigrSubgroup>
         </ConfigrGroup>
-      </ConfigrPane>
+      </ChromeSettings>
     </div>
   );
 };

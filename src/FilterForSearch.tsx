@@ -1,10 +1,6 @@
 import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
 import Children from 'react-children-utilities';
-export const SearchContext = React.createContext({
-  searchString: '' as string | null,
-  searchRegEx: null as RegExp | null,
-  setSearchString: (searchString: string | null) => {},
-});
+import { SearchContext } from './SearchSystem';
 
 // If Search is empty, pass through.
 // Else, pass through so long as the given label or kids have the search term
