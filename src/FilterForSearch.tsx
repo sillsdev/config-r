@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
 import Children from 'react-children-utilities';
-import { SearchContext } from './SearchSystem';
+import { SearchContext } from './SearchContextProvider';
 
 // If Search is empty, pass through.
 // Else, pass through so long as the given label or kids have the search term

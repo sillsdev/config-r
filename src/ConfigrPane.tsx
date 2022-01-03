@@ -32,13 +32,14 @@ import {
 import { TextField, Switch, Checkbox, Select as FormikMuiSelect } from 'formik-mui';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
-import { SearchContext } from './SearchSystem';
+import { SearchContext } from './SearchContextProvider';
 
 type valueGetter = () => Object;
 
 export interface IConfigrPaneProps {
   label: string;
   initialValues: object;
+  currentTab?: number;
   children:
     | React.ReactElement<typeof ConfigrGroup>
     | React.ReactElement<typeof ConfigrGroup>[];
@@ -47,7 +48,7 @@ export interface IConfigrPaneProps {
   showAllGroups?: boolean;
   themeOverrides?: any;
 }
-const tabBarWidth = '200px';
+
 const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
@@ -107,27 +108,10 @@ export const defaultConfigrTheme = {
 };
 
 export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
-  const [currentTab, setCurrentTab] = useState<number | undefined>(0);
-
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
 
-  const groupLinks = useMemo(() => {
-    return React.Children.map(props.children, (g: any) => (
-      <Tab
-        key={g.props.label}
-        label={g.props.label}
-        css={css`
-          font-weight: 500;
-          align-items: start;
-          text-transform: unset;
-          color: black;
-          font-weight: 500;
-          font-size: 13px;
-        `}></Tab>
-    ));
-  }, [props.children]);
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
   // does the opposite of that, and I haven't figured out a way around it, other
@@ -163,42 +147,11 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
                 css={css`
                   flex-grow: 1;
                 `}>
-                <div
-                  css={css`
-                    background-color: #f8f9fa;
-                    height: 100%;
-                    display: flex;
-
-                    .MuiTab-wrapper {
-                      text-align: left;
-                      align-items: start;
-                    }
-                  `}>
-                  <Tabs
-                    value={currentTab}
-                    onChange={(event: React.ChangeEvent<{}>, index: number) => {
-                      setCurrentTab(index);
-                    }}
-                    centered={false}
-                    orientation="vertical"
-                    css={css`
-                      width: ${tabBarWidth};
-                      padding-left: 12px;
-                      .MuiTabs-indicator {
-                        display: none;
-                      }
-                      .Mui-selected {
-                        font-weight: bold;
-                      }
-                    `}>
-                    {groupLinks}
-                  </Tabs>
-                  <VisibleGroups
-                    currentTab={currentTab}
-                    focussedSubPagePath={focussedSubPagePath}>
-                    {props.children}
-                  </VisibleGroups>
-                </div>
+                <VisibleGroups
+                  currentTab={props.currentTab}
+                  focussedSubPagePath={focussedSubPagePath}>
+                  {props.children}
+                </VisibleGroups>
               </form>
             );
           }}
