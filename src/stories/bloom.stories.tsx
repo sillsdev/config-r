@@ -52,6 +52,31 @@ export default {
   component: () => <BloomCollection />,
 };
 
+export const SearchTest: React.FunctionComponent<{}> = (props) => {
+  return (
+    <ConfigrPane
+      label="Bloom Collection Settings"
+      initialValues={{ colors: [{ color: 'red' }] }}
+      showSearch={true}>
+      {/* <ConfigrGroup label="Shapes" level={1}>
+        <ConfigrSubgroup path="blah" label="Rectangles">
+          <ConfigrBoolean path="foo" label="Square" />
+        </ConfigrSubgroup>
+      </ConfigrGroup> */}
+      <ConfigrGroup label="Colors With Array " level={1}>
+        <ConfigrForEach
+          path="colors"
+          searchTerms="color foo"
+          render={(prefix: string, index: number) => (
+            <ConfigrSubgroup path="color" label="Some Color">
+              <ConfigrInput path="color" label="foo" />
+            </ConfigrSubgroup>
+          )}></ConfigrForEach>
+      </ConfigrGroup>
+    </ConfigrPane>
+  );
+};
+
 export const BloomCollection: React.FunctionComponent<{}> = (props) => {
   // Enhance: it would of course be so much better for the
   // Configr Pane to have this logic instead of the client,
@@ -91,6 +116,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
         <ConfigrGroup label="Languages" level={1}>
           <ConfigrForEach
             path="languages"
+            searchTerms="font script right left word breaking Asian name iso"
             render={(prefix: string, index: number) => (
               <ConfigrSubgroup
                 path={`${prefix}`}

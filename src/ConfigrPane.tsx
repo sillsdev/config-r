@@ -1,5 +1,5 @@
 import { css, SerializedStyles } from '@emotion/react';
-import React, { useMemo, useState, useEffect, ReactElement } from 'react';
+import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
 
 import { ConfigrAppBar } from './ConfigrAppBar';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
@@ -31,6 +31,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { TextField, Switch, Checkbox, Select as FormikMuiSelect } from 'formik-mui';
+import { HighlightSearchTerms } from './HighlightSearchTerms';
 
 type valueGetter = () => Object;
 
@@ -54,8 +55,9 @@ const FocusPageContext = React.createContext({
   setFocussedSubPagePath: (p: string) => {},
 });
 const SearchContext = React.createContext({
+  searchString: '' as string | null,
   searchRegEx: null as RegExp | null,
-  setSearchRegEx: (p: RegExp | null) => {},
+  setSearchString: (searchString: string | null) => {},
 });
 
 export const defaultConfigrTheme = {
@@ -114,7 +116,12 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
-  const [searchRegEx, setSearchRegEx] = useState<RegExp | null>(null); //new RegExp('(b)', 'gi'));
+  const defaultSearch = ''; //   new RegExp('(foo)', 'gi'),
+  const [searchString, setSearchString] = useState<string | null>(defaultSearch);
+
+  useEffect(() => {
+    setSearchString(defaultSearch);
+  }, [currentTab]);
 
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
@@ -147,7 +154,14 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
           setFocussedSubPagePath: setFocussedSubPagePath,
         }}>
         <SearchContext.Provider
-          value={{ searchRegEx: searchRegEx, setSearchRegEx: setSearchRegEx }}>
+          value={{
+            searchString,
+
+            searchRegEx: searchString
+              ? new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+              : null,
+            setSearchString,
+          }}>
           <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
             {({
               values,
@@ -172,15 +186,15 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
                     label={props.label}
                     onChange={(value: string) => {
                       if (!value.trim()) {
-                        setSearchRegEx(null);
+                        setSearchString(null);
                         // this is the behavior in Chrome & Edge... once you search, we forget what the selected group was,
                         // so that if you cancel the search, you're back to the beginning
                         setCurrentTab(0);
                       } else {
-                        const safe = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        setSearchRegEx(new RegExp(`(${safe})`, 'gi'));
+                        setSearchString(value);
                         // the ide of current tab goes away during a search, so don't highlight one
-                        setCurrentTab(undefined);
+                        //TODO: this is not allowed (console error)... so how else
+                        // setCurrentTab(undefined);
                       }
                     }}
                   />
@@ -222,11 +236,17 @@ export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) =
                         //scrolling the heading tabs
                         overflow-y: auto;
                       `}>
-                      {searchRegEx
-                        ? props.children
-                        : React.Children.toArray(props.children).filter(
-                            (c: React.ReactNode, index: number) => index === currentTab,
-                          )}
+                      {searchString ? (
+                        <HighlightSearchTerms
+                          searchString={searchString}
+                          focussedSubPagePath={focussedSubPagePath}>
+                          {props.children}
+                        </HighlightSearchTerms>
+                      ) : (
+                        React.Children.toArray(props.children).filter(
+                          (c: React.ReactNode, index: number) => index === currentTab,
+                        )
+                      )}
                     </div>
                   </div>
                 </form>
@@ -262,18 +282,14 @@ export const ConfigrGroup: React.FunctionComponent<{
   level?: undefined | 1 | 2;
 }> = (props) => {
   return (
-    <FilterForSearchText label={props.label} kids={props.children}>
+    <FilterForSearchText {...props} kids={props.children}>
       <div
         css={css`
           margin-top: 21px !important;
           margin-bottom: 12px !important;
         `}>
-        <Typography variant={props.level === 2 ? 'h3' : 'h2'}>
-          <HighlightSearchTerms>{props.label}</HighlightSearchTerms>
-        </Typography>
-        <Typography variant={'caption'}>
-          <HighlightSearchTerms>{props.description}</HighlightSearchTerms>
-        </Typography>
+        <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
+        <Typography variant={'caption'}>{props.description}</Typography>
       </div>
       {props.level === 1 ? (
         <React.Fragment>{props.children}</React.Fragment>
@@ -388,6 +404,7 @@ const FilterForSubPage: React.FunctionComponent<{
 // Else, pass through so long as the given label or kids have the search term
 const FilterForSearchText: React.FunctionComponent<{
   label: string;
+  description?: string | React.ReactNode;
   kids: React.ReactNode;
 }> = (props) => {
   // enhance: would the "react-children-utilities/Children" utilities simplify this?
@@ -395,12 +412,23 @@ const FilterForSearchText: React.FunctionComponent<{
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
         if (!searchRegEx) return <React.Fragment>{props.children}</React.Fragment>;
-        // check the children (rows of the group)
-        if (
+        const hasMatch =
+          /* TODO: currently, if we match on a group's label or description,
+           but then don't match on a subgroup,
+          well we just get the label and that's confusing. */
+          searchRegEx.test(props.label) ||
+          (props.description && searchRegEx.test(Children.onlyText(props.description))) ||
+          // check the children (rows of the group)
           React.Children.toArray(props.kids).some((c) => {
             const componentWithLabelProp = (c as any).props?.label;
             if (componentWithLabelProp && searchRegEx.test(componentWithLabelProp))
-              // this grandchild does the search string, directly
+              // this grandchild has the search string, directly
+              return true;
+            const componentWithSearchTermsProp = (c as any).props?.searchTerms;
+            if (
+              componentWithSearchTermsProp &&
+              searchRegEx.test(componentWithSearchTermsProp)
+            )
               return true;
             // Is this child a subpage? Then it has children we can check.
             const childrenOfSubPage = (c as any).props?.children;
@@ -414,41 +442,13 @@ const FilterForSearchText: React.FunctionComponent<{
                 }
               });
             }
-            return false; // this grandchild does not have the search string
-          })
-        ) {
+          });
+        if (hasMatch) {
           return <React.Fragment>{props.children}</React.Fragment>; // show this child (a group)
         }
-        return false;
       }}
     </SearchContext.Consumer>
   );
-};
-
-function getHighlightedText(text: string, re: RegExp | null) {
-  if (re === null) return text;
-  const parts = text.split(re);
-  return (
-    <span>
-      {parts.map((part, i) => (re.test(part) ? <mark key={i}>{part}</mark> : part))}
-    </span>
-  );
-}
-
-export const HighlightSearchTerms: React.FunctionComponent<{}> = (props) => {
-  // TODO: we're going to need something fancy to do nested highlighting
-  // on things that aren't just strings, e.g. a description that has
-  // a hyperlink in it.
-  if (Children.hasComplexChildren(props.children)) return props.children;
-  else
-    return (
-      <SearchContext.Consumer>
-        {({ searchRegEx }) => {
-          const label = Children.onlyText(props.children);
-          return <span>{getHighlightedText(label, searchRegEx)}</span>;
-        }}
-      </SearchContext.Consumer>
-    );
 };
 
 export const ConfigrRowTwoColumns: React.FunctionComponent<{
@@ -478,7 +478,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                   ${props.labelCss}
                 }
               `}
-              primary={getHighlightedText(props.label, searchRegEx)}
+              primary={props.label}
               secondary={
                 <Typography
                   variant="caption"
@@ -678,6 +678,7 @@ export const ConfigrSubPage: React.FunctionComponent<{
 // to the full path that formik requires. E.g. path="./iso" could be changed to path="project.languages[0].iso"
 export const ConfigrForEach: React.FunctionComponent<{
   path: string; // really, `path`
+  searchTerms: string;
   render: (pathPrefix: string, index: number) => React.ReactNode;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
