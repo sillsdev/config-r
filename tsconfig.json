@@ -16,7 +16,7 @@
     "noEmit": true,
     "jsx": "react",
     // don't let client access things that are exported only for use within this library
-    "stripInternal":true
+    "stripInternal": true
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

@@ -8,25 +8,19 @@
 
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { deepmerge } from '@mui/utils';
 import React from 'react';
-import { ChromeSettings } from '../ChromeSettings';
+import { ConfigrPane } from '../ConfigrPane';
 
 import {
-  ContentPane,
   ConfigrGroup,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
   ConfigrRadio,
-  ConfigrChooserButton,
-  ConfigrConditional,
   ConfigrSubgroup,
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
-  defaultConfigrTheme,
 } from '../ContentPane';
 
 const initialBloomCollectionValues = {
@@ -53,47 +47,7 @@ export default {
   component: () => <BloomCollection />,
 };
 
-export const SearchTest: React.FunctionComponent<{}> = (props) => {
-  return (
-    <ContentPane
-      label="Bloom Collection Settings"
-      initialValues={{ colors: [{ color: 'red' }] }}
-      showSearch={true}>
-      {/* <ConfigrGroup label="Shapes" level={1}>
-        <ConfigrSubgroup path="blah" label="Rectangles">
-          <ConfigrBoolean path="foo" label="Square" />
-        </ConfigrSubgroup>
-      </ConfigrGroup> */}
-      <ConfigrGroup label="Colors With Array " level={1}>
-        <ConfigrForEach
-          path="colors"
-          searchTerms="color foo"
-          render={(prefix: string, index: number) => (
-            <ConfigrSubgroup path="color" label="Some Color">
-              <ConfigrInput path="color" label="foo" />
-            </ConfigrSubgroup>
-          )}></ConfigrForEach>
-      </ConfigrGroup>
-    </ContentPane>
-  );
-};
-
 export const BloomCollection: React.FunctionComponent<{}> = (props) => {
-  // Enhance: it would of course be so much better for the
-  // Configr Pane to have this logic instead of the client,
-  // but I haven't figured out a way
-  // for the outer theme to override the inner (Configr) component yet.
-  // const bloomTheme = createTheme(
-  //   //deepmerge(defaultConfigrTheme,
-  //   {
-  //     palette: {
-  //       primary: {
-  //         main: '#1D94A4',
-  //       },
-  //     },
-  //   },
-  //   //),
-  // );
   const bloomThemeOverrides = {
     palette: {
       primary: {
@@ -101,15 +55,14 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
       },
     },
   };
-  const bloomTheme = createTheme(bloomThemeOverrides);
   return (
     <div
       css={css`
         display: flex;
         flex-direction: column;
-        height: 300px;
+        height: 100%;
       `}>
-      <ChromeSettings
+      <ConfigrPane
         label="Bloom Collection Settings"
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
@@ -218,7 +171,7 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
             />
           </ConfigrSubgroup>
         </ConfigrGroup>
-      </ChromeSettings>
+      </ConfigrPane>
     </div>
   );
 };

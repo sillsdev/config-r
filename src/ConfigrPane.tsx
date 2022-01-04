@@ -7,7 +7,7 @@ import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
 
-export const ChromeSettings: React.FunctionComponent<{
+export const ConfigrPane: React.FunctionComponent<{
   label: string;
   initialValues: object;
   children:
