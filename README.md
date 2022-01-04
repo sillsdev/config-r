@@ -6,6 +6,8 @@ A react library for a settings UI similar to that of Chrome. Uses formik.
 
 ![image](https://user-images.githubusercontent.com/8448/147491213-140bf201-e4b0-4ff2-b8a8-ea8a1291ebae.png)
 
+![image](https://user-images.githubusercontent.com/8448/147994050-d0087afc-db1f-4a88-9744-f93002535239.png)
+
 ## Running
 
 ```
