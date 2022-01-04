@@ -11,7 +11,7 @@ import { css } from '@emotion/react';
 import React from 'react';
 
 import {
-  ConfigrPane,
+  ContentPane,
   ConfigrGroup,
   ConfigrInput,
   ConfigrBoolean,
@@ -22,7 +22,7 @@ import {
   ConfigrSubgroup,
   ConfigrForEach,
   ConfigrSubPage,
-} from '../ConfigrPane';
+} from '../ContentPane';
 
 interface IPetSettings {
   dog: { name: string; friendly: boolean };
@@ -44,7 +44,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         flex-direction: column;
         height: 300px;
       `}>
-      <ConfigrPane
+      <ContentPane
         label="Pet Settings"
         initialValues={initialPetValues}
         showSearch={true}
@@ -78,7 +78,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
             <ConfigrRadio label="Parrot" value="parrot" />
           </ConfigrRadioGroup>
         </ConfigrGroup>
-      </ConfigrPane>
+      </ContentPane>
     </div>
   );
 };
@@ -94,7 +94,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         flex-direction: column;
         height: 300px;
       `}>
-      <ConfigrPane
+      <ContentPane
         label="lameta Settings"
         initialValues={initialLametaValues}
         showSearch={true}>
@@ -114,7 +114,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
               }}></ConfigrChooserButton>
           </ConfigrConditional>
         </ConfigrGroup>
-      </ConfigrPane>
+      </ContentPane>
     </div>
   );
 };

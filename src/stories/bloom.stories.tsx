@@ -14,7 +14,7 @@ import React from 'react';
 import { ChromeSettings } from '../ChromeSettings';
 
 import {
-  ConfigrPane,
+  ContentPane,
   ConfigrGroup,
   ConfigrInput,
   ConfigrBoolean,
@@ -27,7 +27,7 @@ import {
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
   defaultConfigrTheme,
-} from '../ConfigrPane';
+} from '../ContentPane';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
@@ -55,7 +55,7 @@ export default {
 
 export const SearchTest: React.FunctionComponent<{}> = (props) => {
   return (
-    <ConfigrPane
+    <ContentPane
       label="Bloom Collection Settings"
       initialValues={{ colors: [{ color: 'red' }] }}
       showSearch={true}>
@@ -74,7 +74,7 @@ export const SearchTest: React.FunctionComponent<{}> = (props) => {
             </ConfigrSubgroup>
           )}></ConfigrForEach>
       </ConfigrGroup>
-    </ConfigrPane>
+    </ContentPane>
   );
 };
 

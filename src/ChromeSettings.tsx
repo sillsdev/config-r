@@ -2,8 +2,10 @@ import { css } from '@emotion/react';
 import { Tab, Tabs } from '@mui/material';
 import React, { useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
-import { ConfigrGroup, ConfigrPane, IConfigrPaneProps } from './ConfigrPane';
+import { ConfigrGroup, ContentPane } from './ContentPane';
 import { SearchContext, SearchContextProvider } from './SearchContextProvider';
+import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
+import { defaultConfigrTheme } from './ConfigrTheme';
 
 export const ChromeSettings: React.FunctionComponent<{
   label: string;
@@ -17,48 +19,61 @@ export const ChromeSettings: React.FunctionComponent<{
   showAllGroups?: boolean;
   themeOverrides?: any;
 }> = (props) => {
-  const [currentTab, setCurrentTab] = useState<number | undefined>(0);
+  const [currentGroup, setcurrentGroup] = useState<number | undefined>(0);
+
+  // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
+  // we'll merge with our own themes such that the outer one wins. But MUI
+  // does the opposite of that, and I haven't figured out a way around it, other
+  // than this kludge of having the client have to hand us overrides as a prop.
+  // We *can* get at the outer theme in a couple ways, but it comes as a complete
+  // set of properties, and I don't see how to know which ones are just defaults
+  // and which the client actually cares about.
+  const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
 
   return (
-    <SearchContextProvider>
-      <SearchContext.Consumer>
-        {({ searchString, setSearchString }) => {
-          return (
-            <React.Fragment>
-              <ConfigrAppBar
-                label={props.label}
-                searchValue={searchString}
-                setSearchString={(s: string) => {
-                  setSearchString(s);
-                  // There should be no selected group if we
-                  // have a search term. If the user clears the search,
-                  // then we set the selected group to be the 1st one (0).
-                  setCurrentTab(s ? undefined : 0);
-                }}
-              />
-              <div
-                css={css`
-                  background-color: #f8f9fa;
-                  height: 100%;
-                  display: flex;
+    <ThemeProvider theme={mergedTheme}>
+      <SearchContextProvider>
+        <SearchContext.Consumer>
+          {({ searchString, setSearchString }) => {
+            return (
+              <React.Fragment>
+                <ConfigrAppBar
+                  label={props.label}
+                  searchValue={searchString}
+                  setSearchString={(s: string) => {
+                    if (searchString !== s) {
+                      setSearchString(s);
+                      // There should be no selected group if we
+                      // have a search term. If the user clears the search,
+                      // then we set the selected group to be the 1st one (0).
+                      setcurrentGroup(s ? undefined : 0);
+                    }
+                  }}
+                />
+                <div
+                  css={css`
+                    background-color: #f8f9fa;
+                    height: 100%;
+                    display: flex;
 
-                  .MuiTab-wrapper {
-                    text-align: left;
-                    align-items: start;
-                  }
-                `}>
-                <GroupChooser
-                  currentGroup={currentTab}
-                  setCurrentGroupIndex={setCurrentTab}>
-                  {props.children}
-                </GroupChooser>
-                <ConfigrPane currentTab={currentTab} {...props} />
-              </div>
-            </React.Fragment>
-          );
-        }}
-      </SearchContext.Consumer>
-    </SearchContextProvider>
+                    .MuiTab-wrapper {
+                      text-align: left;
+                      align-items: start;
+                    }
+                  `}>
+                  <GroupChooser
+                    currentGroup={currentGroup}
+                    setCurrentGroupIndex={setcurrentGroup}>
+                    {props.children}
+                  </GroupChooser>
+                  <ContentPane currentGroupIndex={currentGroup} {...props} />
+                </div>
+              </React.Fragment>
+            );
+          }}
+        </SearchContext.Consumer>
+      </SearchContextProvider>
+    </ThemeProvider>
   );
 };
 
@@ -92,7 +107,6 @@ const GroupChooser: React.FunctionComponent<{
               if (searchString) {
                 console.log('clearing search from onchange from tab');
                 setSearchString('');
-                //setHackToClearSearch(Date.now());
               }
               props.setCurrentGroupIndex(index);
             }}

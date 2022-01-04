@@ -3,15 +3,11 @@ import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 're
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
-import { useTheme } from '@mui/styles';
 
 import toPath from 'lodash/toPath';
 
 import { Field, Formik, useField, useFormikContext } from 'formik';
 import {
-  Tab,
-  Tabs,
   Typography,
   Paper,
   List,
@@ -36,19 +32,6 @@ import { SearchContext } from './SearchContextProvider';
 
 type valueGetter = () => Object;
 
-export interface IConfigrPaneProps {
-  label: string;
-  initialValues: object;
-  currentTab?: number;
-  children:
-    | React.ReactElement<typeof ConfigrGroup>
-    | React.ReactElement<typeof ConfigrGroup>[];
-  setValueGetter?: (vg: valueGetter) => void;
-  showSearch?: boolean;
-  showAllGroups?: boolean;
-  themeOverrides?: any;
-}
-
 const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
@@ -57,112 +40,60 @@ const FocusPageContext = React.createContext({
   setFocussedSubPagePath: (p: string) => {},
 });
 
-export const defaultConfigrTheme = {
-  typography: {
-    fontFamily: [
-      'system-ui',
-      '"Segoe UI"',
-      'Roboto',
-      'Arial',
-      'sans-serif',
-      '"Apple Color Emoji"',
-      '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"',
-    ].join(','),
-    h2: {
-      fontSize: '20px',
-      fontWeight: '600',
-    },
-    h3: {
-      fontSize: '14px',
-      fontWeight: '600',
-    },
-    // the primary label on controls
-    h4: {
-      fontSize: '14px',
-      fontWeight: '600',
-    },
-    // the explanation text below controls
-    caption: {
-      fontSize: '12px',
-      lineHeight: '14px',
-      marginTop: '4px',
-    },
-  },
-  components: {
-    MuiSelect: {
-      styleOverrides: { select: { fontSize: '14px' } },
-    },
-    MuiDivider: {
-      styleOverrides: { root: { borderColor: 'rgb(234, 234, 234)' } },
-    },
-    MuiFormControlLabel: {
-      styleOverrides: {
-        label: {
-          fontSize: '14px',
-          fontWeight: '600', //<-- gives an eslint error about the type but it works
-        },
-      },
-    },
-  },
-};
-
-export const ConfigrPane: React.FunctionComponent<IConfigrPaneProps> = (props) => {
+export const ContentPane: React.FunctionComponent<{
+  // this is the whole settings object that we are editing
+  initialValues: object;
+  currentGroupIndex?: number;
+  children:
+    | React.ReactElement<typeof ConfigrGroup>
+    | React.ReactElement<typeof ConfigrGroup>[];
+  setValueGetter?: (vg: valueGetter) => void;
+}> = (props) => {
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
 
-  // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
-  // we'll merge with our own themes such that the outer one wins. But MUI
-  // does the opposite of that, and I haven't figured out a way around it, other
-  // than this kludge of having the client have to hand us overrides as a prop.
-  // We *can* get at the outer theme in a couple ways, but it comes as a complete
-  // set of properties, and I don't see how to know which ones are just defaults
-  // and which the client actually cares about.
-  const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
   return (
-    <ThemeProvider theme={mergedTheme}>
-      <FocusPageContext.Provider
-        value={{
-          focussedSubPagePath: focussedSubPagePath,
-          setFocussedSubPagePath: setFocussedSubPagePath,
-        }}>
-        <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
-          {({
-            values,
-            errors,
-            touched,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-            isSubmitting,
-          }) => {
-            if (props.setValueGetter)
-              props.setValueGetter(() => {
-                return values;
-              });
-            return (
-              <form
-                onSubmit={handleSubmit}
-                css={css`
-                  flex-grow: 1;
-                `}>
-                <VisibleGroups
-                  currentTab={props.currentTab}
-                  focussedSubPagePath={focussedSubPagePath}>
-                  {props.children}
-                </VisibleGroups>
-              </form>
-            );
-          }}
-        </Formik>
-      </FocusPageContext.Provider>
-    </ThemeProvider>
+    <FocusPageContext.Provider
+      value={{
+        focussedSubPagePath: focussedSubPagePath,
+        setFocussedSubPagePath: setFocussedSubPagePath,
+      }}>
+      <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting,
+        }) => {
+          if (props.setValueGetter)
+            props.setValueGetter(() => {
+              return values;
+            });
+          return (
+            <form
+              onSubmit={handleSubmit}
+              css={css`
+                flex-grow: 1;
+              `}>
+              <VisibleGroups
+                currentGroup={props.currentGroupIndex}
+                focussedSubPagePath={focussedSubPagePath}>
+                {props.children}
+              </VisibleGroups>
+            </form>
+          );
+        }}
+      </Formik>
+    </FocusPageContext.Provider>
   );
 };
 
 export const VisibleGroups: React.FunctionComponent<{
-  currentTab?: number;
+  currentGroup?: number;
   focussedSubPagePath?: string;
   children:
     | React.ReactElement<typeof ConfigrGroup>
@@ -188,7 +119,7 @@ export const VisibleGroups: React.FunctionComponent<{
               </HighlightSearchTerms>
             ) : (
               React.Children.toArray(props.children).filter(
-                (c: React.ReactNode, index: number) => index === props.currentTab,
+                (c: React.ReactNode, index: number) => index === props.currentGroup,
               )
             )}
           </div>
