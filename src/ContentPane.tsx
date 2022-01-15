@@ -48,6 +48,7 @@ export const ContentPane: React.FunctionComponent<{
     | React.ReactElement<typeof ConfigrGroup>
     | React.ReactElement<typeof ConfigrGroup>[];
   setValueGetter?: (vg: valueGetter) => void;
+  setValueOnRender?: (currentValues: any) => void;
 }> = (props) => {
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
@@ -71,6 +72,10 @@ export const ContentPane: React.FunctionComponent<{
         }) => {
           if (props.setValueGetter)
             props.setValueGetter(() => {
+              return values;
+            });
+          if (props.setValueOnRender)
+            props.setValueOnRender(() => {
               return values;
             });
           return (

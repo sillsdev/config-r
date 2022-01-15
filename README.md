@@ -4,9 +4,7 @@ A react library for a settings UI similar to that of Chrome. Uses formik.
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
->
 > :warning: This is a side project that I work on once in a while, and isn't ready for use yet.
->
 
 ## Screenshots
 

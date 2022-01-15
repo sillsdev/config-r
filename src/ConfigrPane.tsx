@@ -15,6 +15,7 @@ export const ConfigrPane: React.FunctionComponent<{
     | React.ReactElement<typeof ConfigrGroup>[];
   // review; what's this about?
   //setValueGetter?: (vg: valueGetter) => void;
+  setValueOnRender?: (currentValues: any) => void;
   showSearch?: boolean;
   showAllGroups?: boolean;
   themeOverrides?: any;
@@ -55,6 +56,7 @@ export const ConfigrPane: React.FunctionComponent<{
                     background-color: #f8f9fa;
                     height: 100%;
                     display: flex;
+                    padding-right: 20px;
 
                     .MuiTab-wrapper {
                       text-align: left;

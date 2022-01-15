@@ -2,7 +2,7 @@
   "name": "vite-reactts-eslint-prettier",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "start http://localhost:3000 && vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
@@ -27,7 +27,8 @@
     "mark.js": "^8.11.1",
     "react": "^17.0.2",
     "react-children-utilities": "^2.6.3",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-json-view": "^1.21.3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",

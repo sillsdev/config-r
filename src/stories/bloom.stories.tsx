@@ -47,7 +47,9 @@ export default {
   component: () => <BloomCollection />,
 };
 
-export const BloomCollection: React.FunctionComponent<{}> = (props) => {
+export const BloomCollection: React.FunctionComponent<{
+  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+}> = (props) => {
   const bloomThemeOverrides = {
     palette: {
       primary: {
@@ -66,7 +68,8 @@ export const BloomCollection: React.FunctionComponent<{}> = (props) => {
         label="Bloom Collection Settings"
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
-        showSearch={true}>
+        showSearch={true}
+        {...props}>
         <ConfigrGroup label="Languages" level={1}>
           <ConfigrForEach
             path="languages"
