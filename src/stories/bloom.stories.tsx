@@ -21,13 +21,20 @@ import {
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
+  ConfigrConditional,
+  getFormValueFromPath,
 } from '../ContentPane';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
   languages: [
-    { id: { iso: 'de', name: 'German' }, font: 'Andika New Basic' },
     {
+      label: 'Local Language',
+      id: { iso: 'de', name: 'German' },
+      font: 'Andika New Basic',
+    },
+    {
+      label: 'Language 2 (e.g. National Language)',
       id: {
         iso: 'ar',
         name: 'Arabic',
@@ -39,6 +46,15 @@ const initialBloomCollectionValues = {
         tallerLines: false,
         fontSizeInTools: false,
       },
+    },
+    {
+      label: 'Language 3 (e.g. Regional Language) (Optional)',
+      id: { iso: '--', name: '--' },
+    },
+    {
+      label: 'Sign Language (Optional)',
+      id: { iso: '--', name: '--' },
+      isSignLanguage: true,
     },
   ],
 };
@@ -74,41 +90,91 @@ export const BloomCollection: React.FunctionComponent<{
           <ConfigrForEach
             path="languages"
             searchTerms="font script right left word breaking Asian name iso"
-            render={(prefix: string, index: number) => (
-              <ConfigrSubgroup
-                path={`${prefix}`}
-                label={`Language ${index}`}
-                key={`${index}`}>
-                <ConfigrSubPage
-                  label={initialBloomCollectionValues.languages[index].id.name}
-                  path={`${prefix}.id`}
-                  labelCss={css`
-                    font-weight: bold !important;
-                  `}>
-                  <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
-                  <ConfigrInput path={`${prefix}.id.name`} label="Name" />
-                </ConfigrSubPage>
+            render={(prefix: string, index: number) => {
+              const language = initialBloomCollectionValues.languages[index];
+              return (
+                <ConfigrSubgroup
+                  path={`${prefix}`}
+                  label={language.label}
+                  key={`${index}`}>
+                  <ConfigrSubPage
+                    label={language.id.name}
+                    path={`${prefix}.id`}
+                    labelCss={css`
+                      font-weight: bold !important;
+                    `}>
+                    <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                    <ConfigrInput path={`${prefix}.id.name`} label="Name" />
+                  </ConfigrSubPage>
 
-                <ConfigrSelect
-                  path={`${prefix}.font`}
-                  label="Default Font"
-                  options={[
-                    { label: 'Arial', value: 'Arial' },
-                    { label: 'Andika New Basic', value: 'Andika New Basic' },
-                  ]}></ConfigrSelect>
+                  {!language.isSignLanguage && (
+                    <ConfigrSelect
+                      path={`${prefix}.font`}
+                      label="Default Font"
+                      options={[
+                        { label: 'Arial', value: 'Arial' },
+                        { label: 'Andika New Basic', value: 'Andika New Basic' },
+                      ]}></ConfigrSelect>
+                  )}
+                  {!language.isSignLanguage && (
+                    <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
+                      <ConfigrBoolean
+                        label="This is a right to left script, like Arabic"
+                        path={`${prefix}.script.rtl`}
+                      />
+                      <ConfigrBoolean
+                        label="Do not use special Asian script word breaking"
+                        path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                      />
+                      <ConfigrBoolean
+                        label="This script requires taller lines"
+                        path={`${prefix}.script.tallerLines`}
+                      />
 
-                <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
-                  <ConfigrBoolean
-                    label="This is a right to left script, like Arabic"
-                    path={`${prefix}.script.rtl`}
-                  />
-                  <ConfigrBoolean
-                    label="Do not use special Asian script word breaking"
-                    path={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                  />
-                </ConfigrSubPage>
-              </ConfigrSubgroup>
-            )}></ConfigrForEach>
+                      <ConfigrSelect
+                        enableWhen={`${prefix}.script.tallerLines`}
+                        indented={true}
+                        path={`${prefix}.script.tallerLines_defaultLineSpacing`}
+                        label="Line Spacing"
+                        options={[
+                          { label: 'Default line spacing', value: '0' }, // todo
+                          1.0,
+                          1.1,
+                          1.2,
+                          1.3,
+                          1.4,
+                          1.5,
+                          1.6,
+                          1.7,
+                          1.8,
+                          1.9,
+                          2.0,
+                          2.5,
+                          3.0,
+                        ]}></ConfigrSelect>
+
+                      <ConfigrSelect
+                        path={`${prefix}.script.fontSizeInTools`}
+                        label="Font size when displayed in tools"
+                        options={[
+                          { label: 'Default size', value: '0' }, // todo
+                          9,
+                          10,
+                          11,
+                          12,
+                          14,
+                          16,
+                          18,
+                          20,
+                          22,
+                          24,
+                          26,
+                        ]}></ConfigrSelect>
+                    </ConfigrSubPage>
+                  )}
+                </ConfigrSubgroup>
+              );
+            }}></ConfigrForEach>
         </ConfigrGroup>
         <ConfigrGroup label="Book Defaults">
           <ConfigrSelect
@@ -133,6 +199,7 @@ export const BloomCollection: React.FunctionComponent<{
         </ConfigrGroup>
         <ConfigrGroup
           label="Enterprise"
+          level={1}
           description={
             <span>
               Bloom Enterprise adds features and services that are important for
@@ -142,17 +209,30 @@ export const BloomCollection: React.FunctionComponent<{
               <Link href="google.com">Learn More</Link>
             </span>
           }>
-          <ConfigrRadioGroup path="enterprise-mode" label="Status">
-            <ConfigrRadio label="Subscribed" value="subscribed" />
-            <ConfigrRadio label="Funded by the local community only" value="local" />
-            <ConfigrRadio label="None" value="none" />
-          </ConfigrRadioGroup>
+          <ConfigrSubgroup label="" path="">
+            <ConfigrRadioGroup path="enterprise-mode" label="Status">
+              <ConfigrRadio label="Subscribed" value="subscribed" />
+              <ConfigrRadio label="Funded by the local community only" value="local" />
+              <ConfigrRadio label="None" value="none" />
+            </ConfigrRadioGroup>
+          </ConfigrSubgroup>
+
+          <ConfigrSubgroup label="" path="">
+            <ConfigrSelect
+              label="BloomLibrary.org Bookshelf"
+              path={'bookshelf'}
+              description={
+                'Projects that have Bloom Enterprise subscriptions can arrange for one or more bookshelves on the Bloom Library. All books uploaded from this collection will go into the selected bookshelf.'
+              }
+              options={[{ label: 'TODO', value: 'TODO' }]}></ConfigrSelect>
+          </ConfigrSubgroup>
         </ConfigrGroup>
         <ConfigrGroup label="Location">
           <ConfigrInput path={`country`} label="Country" />
           <ConfigrInput path={`province`} label="Province" />
           <ConfigrInput path={`district`} label="District" />
         </ConfigrGroup>
+
         <ConfigrGroup label="Advanced" level={1}>
           <ConfigrSubgroup label="" path="">
             <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}

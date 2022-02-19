@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 import logo from './logo.svg';
 import { BloomCollection } from './stories/bloom.stories';
-import { Pets } from './stories/Other.stories';
+import { Lameta, Pets } from './stories/Other.stories';
 import ReactJson from 'react-json-view';
 
 function App() {
@@ -18,6 +18,8 @@ function App() {
         display: flex;
       `}>
       <BloomCollection setValueOnRender={setCurrentValue} />
+      {/* <Lameta></Lameta> */}
+      {/* <Pets></Pets> */}
       <div
         css={css`
           padding: 20px;
