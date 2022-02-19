@@ -267,6 +267,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
   control: React.ReactNode;
   disabled?: boolean;
   height?: string;
+  indented?: boolean;
   onClick?: () => void;
 }> = (props) => {
   const inner = (
@@ -281,6 +282,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
               css={css`
                 color: ${props.disabled ? disabledGrey : 'unset'};
                 ${props.height ? 'height:' + props.height : ''}
+                ${props.indented && 'margin-left: 30px;'}
                 user-select: none;
                 * {
                   ${props.labelCss}
@@ -385,15 +387,20 @@ export const ConfigrInput: React.FunctionComponent<{
 export const ConfigrSelect: React.FunctionComponent<{
   path: string;
   label: string;
-  options: Array<{ value: string; label: string; description?: string }>;
+  indented?: boolean;
+  options: Array<{ value: string; label?: string; description?: string } | number>;
+  enableWhen?: string | ((currentValues: object) => boolean);
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
+  const disabled = !useBooleanBasedOnValues(true, props.enableWhen);
   return (
     <ConfigrRowTwoColumns
       {...props}
+      disabled={disabled}
       control={
         <Field
           name={props.path}
+          disabled={disabled}
           component={FormikMuiSelect}
           sx={{ minWidth: 180 }}
           css={css`
@@ -406,17 +413,29 @@ export const ConfigrSelect: React.FunctionComponent<{
               border-style: none;
             }
           `}>
-          {props.options.map((o) => (
-            <MenuItem value={o.value} key={o.label}>
-              {o.description ? (
-                <Tooltip title={o.description}>
-                  <span>{o.label}</span>
-                </Tooltip>
-              ) : (
-                <span>{o.label}</span>
-              )}
-            </MenuItem>
-          ))}
+          {/* Allow a list of numbers (typically font sizes) instead of label/value objects */}
+          {props.options.map((o) => {
+            if (typeof o === 'number') {
+              return (
+                <MenuItem value={o} key={o}>
+                  <span>{o}</span>
+                </MenuItem>
+              );
+            }
+            const labelToUse = o.label ?? o.value;
+            const valueToUse = o.value ?? o.label;
+            return (
+              <MenuItem value={valueToUse} key={labelToUse}>
+                {o.description ? (
+                  <Tooltip title={o.description}>
+                    <span>{labelToUse}</span>
+                  </Tooltip>
+                ) : (
+                  <span>{labelToUse}</span>
+                )}
+              </MenuItem>
+            );
+          })}
         </Field>
       }></ConfigrRowTwoColumns>
   );
@@ -663,4 +682,17 @@ function getFormValueFromPath(
     obj = obj[path[p++]];
   }
   return obj === undefined ? def : obj;
+}
+
+function useBooleanBasedOnValues(
+  defaultResult: boolean,
+  functionOrPath?: ((currentValues: object) => boolean) | string,
+): boolean {
+  const { values } = useFormikContext<object>();
+  if (!functionOrPath) return defaultResult;
+  if (typeof functionOrPath === 'string') {
+    return getFormValueFromPath(values, functionOrPath) === true;
+  } else {
+    return functionOrPath(values);
+  }
 }
