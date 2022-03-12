@@ -9,7 +9,7 @@
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
 import React from 'react';
-import { ConfigrPane } from '../lib/ConfigrPane';
+import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
   ConfigrGroup,
@@ -21,7 +21,7 @@ import {
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
-} from '../lib/ContentPane';
+} from '../../lib/ContentPane';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
@@ -77,15 +77,13 @@ export const BloomCollection: React.FunctionComponent<{
         display: flex;
         flex-direction: column;
         height: 100%;
-      `}
-    >
+      `}>
       <ConfigrPane
         label="Bloom Collection Settings"
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
-        {...props}
-      >
+        {...props}>
         <ConfigrGroup label="Languages" level={1}>
           <ConfigrForEach
             path="languages"
@@ -96,15 +94,13 @@ export const BloomCollection: React.FunctionComponent<{
                 <ConfigrSubgroup
                   path={`${prefix}`}
                   label={language.label}
-                  key={`${index}`}
-                >
+                  key={`${index}`}>
                   <ConfigrSubPage
                     label={language.id.name}
                     path={`${prefix}.id`}
                     labelCss={css`
                       font-weight: bold !important;
-                    `}
-                  >
+                    `}>
                     <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
                     <ConfigrInput path={`${prefix}.id.name`} label="Name" />
                   </ConfigrSubPage>
@@ -116,8 +112,7 @@ export const BloomCollection: React.FunctionComponent<{
                       options={[
                         { label: 'Arial', value: 'Arial' },
                         { label: 'Andika New Basic', value: 'Andika New Basic' },
-                      ]}
-                    ></ConfigrSelect>
+                      ]}></ConfigrSelect>
                   )}
                   {!language.isSignLanguage && (
                     <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
@@ -154,8 +149,7 @@ export const BloomCollection: React.FunctionComponent<{
                           2.0,
                           2.5,
                           3.0,
-                        ]}
-                      ></ConfigrSelect>
+                        ]}></ConfigrSelect>
 
                       <ConfigrSelect
                         path={`${prefix}.script.fontSizeInTools`}
@@ -173,14 +167,12 @@ export const BloomCollection: React.FunctionComponent<{
                           22,
                           24,
                           26,
-                        ]}
-                      ></ConfigrSelect>
+                        ]}></ConfigrSelect>
                     </ConfigrSubPage>
                   )}
                 </ConfigrSubgroup>
               );
-            }}
-          ></ConfigrForEach>
+            }}></ConfigrForEach>
         </ConfigrGroup>
         <ConfigrGroup label="Book Defaults">
           <ConfigrSelect
@@ -189,8 +181,7 @@ export const BloomCollection: React.FunctionComponent<{
             options={[
               { label: 'Decimal', value: 'Decimal' },
               { label: 'Devanagari', value: 'Devanagari' },
-            ]}
-          ></ConfigrSelect>
+            ]}></ConfigrSelect>
           <ConfigrSelect
             path={'xmatterPck'}
             label="Front/Back Matter Pack"
@@ -202,8 +193,7 @@ export const BloomCollection: React.FunctionComponent<{
                 value: 'Traditional',
                 description: 'Credits on the back of the title page.',
               },
-            ]}
-          ></ConfigrSelect>
+            ]}></ConfigrSelect>
         </ConfigrGroup>
         <ConfigrGroup
           label="Enterprise"
@@ -216,8 +206,7 @@ export const BloomCollection: React.FunctionComponent<{
               user support of Bloom for the community at large.&nbsp;
               <Link href="google.com">Learn More</Link>
             </span>
-          }
-        >
+          }>
           <ConfigrSubgroup label="" path="">
             <ConfigrRadioGroup path="enterprise-mode" label="Status">
               <ConfigrRadio label="Subscribed" value="subscribed" />
@@ -233,8 +222,7 @@ export const BloomCollection: React.FunctionComponent<{
               description={
                 'Projects that have Bloom Enterprise subscriptions can arrange for one or more bookshelves on the Bloom Library. All books uploaded from this collection will go into the selected bookshelf.'
               }
-              options={[{ label: 'TODO', value: 'TODO' }]}
-            ></ConfigrSelect>
+              options={[{ label: 'TODO', value: 'TODO' }]}></ConfigrSelect>
           </ConfigrSubgroup>
         </ConfigrGroup>
         <ConfigrGroup label="Location">
