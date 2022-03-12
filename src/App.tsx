@@ -16,14 +16,16 @@ function App() {
     <div
       css={css`
         display: flex;
-      `}>
+      `}
+    >
       <BloomCollection setValueOnRender={setCurrentValue} />
       {/* <Lameta></Lameta> */}
       {/* <Pets></Pets> */}
       <div
         css={css`
           padding: 20px;
-        `}>
+        `}
+      >
         <ReactJson src={currentValue} />
       </div>
     </div>

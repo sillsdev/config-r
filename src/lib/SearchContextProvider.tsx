@@ -26,7 +26,8 @@ export const SearchContextProvider: React.FunctionComponent<{}> = (props) => {
           ? new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
           : null,
         setSearchString: handleSet,
-      }}>
+      }}
+    >
       {props.children}
     </SearchContext.Provider>
   );

@@ -62,10 +62,12 @@ export const ConfigrPane: React.FunctionComponent<{
                       text-align: left;
                       align-items: start;
                     }
-                  `}>
+                  `}
+                >
                   <GroupChooser
                     currentGroup={currentGroup}
-                    setCurrentGroupIndex={setcurrentGroup}>
+                    setCurrentGroupIndex={setcurrentGroup}
+                  >
                     {props.children}
                   </GroupChooser>
                   <ContentPane currentGroupIndex={currentGroup} {...props} />
@@ -95,7 +97,8 @@ const GroupChooser: React.FunctionComponent<{
           color: black;
           font-weight: 500;
           font-size: 13px;
-        `}></Tab>
+        `}
+      ></Tab>
     ));
   }, [props.children]);
 
@@ -123,7 +126,8 @@ const GroupChooser: React.FunctionComponent<{
               .Mui-selected {
                 font-weight: bold;
               }
-            `}>
+            `}
+          >
             {groupLinks}
           </Tabs>
         );
