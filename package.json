@@ -1,6 +1,15 @@
 {
   "name": "vite-reactts-eslint-prettier",
   "version": "0.0.0",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "settings"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BloomBooks/config-r"
+  },
   "scripts": {
     "dev": "start http://localhost:3000 && vite",
     "build": "tsc && vite build",
@@ -13,21 +22,19 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.5",
     "@mui/material": "^5.2.6",
     "@mui/styles": "^5.2.3",
-
-
     "formik": "^2.2.9",
     "formik-material-ui": "^4.0.0-alpha.2",
     "formik-mui": "^4.0.0-alpha.3",
     "lodash": "^4.17.21",
     "mark.js": "^8.11.1",
-    "react": "^17.0.2",
     "react-children-utilities": "^2.6.3",
-    "react-dom": "^17.0.2",
     "react-json-view": "^1.21.3"
   },
   "devDependencies": {
@@ -58,6 +65,5 @@
     "typescript": "^4.6.2",
     "vite": "^2.8.6"
   },
-  "pre-commit": "lint",
-  "license": "MIT"
+  "pre-commit": "lint"
 }

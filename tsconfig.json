@@ -18,6 +18,6 @@
     // don't let client access things that are exported only for use within this library
     "stripInternal": true
   },
-  "include": ["./src"],
+  "include": ["./src", ".storybook/lib"],
   "exclude": ["node_modules"]
 }
