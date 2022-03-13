@@ -44,19 +44,22 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         display: flex;
         flex-direction: column;
         height: 300px;
-      `}>
+      `}
+    >
       <ConfigrPane
         label="Pet Settings"
         initialValues={initialPetValues}
         showSearch={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
-        showAllGroups={true}>
+        showAllGroups={true}
+      >
         <ConfigrGroup label="Dog">
           <ConfigrInput path="dog.name" label="Name" />
           <ConfigrBoolean
             path="dog.friendly"
             label="Friendly"
-            description="Does this dog like other dogs?"></ConfigrBoolean>
+            description="Does this dog like other dogs?"
+          ></ConfigrBoolean>
           <ConfigrChooserButton
             path="dog.photos"
             label="Folder of dog photos"
@@ -64,7 +67,8 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
             buttonLabel="Choose..."
             chooseAction={(currentValue: string) => {
               return 'x' + (currentValue || '');
-            }}></ConfigrChooserButton>
+            }}
+          ></ConfigrChooserButton>
         </ConfigrGroup>
         <ConfigrGroup label="Bird">
           <ConfigrInput
@@ -94,25 +98,30 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         display: flex;
         flex-direction: column;
         height: 300px;
-      `}>
+      `}
+    >
       <ConfigrPane
         label="lameta Settings"
         initialValues={initialLametaValues}
-        showSearch={true}>
+        showSearch={true}
+      >
         <ConfigrGroup label="Files">
           <ConfigrBoolean
             path="files.useLargeFileFolder"
             label="Use Large File Folder"
-            description="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."></ConfigrBoolean>
+            description="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."
+          ></ConfigrBoolean>
           <ConfigrConditional
-            enableWhen={(values: any) => values.files.useLargeFileFolder}>
+            enableWhen={(values: any) => values.files.useLargeFileFolder}
+          >
             <ConfigrChooserButton
               path="files.largeFileFolder"
               label="Large File Folder Location"
               buttonLabel="Choose..."
               chooseAction={(currentValue: string) => {
                 return 'x' + (currentValue || '');
-              }}></ConfigrChooserButton>
+              }}
+            ></ConfigrChooserButton>
           </ConfigrConditional>
         </ConfigrGroup>
       </ConfigrPane>

@@ -1,7 +1,14 @@
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import { defineConfig } from 'vite';
+
+// 1) this one works except for one problem: https://github.com/qmhc/vite-plugin-dts/issues/59
 import dts from 'vite-plugin-dts';
-//import copy from 'rollup-plugin-copy';
+
+// 2) I tried just using tsup instead of vitejs for the actual library build, but then of course it has it's own quirks to work though and seems like a bad idea.
+
+// 3) this one (https://github.com/alloc/vite-dts) is unusual in that it basically just points at your source code... it doesn't generate anything.
+//import dumbDts from 'vite-dts';
+
 const path = require('path');
 
 // https://vitejs.dev/config/
@@ -10,17 +17,10 @@ export default defineConfig({
   plugins: [
     reactRefresh(),
     dts({
-      // root: 'lib',
-      // outputDir: 'dist/typings',
-      // tsConfigFilePath: '../tsconfig.json',
-      // skipDiagnostics: false,
-      // logDiagnostics: true,
+      //root: 'lib',
+      //outputDir: 'dist/typings',
+      tsConfigFilePath: 'tsconfig.json',
     }),
-    // copy({
-    //   targets: [{ src: './package.json', dest: 'dist/' }],
-    //   verbose: true,
-    //   hook: 'writeBundle',
-    // }),
   ],
   esbuild: {
     jsxFactory: `jsx`,

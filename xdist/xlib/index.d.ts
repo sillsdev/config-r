@@ -1,1 +1,0 @@
-export { ConfigrPane } from './ConfigrPane';

@@ -13,7 +13,6 @@
   "scripts": {
     "dev": "start http://localhost:3000 && vite",
     "// see https://github.com/vitejs/vite/issues/3461, this uses a totally different builder that has its typescript typings act more together than vitejs": "",
-    "buildlib": "tsup lib/index.ts --dts --legacy-output",
     "build": "tsc && vite build",
     "serve": "vite preview",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
@@ -67,19 +66,21 @@
     "storybook-builder-vite": "^0.1.18",
     "tsup": "^5.12.1",
     "typescript": "^4.6.2",
-    "vite": "^2.8.6"
+    "vite": "^2.8.6",
+    "vite-plugin-dts": "^0.9.10"
   },
   "pre-commit": "lint",
   "files": [
     "dist"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/configr.es.js",
+  "module": "./dist/configr.es.js",
+  "//about index.d.ts": "see comment in vite.config.ts",
+  "types": "./dist/lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "import": "./dist/configr.es.js",
+      "require": "./dist/configr.es.js"
     }
   }
 }

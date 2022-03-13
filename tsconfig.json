@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "types": ["@emotion/core","vite/client"],
+    "types": ["@emotion/core", "vite/client"],
     "allowJs": false,
     "skipLibCheck": false,
     "esModuleInterop": false,
@@ -21,6 +21,6 @@
   "include": ["./src", ".storybook/lib", "lib"],
   "exclude": ["node_modules"],
   // for vue-tsc
-  "outDir":"dist",
-  "declaration":true
+  "outDir": "dist",
+  "declaration": true
 }
