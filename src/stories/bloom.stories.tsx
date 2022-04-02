@@ -1,11 +1,3 @@
-/*************************
- *
- * NOTE: I was not able to get storybook working with the emotion css-prop under vite.
- * Gave it a couple hours, decided to wait until some parts leave alpha and in the
- * meantime, just run one of the stories at a time, from app. That is, compiled by
- * vite instead of storybook-builder-vite.
- */
-
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
 import React from 'react';

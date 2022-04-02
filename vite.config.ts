@@ -1,5 +1,6 @@
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // 1) this one works except for one problem: https://github.com/qmhc/vite-plugin-dts/issues/59
 import dts from 'vite-plugin-dts';
@@ -20,6 +21,12 @@ export default defineConfig({
       //root: 'lib',
       //outputDir: 'dist/typings',
       tsConfigFilePath: 'tsconfig.json',
+    }),
+    react({
+      jsxImportSource: '@emotion/react',
+      babel: {
+        plugins: ['@emotion/babel-plugin'],
+      },
     }),
   ],
   esbuild: {

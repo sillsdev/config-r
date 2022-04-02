@@ -2,16 +2,13 @@ import './App.css';
 import { css } from '@emotion/react';
 import React, { useState } from 'react';
 
-import logo from './logo.svg';
 import { BloomCollection } from './stories/bloom.stories';
 import { Lameta, Pets } from './stories/Other.stories';
 import ReactJson from 'react-json-view';
 
 function App() {
-  const [count, setCount] = useState(0);
   const [currentValue, setCurrentValue] = useState({});
-  // Currently I can't get emotion's css prop to work when run by storybook,
-  // so I'm running stories from here.
+  // Having an app here is a holdover from when I couldn't get emotion css props to work with storybook.
   return (
     <div
       css={css`
