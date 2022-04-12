@@ -24,8 +24,17 @@ import {
   MenuItem,
   Select as MuiSelect,
   Tooltip,
+  useRadioGroup,
+  ToggleButton,
 } from '@mui/material';
-import { TextField, Switch, Checkbox, Select as FormikMuiSelect } from 'formik-mui';
+import {
+  TextField,
+  Switch,
+  Checkbox,
+  Select as FormikMuiSelect,
+  RadioGroupProps,
+  ToggleButtonGroup,
+} from 'formik-mui';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
@@ -59,8 +68,7 @@ export const ContentPane: React.FunctionComponent<{
       value={{
         focussedSubPagePath: focussedSubPagePath,
         setFocussedSubPagePath: setFocussedSubPagePath,
-      }}
-    >
+      }}>
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
         {({
           values,
@@ -84,12 +92,10 @@ export const ContentPane: React.FunctionComponent<{
               onSubmit={handleSubmit}
               css={css`
                 flex-grow: 1;
-              `}
-            >
+              `}>
               <VisibleGroups
                 currentGroup={props.currentGroupIndex}
-                focussedSubPagePath={focussedSubPagePath}
-              >
+                focussedSubPagePath={focussedSubPagePath}>
                 {props.children}
               </VisibleGroups>
             </form>
@@ -118,13 +124,11 @@ export const VisibleGroups: React.FunctionComponent<{
               //overflow-y: scroll; //allows us to scroll the groups without
               //scrolling the heading tabs
               overflow-y: auto;
-            `}
-          >
+            `}>
             {searchString ? (
               <HighlightSearchTerms
                 searchString={searchString}
-                focussedSubPagePath={props.focussedSubPagePath}
-              >
+                focussedSubPagePath={props.focussedSubPagePath}>
                 {props.children}
               </HighlightSearchTerms>
             ) : (
@@ -148,16 +152,16 @@ export const ConfigrGroup: React.FunctionComponent<{
   return (
     <FilterForSearchText {...props} kids={props.children}>
       <div
+        className="indentIfInSubPage"
         css={css`
           margin-top: 21px !important;
           margin-bottom: 12px !important;
-        `}
-      >
+        `}>
         <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
         <Typography variant={'caption'}>{props.description}</Typography>
       </div>
       {props.level === 1 ? (
-        <React.Fragment>{props.children}</React.Fragment>
+        <div className="indentIfInSubPage">{props.children}</div>
       ) : (
         <PaperGroup>{props.children}</PaperGroup>
       )}
@@ -171,18 +175,17 @@ const PaperGroup: React.FunctionComponent<{
   const childrenWithStore = getChildrenWithStore(props);
   return (
     <Paper
+      className="indentIfInSubPage"
       elevation={2}
       css={css`
         width: 100%;
         margin-bottom: 12px !important;
-      `}
-    >
+      `}>
       <List
         component="nav"
         css={css`
-          width: 100%;
-        `}
-      >
+          width: calc(100% - 20px);
+        `}>
         <FilterAndJoinWithDividers>{childrenWithStore}</FilterAndJoinWithDividers>
       </List>
     </Paper>
@@ -234,8 +237,7 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
         flex-direction: column;
         // I don't understand why this is needed. Else, it's centered
         align-items: flex-start;
-      `}
-    >
+      `}>
       <ListItemText
         primaryTypographyProps={{ variant: 'h4' }}
         primary={props.label}
@@ -256,9 +258,11 @@ const FilterForSubPage: React.FunctionComponent<{
         if (focussedSubPagePath)
           if (
             !(
-              focussedSubPagePath.startsWith(props.path) || // we are a parent of the focused thing
-              // we are a child of the focused thing
-              props.path.startsWith(focussedSubPagePath)
+              (
+                props.path === focussedSubPagePath ||
+                isParent(props.path, focussedSubPagePath) || // we are a parent of the focused thing
+                isParent(focussedSubPagePath, props.path)
+              ) // we are a child of the focused thing
             )
           )
             return null;
@@ -309,8 +313,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                     * {
                       max-width: calc(100% - 20px);
                     }
-                  `}
-                >
+                  `}>
                   {props.description}
                 </Typography>
               }
@@ -322,9 +325,9 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 // top:50% which is fine until you have a secondary label, in
                 // which case the whole thing gets very tall but really the
                 // button should be top-aligned.
-                top: 22px;
-              `}
-            >
+                /// Months later.. but it messed up toggleGroups and I'm not seeing the problem it was solving, at the moment.
+                //top: 22px;
+              `}>
               {props.control}
             </ListItemSecondaryAction>
           </React.Fragment>
@@ -340,8 +343,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 <span
                   css={css`
                     background-color: yellow;
-                  `}
-                >
+                  `}>
                   {`${count} matches`}
                 </span>
               </div>
@@ -359,7 +361,12 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
   return props.onClick ? (
     <ListItemButton onClick={props.onClick}>{inner}</ListItemButton>
   ) : (
-    <ListItem>{inner}</ListItem>
+    <ListItem
+      css={css`
+        height: ${props.height};
+      `}>
+      {inner}
+    </ListItem>
   );
 };
 
@@ -393,8 +400,7 @@ export const ConfigrInput: React.FunctionComponent<{
       {...props}
       control={
         <Field component={TextField} variant="standard" name={props.path} type="text" />
-      }
-    ></ConfigrRowTwoColumns>
+      }></ConfigrRowTwoColumns>
   );
 };
 export const ConfigrSelect: React.FunctionComponent<{
@@ -426,8 +432,7 @@ export const ConfigrSelect: React.FunctionComponent<{
             * {
               border-style: none;
             }
-          `}
-        >
+          `}>
           {/* Allow a list of numbers (typically font sizes) instead of label/value objects */}
           {props.options.map((o) => {
             if (typeof o === 'number') {
@@ -452,8 +457,7 @@ export const ConfigrSelect: React.FunctionComponent<{
             );
           })}
         </Field>
-      }
-    ></ConfigrRowTwoColumns>
+      }></ConfigrRowTwoColumns>
   );
 };
 
@@ -494,7 +498,15 @@ export const ConfigrSubPage: React.FunctionComponent<{
                 </IconButton>
                 {props.label}
               </div>
-              <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
+              <div
+                css={css`
+                  .indentIfInSubPage {
+                    margin-left: 20px;
+                    //margin-right: 20px;
+                  }
+                `}>
+                <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
+              </div>
             </React.Fragment>
           );
         }
@@ -570,6 +582,7 @@ export const ConfigrBoolean: React.FunctionComponent<{
 export const ConfigrRadioGroup: React.FunctionComponent<{
   path: string;
   label: string;
+  row?: boolean;
 }> = (props) => {
   return (
     // I could imagine wanting the radio buttons in the right column. There aren't any examples of this in chrome:settings.
@@ -579,47 +592,68 @@ export const ConfigrRadioGroup: React.FunctionComponent<{
     // on its left edge.)
     <ConfigrRowOneColumn
       {...props}
-      control={<ConfigrRadioGroupRaw {...props} />}
-    ></ConfigrRowOneColumn>
+      control={<ConfigrRadioGroupRaw {...props} />}></ConfigrRowOneColumn>
   );
 };
 export const ConfigrRadioGroupRaw: React.FunctionComponent<{
   path: string;
   label: string;
+  row?: boolean;
 }> = (props) => {
-  const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below?
+  const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below? Probably onchange, value
+  console.log('radiogroup field ' + JSON.stringify(field));
   return (
-    <RadioGroup {...field} {...props}>
-      {React.Children.map(props.children, (c) => {
-        const choice = c as ReactElement<{
-          label: string;
-          value: string;
-        }>;
-        return (
-          <FormControlLabel
-            key={choice.props.value}
-            value={choice.props.value}
-            control={<Radio />}
-            label={choice.props.label}
-          />
-        );
-      })}
+    <RadioGroup row={props.row} {...field} {...props}>
+      {props.children}
     </RadioGroup>
   );
 };
 
 export const ConfigrRadio: React.FunctionComponent<{
   value: any;
+  label?: string; // either include a label or a single child
+}> = (props) => {
+  const radioContext = useRadioGroup();
+  console.log('useRadioGroup ' + JSON.stringify(radioContext));
+  if (props.label) {
+    return (
+      <FormControlLabel value={props.value} control={<Radio />} label={props.label} />
+    );
+  } else {
+    return <React.Fragment>{props.children}</React.Fragment>;
+  }
+};
+
+export const ConfigrToggleGroup: React.FunctionComponent<{
+  path: string;
   label: string;
+  row?: boolean;
+  height?: string;
 }> = (props) => {
   return (
-    <React.Fragment>
-      <ListItem button>
-        <FormControlLabel value={props.value} control={<Radio />} label={props.label} />
-      </ListItem>
-    </React.Fragment>
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<ConfigrToggleGroupRaw {...props} />}></ConfigrRowTwoColumns>
   );
 };
+export const ConfigrToggleGroupRaw: React.FunctionComponent<{
+  path: string;
+  label: string;
+  row?: boolean;
+  height?: string;
+}> = (props) => {
+  return (
+    <Field component={ToggleButtonGroup} name={props.path} type="checkbox" exclusive>
+      {props.children}
+    </Field>
+  );
+};
+
+// This cannot be a React.FunctionComponent because then the ToggleGroup stops working.
+// So we have to transparently just return the ToggleButton
+export function ConfigrMakeToggle(value: any, content: ReactNode) {
+  return <ToggleButton value={value}>{content}</ToggleButton>;
+}
 
 // Use for things like a file or folder chooser.
 export const ConfigrChooserButton: React.FunctionComponent<{
@@ -641,29 +675,25 @@ export const ConfigrChooserButton: React.FunctionComponent<{
         <div
           css={css`
             height: 56px; // leave room to show th path below the button
-          `}
-        >
+          `}>
           <Button
             disabled={props.disabled}
             variant={'outlined'}
             onClick={() => {
               const newValue = props.chooseAction(field.value);
               setFieldValue(props.path, newValue);
-            }}
-          >
+            }}>
             {props.buttonLabel}
           </Button>
 
           <div
             css={css`
               color: ${secondaryGrey};
-            `}
-          >
+            `}>
             {field.value}
           </div>
         </div>
-      }
-    ></ConfigrRowTwoColumns>
+      }></ConfigrRowTwoColumns>
   );
 };
 
@@ -716,4 +746,10 @@ function useBooleanBasedOnValues(
   } else {
     return functionOrPath(values);
   }
+}
+
+function isParent(parentPath: string, childPath: string): boolean {
+  // yes: start.font, start.font.feature
+  // no: start.font, start.fontfeature
+  return childPath.startsWith(parentPath + '.');
 }

@@ -14,6 +14,7 @@ import {
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
 } from '../../lib/ContentPane';
+import { SILCharacterAlternates } from './SILCharacterAlternates';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
@@ -22,6 +23,7 @@ const initialBloomCollectionValues = {
       label: 'Local Language',
       id: { iso: 'de', name: 'German' },
       font: 'Andika New Basic',
+      fontFeatures: { silCharacterAlternates: { cv13: '0', cv43: '1' } },
     },
     {
       label: 'Language 2 (e.g. National Language)',
@@ -36,6 +38,7 @@ const initialBloomCollectionValues = {
         tallerLines: false,
         fontSizeInTools: false,
       },
+      fontFeatures: { silCharacterAlternates: { cv13: '1', cv43: '2' } },
     },
     {
       label: 'Language 3 (e.g. Regional Language) (Optional)',
@@ -100,7 +103,6 @@ export const BloomCollection: React.FunctionComponent<{
                     <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
                     <ConfigrInput path={`${prefix}.id.name`} label="Name" />
                   </ConfigrSubPage>
-
                   {!language.isSignLanguage && (
                     <ConfigrSelect
                       path={`${prefix}.font`}
@@ -111,6 +113,7 @@ export const BloomCollection: React.FunctionComponent<{
                       ]}
                     ></ConfigrSelect>
                   )}
+
                   {!language.isSignLanguage && (
                     <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                       <ConfigrBoolean
@@ -169,6 +172,12 @@ export const BloomCollection: React.FunctionComponent<{
                       ></ConfigrSelect>
                     </ConfigrSubPage>
                   )}
+                  {/* Currently cant' get a subpage inside of another subpage (script), so we have to have the path go to "fontFeatures" */}
+                  <ConfigrSubPage label={'Font Features'} path={`${prefix}.fontFeatures`}>
+                    <SILCharacterAlternates
+                      path={`${prefix}.fontFeatures.silCharacterAlternates`}
+                    />
+                  </ConfigrSubPage>
                 </ConfigrSubgroup>
               );
             }}
