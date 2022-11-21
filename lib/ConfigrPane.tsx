@@ -40,6 +40,7 @@ export const ConfigrPane: React.FunctionComponent<{
               <React.Fragment>
                 <ConfigrAppBar
                   label={props.label}
+                  showSearch={props.showSearch}
                   searchValue={searchString}
                   setSearchString={(s: string) => {
                     if (searchString !== s) {

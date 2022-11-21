@@ -439,3 +439,100 @@ const BloomBookInner: React.FunctionComponent<{
       </ConfigrPane>
     </div>);
   }
+
+  // V1 book settings
+  // - custom margins
+  //- cover color
+// - Control over image compression
+//- whether to show the page number
+// - choose a “theme” (a css)
+const initialV1BloomBookValues = {
+  appearance: {
+    cover: {
+      coverColor: "#ffcc00",
+    },
+    margins: {
+      marginTop: "44mm",
+      marginBottom: "44mm",
+      marginOuter: "44mm",
+      marginInner: "44mm",
+    },
+    // Todo: this is used in compressing books for publication, so it belongs in a publish tab.
+    // (If it proves a nuisance to collapse things to one tab, maybe this gives us an excuse to have a second one?)
+    maxImageSize: {
+      width: 600,
+      height: 600
+    },
+    other: {
+      showPageNumber: true,
+      theme: "default"
+    }
+  }
+}
+
+export const BloomBookV1:  React.FunctionComponent = (props)  =>{
+  const [results, setResults] = useState("");
+  return  <div css={css`display:flex`}>
+    <BloomBookInnerV1 setValueOnRender={(currentValues)=> {
+      const pretty = JSON.stringify(currentValues, null, 4);
+      setResults(pretty);
+    }}/>
+    <div css={css`white-space:pre; margin-left: 20px;`}>{results}</div>
+  </div>;
+}
+
+const BloomBookInnerV1: React.FunctionComponent<{
+  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+}> = (props) => {
+  const bloomThemeOverrides = {
+    palette: {
+      primary: {
+        main: '#1D94A4',
+      },
+    },
+  };
+  return (
+    <div css={css`
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      `}>
+      <ConfigrPane
+        label="Book Settings"
+        initialValues={initialV1BloomBookValues}
+        themeOverrides={bloomThemeOverrides}
+        showSearch={false}
+        {...props}
+      >
+        <ConfigrGroup label="Appearance" level={1}>
+          <ConfigrSubgroup label= "Cover" path='appearance.cover'>
+            <ConfigrInput path={`appearance.cover.coverColor`} label="Cover Color" />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label= "Margins" path='appearance.margins'>
+            <ConfigrInput path={`appearance.margins.marginTop`}
+              // wants a way to say it can be mm, or in, or pt, or...
+              label="Top" />
+            <ConfigrInput path={`appearance.margins.marginBottom`} label="Bottom" />
+            <ConfigrInput path={`appearance.margins.marginOuter`} label="Outer" />
+            <ConfigrInput path={`appearance.margins.marginInner`} label="Inner" />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label= "Max Image Size" path='appearance.maxImageSize'>
+            <ConfigrInput path={`appearance.maxImageSize.width`} label="Width" 
+            // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
+            />
+            <ConfigrInput path={`appearance.maxImageSize.height`} label="Height" />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label= "Other" path='appearance.other'>
+            <ConfigrBoolean label="Show Page Numbers" path="appearance.other.showPageNumber"/>
+            <ConfigrInput path={`appearance.other.theme`} label="Theme" 
+            // Review: is this meant to be a place where the user can enter an arbitrary CSS file name?
+            // Or are we thinking of providing a fixed set of built-in themes he can choose from, so
+            // this should be a select?
+            />
+          </ConfigrSubgroup>
+          
+        </ConfigrGroup>
+     
+      </ConfigrPane>
+    </div>);
+  }

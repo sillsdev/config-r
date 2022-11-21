@@ -49,10 +49,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 export const ConfigrAppBar: React.FunctionComponent<{
   label: string;
+  showSearch?: boolean;
   searchValue: string | null;
   setSearchString: (s: string) => void;
 }> = (props) => {
   console.log('Rendering appbar. searchValue=' + props.searchValue);
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -65,7 +67,8 @@ export const ConfigrAppBar: React.FunctionComponent<{
           >
             {props.label}
           </Typography>
-          <Search>
+          { // for now we'll treat undefined as 'show it'
+          props.showSearch !== false && <Search>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -77,7 +80,7 @@ export const ConfigrAppBar: React.FunctionComponent<{
                 event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
               ) => props.setSearchString(event.target.value)}
             />
-          </Search>
+          </Search>}
         </Toolbar>
       </AppBar>
     </Box>
