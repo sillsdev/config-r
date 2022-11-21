@@ -83,10 +83,9 @@ export const ContentPane: React.FunctionComponent<{
             props.setValueGetter(() => {
               return values;
             });
-          if (props.setValueOnRender)
-            props.setValueOnRender(() => {
-              return values;
-            });
+          if (props.setValueOnRender) {
+            props.setValueOnRender(values);
+          }
           return (
             <form
               onSubmit={handleSubmit}

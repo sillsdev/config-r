@@ -15,7 +15,7 @@ function App() {
         display: flex;
       `}
     >
-      <BloomCollection setValueOnRender={setCurrentValue} />
+      {/* <BloomCollection setValueOnRender={setCurrentValue} /> */}
       {/* <Lameta></Lameta> */}
       {/* <Pets></Pets> */}
       <div

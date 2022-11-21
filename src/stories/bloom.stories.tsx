@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
@@ -56,7 +56,18 @@ export default {
   component: () => <BloomCollection />,
 };
 
-export const BloomCollection: React.FunctionComponent<{
+export const BloomCollection:  React.FunctionComponent = (props)  =>{
+  const [results, setResults] = useState("");
+  return  <div css={css`display:flex`}>
+    <BloomCollectionInner setValueOnRender={(currentValues)=> {
+      const pretty = JSON.stringify(currentValues, null, 4);
+      setResults(pretty);
+    }}/>
+    <div css={css`white-space:pre; margin-left: 20px;`}>{results}</div>
+  </div>;
+}
+
+const BloomCollectionInner: React.FunctionComponent<{
   setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
