@@ -31,6 +31,8 @@ export const ConfigrPane: React.FunctionComponent<{
   // and which the client actually cares about.
   const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
 
+  const wantGroupChooser = React.Children.toArray(props.children).length > 1;
+
   return (
     <ThemeProvider theme={mergedTheme}>
       <SearchContextProvider>
@@ -65,12 +67,12 @@ export const ConfigrPane: React.FunctionComponent<{
                     }
                   `}
                 >
-                  <GroupChooser
+                  {wantGroupChooser && <GroupChooser
                     currentGroup={currentGroup}
                     setCurrentGroupIndex={setcurrentGroup}
                   >
                     {props.children}
-                  </GroupChooser>
+                  </GroupChooser>}
                   <ContentPane currentGroupIndex={currentGroup} {...props} />
                 </div>
               </React.Fragment>

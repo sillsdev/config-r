@@ -504,7 +504,10 @@ const BloomBookInnerV1: React.FunctionComponent<{
         showSearch={false}
         {...props}
       >
-        <ConfigrGroup label="Appearance" level={1}>
+        <ConfigrGroup label="" level={1}
+        // This should have a label, "Appearance", when there is more than one ConfigrGroup.
+        // While there is not, it just takes up space and confuses things.
+        >
           <ConfigrSubgroup label= "Cover" path='appearance.cover'>
             <ConfigrInput path={`appearance.cover.coverColor`} label="Cover Color" />
           </ConfigrSubgroup>
