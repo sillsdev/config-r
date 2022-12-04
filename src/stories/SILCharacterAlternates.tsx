@@ -37,6 +37,7 @@ export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> =
     // TODO: configr doesn't display subgroups properly in subpages {/* <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
 
     <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}>
+      {/* TODO: Should be a ConfigrForEach? */}
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate
@@ -56,6 +57,7 @@ export const CharacterAlternate: React.FunctionComponent<{
 }> = (props) => {
   return (
     <ConfigrToggleGroup
+      searchTerms={props.definition.name}
       path={`${props.path}.cv${props.definition.cvNum}`}
       label={props.definition.name}
       height={'60px'}

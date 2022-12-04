@@ -12,7 +12,7 @@ export const SearchContextProvider: React.FunctionComponent<{}> = (props) => {
 
   const handleSet = (value: string | null) => {
     if (!value || !value.trim()) {
-      setSearchString(null);
+      setSearchString('x');
     } else {
       setSearchString(value);
     }

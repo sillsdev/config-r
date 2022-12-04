@@ -21,17 +21,17 @@ const initialBloomCollectionValues = {
   languages: [
     {
       label: 'Local Language',
-      id: { iso: 'de', name: 'German' },
-      font: 'Andika New Basic',
+      id: { iso: 'etr', name: 'Edolo' },
+      font: 'Andika',
       fontFeatures: { silCharacterAlternates: { cv13: '0', cv43: '1' } },
     },
     {
       label: 'Language 2 (e.g. National Language)',
       id: {
-        iso: 'ar',
-        name: 'Arabic',
+        iso: 'en',
+        name: 'English',
       },
-      font: 'Arial',
+      font: 'Andika',
       script: {
         rtl: true,
         avoidAsianScriptWordBreaking: false,
@@ -109,7 +109,7 @@ export const BloomCollection: React.FunctionComponent<{
                       label="Default Font"
                       options={[
                         { label: 'Arial', value: 'Arial' },
-                        { label: 'Andika New Basic', value: 'Andika New Basic' },
+                        { label: 'Andika', value: 'Andika' },
                       ]}
                     ></ConfigrSelect>
                   )}
