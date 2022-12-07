@@ -68,7 +68,8 @@ export const ContentPane: React.FunctionComponent<{
       value={{
         focussedSubPagePath: focussedSubPagePath,
         setFocussedSubPagePath: setFocussedSubPagePath,
-      }}>
+      }}
+    >
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
         {({
           values,
@@ -91,10 +92,12 @@ export const ContentPane: React.FunctionComponent<{
               onSubmit={handleSubmit}
               css={css`
                 flex-grow: 1;
-              `}>
+              `}
+            >
               <VisibleGroups
                 currentGroup={props.currentGroupIndex}
-                focussedSubPagePath={focussedSubPagePath}>
+                focussedSubPagePath={focussedSubPagePath}
+              >
                 {props.children}
               </VisibleGroups>
             </form>
@@ -123,11 +126,13 @@ export const VisibleGroups: React.FunctionComponent<{
               //overflow-y: scroll; //allows us to scroll the groups without
               //scrolling the heading tabs
               overflow-y: auto;
-            `}>
+            `}
+          >
             {searchString ? (
               <HighlightSearchTerms
                 searchString={searchString}
-                focussedSubPagePath={props.focussedSubPagePath}>
+                focussedSubPagePath={props.focussedSubPagePath}
+              >
                 {props.children}
               </HighlightSearchTerms>
             ) : (
@@ -155,7 +160,8 @@ export const ConfigrGroup: React.FunctionComponent<{
         css={css`
           margin-top: 21px !important;
           margin-bottom: 12px !important;
-        `}>
+        `}
+      >
         <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
         <Typography variant={'caption'}>{props.description}</Typography>
       </div>
@@ -179,12 +185,14 @@ const PaperGroup: React.FunctionComponent<{
       css={css`
         width: 100%;
         margin-bottom: 12px !important;
-      `}>
+      `}
+    >
       <List
         component="nav"
         css={css`
           width: calc(100% - 20px);
-        `}>
+        `}
+      >
         <FilterAndJoinWithDividers>{childrenWithStore}</FilterAndJoinWithDividers>
       </List>
     </Paper>
@@ -236,7 +244,8 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
         flex-direction: column;
         // I don't understand why this is needed. Else, it's centered
         align-items: flex-start;
-      `}>
+      `}
+    >
       <ListItemText
         primaryTypographyProps={{ variant: 'h4' }}
         primary={props.label}
@@ -312,7 +321,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                     * {
                       max-width: calc(100% - 20px);
                     }
-                  `}>
+                  `}
+                >
                   {props.description}
                 </Typography>
               }
@@ -326,7 +336,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 // button should be top-aligned.
                 /// Months later.. but it messed up toggleGroups and I'm not seeing the problem it was solving, at the moment.
                 //top: 22px;
-              `}>
+              `}
+            >
               {props.control}
             </ListItemSecondaryAction>
           </React.Fragment>
@@ -342,7 +353,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 <span
                   css={css`
                     background-color: yellow;
-                  `}>
+                  `}
+                >
                   {`${count} matches`}
                 </span>
               </div>
@@ -363,7 +375,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
     <ListItem
       css={css`
         height: ${props.height};
-      `}>
+      `}
+    >
       {inner}
     </ListItem>
   );
@@ -399,7 +412,8 @@ export const ConfigrInput: React.FunctionComponent<{
       {...props}
       control={
         <Field component={TextField} variant="standard" name={props.path} type="text" />
-      }></ConfigrRowTwoColumns>
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
 export const ConfigrSelect: React.FunctionComponent<{
@@ -431,7 +445,8 @@ export const ConfigrSelect: React.FunctionComponent<{
             * {
               border-style: none;
             }
-          `}>
+          `}
+        >
           {/* Allow a list of numbers (typically font sizes) instead of label/value objects */}
           {props.options.map((o) => {
             if (typeof o === 'number') {
@@ -456,7 +471,8 @@ export const ConfigrSelect: React.FunctionComponent<{
             );
           })}
         </Field>
-      }></ConfigrRowTwoColumns>
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
 
@@ -503,7 +519,8 @@ export const ConfigrSubPage: React.FunctionComponent<{
                     margin-left: 20px;
                     //margin-right: 20px;
                   }
-                `}>
+                `}
+              >
                 <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
               </div>
             </React.Fragment>
@@ -591,7 +608,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<{
     // on its left edge.)
     <ConfigrRowOneColumn
       {...props}
-      control={<ConfigrRadioGroupRaw {...props} />}></ConfigrRowOneColumn>
+      control={<ConfigrRadioGroupRaw {...props} />}
+    ></ConfigrRowOneColumn>
   );
 };
 export const ConfigrRadioGroupRaw: React.FunctionComponent<{
@@ -632,7 +650,8 @@ export const ConfigrToggleGroup: React.FunctionComponent<{
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<ConfigrToggleGroupRaw {...props} />}></ConfigrRowTwoColumns>
+      control={<ConfigrToggleGroupRaw {...props} />}
+    ></ConfigrRowTwoColumns>
   );
 };
 export const ConfigrToggleGroupRaw: React.FunctionComponent<{
@@ -674,25 +693,29 @@ export const ConfigrChooserButton: React.FunctionComponent<{
         <div
           css={css`
             height: 56px; // leave room to show th path below the button
-          `}>
+          `}
+        >
           <Button
             disabled={props.disabled}
             variant={'outlined'}
             onClick={() => {
               const newValue = props.chooseAction(field.value);
               setFieldValue(props.path, newValue);
-            }}>
+            }}
+          >
             {props.buttonLabel}
           </Button>
 
           <div
             css={css`
               color: ${secondaryGrey};
-            `}>
+            `}
+          >
             {field.value}
           </div>
         </div>
-      }></ConfigrRowTwoColumns>
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
 

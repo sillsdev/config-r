@@ -67,20 +67,24 @@ export const ConfigrAppBar: React.FunctionComponent<{
           >
             {props.label}
           </Typography>
-          { // for now we'll treat undefined as 'show it'
-          props.showSearch !== false && <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              value={props.searchValue ?? ''}
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-              onChange={(
-                event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-              ) => props.setSearchString(event.target.value)}
-            />
-          </Search>}
+          {
+            // for now we'll treat undefined as 'show it'
+            props.showSearch !== false && (
+              <Search>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase
+                  value={props.searchValue ?? ''}
+                  placeholder="Search…"
+                  inputProps={{ 'aria-label': 'search' }}
+                  onChange={(
+                    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+                  ) => props.setSearchString(event.target.value)}
+                />
+              </Search>
+            )
+          }
         </Toolbar>
       </AppBar>
     </Box>

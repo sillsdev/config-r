@@ -67,12 +67,14 @@ export const ConfigrPane: React.FunctionComponent<{
                     }
                   `}
                 >
-                  {wantGroupChooser && <GroupChooser
-                    currentGroup={currentGroup}
-                    setCurrentGroupIndex={setcurrentGroup}
-                  >
-                    {props.children}
-                  </GroupChooser>}
+                  {wantGroupChooser && (
+                    <GroupChooser
+                      currentGroup={currentGroup}
+                      setCurrentGroupIndex={setcurrentGroup}
+                    >
+                      {props.children}
+                    </GroupChooser>
+                  )}
                   <ContentPane currentGroupIndex={currentGroup} {...props} />
                 </div>
               </React.Fragment>
