@@ -13,7 +13,9 @@ import {
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
+  ConfigrCustomStringInput,
 } from '../../lib/ContentPane';
+import { DefaultColorPicker } from '../../lib/DefaultColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
 
 const initialBloomCollectionValues = {
@@ -598,7 +600,11 @@ const BloomBookInnerV1: React.FunctionComponent<{
           // While there is not, it just takes up space and confuses things.
         >
           <ConfigrSubgroup label="Cover" path="appearance.cover">
-            <ConfigrInput path={`appearance.cover.coverColor`} label="Cover Color" />
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={DefaultColorPicker}
+            />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
             <ConfigrInput

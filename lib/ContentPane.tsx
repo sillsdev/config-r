@@ -39,6 +39,7 @@ import {
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
+import { DefaultColorPicker } from './DefaultColorPicker';
 
 type valueGetter = () => Object;
 
@@ -432,6 +433,27 @@ export const ConfigrInput: React.FunctionComponent<{
     ></ConfigrRowTwoColumns>
   );
 };
+
+// Clients can use this to create their own custom inputs based on string data.
+// For example, <DefaultColorPicker> or some other color picker.
+export const ConfigrCustomStringInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: string; onChange: (value: string) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
 export const ConfigrSelect: React.FunctionComponent<{
   path: string;
   label: string;
@@ -708,7 +730,7 @@ export const ConfigrChooserButton: React.FunctionComponent<{
       control={
         <div
           css={css`
-            height: 56px; // leave room to show th path below the button
+            height: 56px; // leave room to show the path below the button
           `}
         >
           <Button
