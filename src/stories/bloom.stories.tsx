@@ -331,13 +331,13 @@ const initialBloomBookValues = {
       coverColor: '#ffcc00',
     },
     margins: {
-      marginTop: '44mm',
-      marginBottom: '44mm',
-      marginOuter: '44mm',
-      marginInner: '44mm',
+      marginTop: '44',
+      marginBottom: '44',
+      marginOuter: '44',
+      marginInner: '44',
     },
     spacing: {
-      verticalBlocks: '10mm',
+      verticalBlocks: '10',
     },
   },
   pdfPrint: {
@@ -390,6 +390,13 @@ const initialBloomBookValues = {
   },
 };
 
+const propsForMmField = {
+  suffix: 'mm',
+  stylesForControl: css`
+    width: 100px;
+  `,
+};
+
 // This doesn't yet have Configr elements for all the options above. I wanted to focus on things that might be a problem.
 // One I don't know how to do at all with the current components is the list of checkboxes for which languages to include.
 const BloomBookInner: React.FunctionComponent<{
@@ -402,6 +409,7 @@ const BloomBookInner: React.FunctionComponent<{
       },
     },
   };
+
   return (
     <div
       css={css`
@@ -424,17 +432,30 @@ const BloomBookInner: React.FunctionComponent<{
           <ConfigrSubgroup label="Margins" path="appearance.margins">
             <ConfigrInput
               path={`appearance.margins.marginTop`}
-              // wants a way to say it can be mm, or in, or pt, or...
               label="Top"
+              {...propsForMmField}
             />
-            <ConfigrInput path={`appearance.margins.marginBottom`} label="Bottom" />
-            <ConfigrInput path={`appearance.margins.marginOuter`} label="Outer" />
-            <ConfigrInput path={`appearance.margins.marginInner`} label="Inner" />
+            <ConfigrInput
+              path={`appearance.margins.marginBottom`}
+              label="Bottom"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginOuter`}
+              label="Outer"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginInner`}
+              label="Inner"
+              {...propsForMmField}
+            />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Spacing" path="appearance.cover">
             <ConfigrInput
               path={`appearance.spacing.verticalBlocks`}
               label="Between Vertical Blocks"
+              {...propsForMmField}
             />
           </ConfigrSubgroup>
         </ConfigrGroup>
@@ -501,10 +522,10 @@ const initialV1BloomBookValues = {
       coverColor: '#ffcc00',
     },
     margins: {
-      marginTop: '44mm',
-      marginBottom: '44mm',
-      marginOuter: '44mm',
-      marginInner: '44mm',
+      marginTop: '44',
+      marginBottom: '44',
+      marginOuter: '44',
+      marginInner: '44',
     },
     // Todo: this is used in compressing books for publication, so it belongs in a publish tab.
     // (If it proves a nuisance to collapse things to one tab, maybe this gives us an excuse to have a second one?)
@@ -582,12 +603,24 @@ const BloomBookInnerV1: React.FunctionComponent<{
           <ConfigrSubgroup label="Margins" path="appearance.margins">
             <ConfigrInput
               path={`appearance.margins.marginTop`}
-              // wants a way to say it can be mm, or in, or pt, or...
               label="Top"
+              {...propsForMmField}
             />
-            <ConfigrInput path={`appearance.margins.marginBottom`} label="Bottom" />
-            <ConfigrInput path={`appearance.margins.marginOuter`} label="Outer" />
-            <ConfigrInput path={`appearance.margins.marginInner`} label="Inner" />
+            <ConfigrInput
+              path={`appearance.margins.marginBottom`}
+              label="Bottom"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginOuter`}
+              label="Outer"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginInner`}
+              label="Inner"
+              {...propsForMmField}
+            />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
             <ConfigrInput

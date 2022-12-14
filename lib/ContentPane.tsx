@@ -26,6 +26,7 @@ import {
   Tooltip,
   useRadioGroup,
   ToggleButton,
+  InputAdornment,
 } from '@mui/material';
 import {
   TextField,
@@ -405,13 +406,28 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
 export const ConfigrInput: React.FunctionComponent<{
   path: string;
   label: string;
+  stylesForControl?: SerializedStyles;
+  suffix?: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   return (
     <ConfigrRowTwoColumns
       {...props}
       control={
-        <Field component={TextField} variant="standard" name={props.path} type="text" />
+        <Field
+          component={TextField}
+          variant="standard"
+          name={props.path}
+          type="text"
+          InputProps={
+            props.suffix
+              ? {
+                  endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                }
+              : undefined
+          }
+          css={props.stylesForControl}
+        />
       }
     ></ConfigrRowTwoColumns>
   );

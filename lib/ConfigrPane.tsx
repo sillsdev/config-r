@@ -20,7 +20,7 @@ export const ConfigrPane: React.FunctionComponent<{
   showAllGroups?: boolean;
   themeOverrides?: any;
 }> = (props) => {
-  const [currentGroup, setcurrentGroup] = useState<number | undefined>(0);
+  const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
@@ -50,7 +50,7 @@ export const ConfigrPane: React.FunctionComponent<{
                       // There should be no selected group if we
                       // have a search term. If the user clears the search,
                       // then we set the selected group to be the 1st one (0).
-                      setcurrentGroup(s ? undefined : 0);
+                      setCurrentGroup(s ? undefined : 0);
                     }
                   }}
                 />
@@ -60,6 +60,7 @@ export const ConfigrPane: React.FunctionComponent<{
                     height: 100%;
                     display: flex;
                     padding-right: 20px;
+                    padding-left: ${wantGroupChooser ? undefined : '20px'};
 
                     .MuiTab-wrapper {
                       text-align: left;
@@ -70,7 +71,7 @@ export const ConfigrPane: React.FunctionComponent<{
                   {wantGroupChooser && (
                     <GroupChooser
                       currentGroup={currentGroup}
-                      setCurrentGroupIndex={setcurrentGroup}
+                      setCurrentGroupIndex={setCurrentGroup}
                     >
                       {props.children}
                     </GroupChooser>
