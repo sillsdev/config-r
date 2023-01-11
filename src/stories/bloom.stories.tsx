@@ -15,7 +15,7 @@ import {
   ConfigrSelect,
   ConfigrCustomStringInput,
 } from '../../lib/ContentPane';
-import { DefaultColorPicker } from '../../lib/DefaultColorPicker';
+import { DefaultColorPicker } from './DefaultColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
 
 const initialBloomCollectionValues = {
@@ -333,13 +333,13 @@ const initialBloomBookValues = {
       coverColor: '#ffcc00',
     },
     margins: {
-      marginTop: '44',
-      marginBottom: '44',
-      marginOuter: '44',
-      marginInner: '44',
+      marginTop: 44,
+      marginBottom: 44,
+      marginOuter: 44,
+      marginInner: 44,
     },
     spacing: {
-      verticalBlocks: '10',
+      verticalBlocks: 10,
     },
   },
   pdfPrint: {
@@ -394,7 +394,7 @@ const initialBloomBookValues = {
 
 const propsForMmField = {
   suffix: 'mm',
-  stylesForControl: css`
+  css: css`
     width: 100px;
   `,
 };
@@ -429,7 +429,11 @@ const BloomBookInner: React.FunctionComponent<{
       >
         <ConfigrGroup label="Appearance" level={1}>
           <ConfigrSubgroup label="Cover" path="appearance.cover">
-            <ConfigrInput path={`appearance.cover.coverColor`} label="Cover Color" />
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={DefaultColorPicker}
+            />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
             <ConfigrInput
@@ -524,10 +528,10 @@ const initialV1BloomBookValues = {
       coverColor: '#ffcc00',
     },
     margins: {
-      marginTop: '44',
-      marginBottom: '44',
-      marginOuter: '44',
-      marginInner: '44',
+      marginTop: 44,
+      marginBottom: 44,
+      marginOuter: 44,
+      marginInner: 44,
     },
     // Todo: this is used in compressing books for publication, so it belongs in a publish tab.
     // (If it proves a nuisance to collapse things to one tab, maybe this gives us an excuse to have a second one?)
