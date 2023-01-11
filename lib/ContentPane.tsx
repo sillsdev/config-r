@@ -1,5 +1,5 @@
 import { css, SerializedStyles } from '@emotion/react';
-import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
+import React, { useState, ReactElement, ReactNode } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -22,17 +22,16 @@ import {
   Button,
   ListItemButton,
   MenuItem,
-  Select as MuiSelect,
   Tooltip,
   useRadioGroup,
   ToggleButton,
+  InputAdornment,
 } from '@mui/material';
 import {
   TextField,
   Switch,
   Checkbox,
   Select as FormikMuiSelect,
-  RadioGroupProps,
   ToggleButtonGroup,
 } from 'formik-mui';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
@@ -68,7 +67,8 @@ export const ContentPane: React.FunctionComponent<{
       value={{
         focussedSubPagePath: focussedSubPagePath,
         setFocussedSubPagePath: setFocussedSubPagePath,
-      }}>
+      }}
+    >
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
         {({
           values,
@@ -83,19 +83,20 @@ export const ContentPane: React.FunctionComponent<{
             props.setValueGetter(() => {
               return values;
             });
-          if (props.setValueOnRender)
-            props.setValueOnRender(() => {
-              return values;
-            });
+          if (props.setValueOnRender) {
+            props.setValueOnRender(values);
+          }
           return (
             <form
               onSubmit={handleSubmit}
               css={css`
                 flex-grow: 1;
-              `}>
+              `}
+            >
               <VisibleGroups
                 currentGroup={props.currentGroupIndex}
-                focussedSubPagePath={focussedSubPagePath}>
+                focussedSubPagePath={focussedSubPagePath}
+              >
                 {props.children}
               </VisibleGroups>
             </form>
@@ -124,11 +125,13 @@ export const VisibleGroups: React.FunctionComponent<{
               //overflow-y: scroll; //allows us to scroll the groups without
               //scrolling the heading tabs
               overflow-y: auto;
-            `}>
+            `}
+          >
             {searchString ? (
               <HighlightSearchTerms
                 searchString={searchString}
-                focussedSubPagePath={props.focussedSubPagePath}>
+                focussedSubPagePath={props.focussedSubPagePath}
+              >
                 {props.children}
               </HighlightSearchTerms>
             ) : (
@@ -156,7 +159,8 @@ export const ConfigrGroup: React.FunctionComponent<{
         css={css`
           margin-top: 21px !important;
           margin-bottom: 12px !important;
-        `}>
+        `}
+      >
         <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
         <Typography variant={'caption'}>{props.description}</Typography>
       </div>
@@ -180,12 +184,14 @@ const PaperGroup: React.FunctionComponent<{
       css={css`
         width: 100%;
         margin-bottom: 12px !important;
-      `}>
+      `}
+    >
       <List
         component="nav"
         css={css`
           width: calc(100% - 20px);
-        `}>
+        `}
+      >
         <FilterAndJoinWithDividers>{childrenWithStore}</FilterAndJoinWithDividers>
       </List>
     </Paper>
@@ -237,7 +243,8 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
         flex-direction: column;
         // I don't understand why this is needed. Else, it's centered
         align-items: flex-start;
-      `}>
+      `}
+    >
       <ListItemText
         primaryTypographyProps={{ variant: 'h4' }}
         primary={props.label}
@@ -313,7 +320,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                     * {
                       max-width: calc(100% - 20px);
                     }
-                  `}>
+                  `}
+                >
                   {props.description}
                 </Typography>
               }
@@ -327,7 +335,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 // button should be top-aligned.
                 /// Months later.. but it messed up toggleGroups and I'm not seeing the problem it was solving, at the moment.
                 //top: 22px;
-              `}>
+              `}
+            >
               {props.control}
             </ListItemSecondaryAction>
           </React.Fragment>
@@ -343,7 +352,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                 <span
                   css={css`
                     background-color: yellow;
-                  `}>
+                  `}
+                >
                   {`${count} matches`}
                 </span>
               </div>
@@ -364,7 +374,8 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
     <ListItem
       css={css`
         height: ${props.height};
-      `}>
+      `}
+    >
       {inner}
     </ListItem>
   );
@@ -393,16 +404,113 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
 export const ConfigrInput: React.FunctionComponent<{
   path: string;
   label: string;
+  className?: string;
+  suffix?: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   return (
     <ConfigrRowTwoColumns
       {...props}
       control={
-        <Field component={TextField} variant="standard" name={props.path} type="text" />
-      }></ConfigrRowTwoColumns>
+        <Field
+          component={TextField}
+          variant="standard"
+          name={props.path}
+          type="text"
+          InputProps={
+            props.suffix
+              ? {
+                  endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                }
+              : undefined
+          }
+          className={props.className}
+        />
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
+
+// Clients can use this to create their own custom inputs based on string data.
+// For example, <DefaultColorPicker> or some other color picker.
+export const ConfigrCustomStringInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: string; onChange: (value: string) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on boolean data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomBooleanInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: boolean; onChange: (value: boolean) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on number data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomNumberInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: number; onChange: (value: number) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on object data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomObjectInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: object; onChange: (value: object) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
 export const ConfigrSelect: React.FunctionComponent<{
   path: string;
   label: string;
@@ -432,7 +540,8 @@ export const ConfigrSelect: React.FunctionComponent<{
             * {
               border-style: none;
             }
-          `}>
+          `}
+        >
           {/* Allow a list of numbers (typically font sizes) instead of label/value objects */}
           {props.options.map((o) => {
             if (typeof o === 'number') {
@@ -457,7 +566,8 @@ export const ConfigrSelect: React.FunctionComponent<{
             );
           })}
         </Field>
-      }></ConfigrRowTwoColumns>
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
 
@@ -504,7 +614,8 @@ export const ConfigrSubPage: React.FunctionComponent<{
                     margin-left: 20px;
                     //margin-right: 20px;
                   }
-                `}>
+                `}
+              >
                 <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
               </div>
             </React.Fragment>
@@ -592,7 +703,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<{
     // on its left edge.)
     <ConfigrRowOneColumn
       {...props}
-      control={<ConfigrRadioGroupRaw {...props} />}></ConfigrRowOneColumn>
+      control={<ConfigrRadioGroupRaw {...props} />}
+    ></ConfigrRowOneColumn>
   );
 };
 export const ConfigrRadioGroupRaw: React.FunctionComponent<{
@@ -633,7 +745,8 @@ export const ConfigrToggleGroup: React.FunctionComponent<{
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<ConfigrToggleGroupRaw {...props} />}></ConfigrRowTwoColumns>
+      control={<ConfigrToggleGroupRaw {...props} />}
+    ></ConfigrRowTwoColumns>
   );
 };
 export const ConfigrToggleGroupRaw: React.FunctionComponent<{
@@ -674,26 +787,30 @@ export const ConfigrChooserButton: React.FunctionComponent<{
       control={
         <div
           css={css`
-            height: 56px; // leave room to show th path below the button
-          `}>
+            height: 56px; // leave room to show the path below the button
+          `}
+        >
           <Button
             disabled={props.disabled}
             variant={'outlined'}
             onClick={() => {
               const newValue = props.chooseAction(field.value);
               setFieldValue(props.path, newValue);
-            }}>
+            }}
+          >
             {props.buttonLabel}
           </Button>
 
           <div
             css={css`
               color: ${secondaryGrey};
-            `}>
+            `}
+          >
             {field.value}
           </div>
         </div>
-      }></ConfigrRowTwoColumns>
+      }
+    ></ConfigrRowTwoColumns>
   );
 };
 

@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
@@ -13,7 +13,9 @@ import {
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
+  ConfigrCustomStringInput,
 } from '../../lib/ContentPane';
+import { DefaultColorPicker } from './DefaultColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
 
 const initialBloomCollectionValues = {
@@ -56,7 +58,33 @@ export default {
   component: () => <BloomCollection />,
 };
 
-export const BloomCollection: React.FunctionComponent<{
+export const BloomCollection: React.FunctionComponent = (props) => {
+  const [results, setResults] = useState('');
+  return (
+    <div
+      css={css`
+        display: flex;
+      `}
+    >
+      <BloomCollectionInner
+        setValueOnRender={(currentValues) => {
+          const pretty = JSON.stringify(currentValues, null, 4);
+          setResults(pretty);
+        }}
+      />
+      <div
+        css={css`
+          white-space: pre;
+          margin-left: 20px;
+        `}
+      >
+        {results}
+      </div>
+    </div>
+  );
+};
+
+const BloomCollectionInner: React.FunctionComponent<{
   setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
@@ -262,6 +290,367 @@ export const BloomCollection: React.FunctionComponent<{
             <ConfigrBoolean
               label="Spreadsheet Import/Export"
               path="feature.spreadsheet"
+            />
+          </ConfigrSubgroup>
+        </ConfigrGroup>
+      </ConfigrPane>
+    </div>
+  );
+};
+
+export const BloomBook: React.FunctionComponent = (props) => {
+  const [results, setResults] = useState('');
+  return (
+    <div
+      css={css`
+        display: flex;
+      `}
+    >
+      <BloomBookInner
+        setValueOnRender={(currentValues) => {
+          const pretty = JSON.stringify(currentValues, null, 4);
+          setResults(pretty);
+        }}
+      />
+      <div
+        css={css`
+          white-space: pre;
+          margin-left: 20px;
+        `}
+      >
+        {results}
+      </div>
+    </div>
+  );
+};
+
+// A very rough first draft based on the options I see in each publish tab
+// This is way more than we want in V1 of the Book options but I thought it was an interesting
+// experiment to see which ones are problems with our current repertoir.
+const initialBloomBookValues = {
+  appearance: {
+    cover: {
+      coverColor: '#ffcc00',
+    },
+    margins: {
+      marginTop: 44,
+      marginBottom: 44,
+      marginOuter: 44,
+      marginInner: 44,
+    },
+    spacing: {
+      verticalBlocks: 10,
+    },
+  },
+  pdfPrint: {
+    cmyk: false,
+    fullBleed: false,
+  },
+  bloomPub: {
+    motion: false,
+    languages: [{ code: 'fr', name: 'French', include: true, complete: false }],
+    narrationLanguages: [{ code: 'fr', name: 'French', include: false, present: false }],
+  },
+  bloomLibrary: {
+    summary: 'a book',
+    // Somehow the appropriate control needs to know whether it should be enabled.
+    // enabled: doesn't really belong here, as it's not data we want to persist.
+    accessible: false,
+    signLanguages: false,
+    languages: [
+      // complete, and the name, represent additional data that we need to make
+      // the UI look right, but they are changeable properties of the other data
+      // in the book, not part of saved settings. How should we handle that?
+      // Likewise name and present below.
+      { code: 'fr', name: 'French', include: true, complete: false },
+    ],
+    narrationLanguages: [{ code: 'fr', name: 'French', include: false, present: false }],
+    music: false,
+    // sign languguage separately? or oe of languages?
+  },
+  epub: {
+    options: {
+      mode: 'fixed',
+      // Want a way to say this should be disabled if book has none
+      // That isn't part of the saved options, so probably should be communicated to the
+      // tool another way. How?
+      imageDescriptionsOnPage: false,
+    },
+    metadata: {
+      author: 'Joe',
+      summary: 'a book', // should this be the same summary as in bloomLibrary?
+      ageRange: '5-8',
+      level: 3, // related to leveled reader level?
+      subjects: ['crime'],
+      accessabilityLevel: 'Level AA Conformance',
+      accessibilityCertifiedBy: 'me',
+      flashingHazard: undefined, // Todo: want this to mean "unknown" for tristate checkbox
+      motionHazard: false,
+      hasImageDescriptions: false, // related to whether imageDescriptionsOnPage is enabled?
+      hasSignLanguage: false,
+    },
+  },
+};
+
+const propsForMmField = {
+  suffix: 'mm',
+  css: css`
+    width: 100px;
+  `,
+};
+
+// This doesn't yet have Configr elements for all the options above. I wanted to focus on things that might be a problem.
+// One I don't know how to do at all with the current components is the list of checkboxes for which languages to include.
+const BloomBookInner: React.FunctionComponent<{
+  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+}> = (props) => {
+  const bloomThemeOverrides = {
+    palette: {
+      primary: {
+        main: '#1D94A4',
+      },
+    },
+  };
+
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      `}
+    >
+      <ConfigrPane
+        label="Book Settings"
+        initialValues={initialBloomBookValues}
+        themeOverrides={bloomThemeOverrides}
+        showSearch={true}
+        {...props}
+      >
+        <ConfigrGroup label="Appearance" level={1}>
+          <ConfigrSubgroup label="Cover" path="appearance.cover">
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={DefaultColorPicker}
+            />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Margins" path="appearance.margins">
+            <ConfigrInput
+              path={`appearance.margins.marginTop`}
+              label="Top"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginBottom`}
+              label="Bottom"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginOuter`}
+              label="Outer"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginInner`}
+              label="Inner"
+              {...propsForMmField}
+            />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Spacing" path="appearance.cover">
+            <ConfigrInput
+              path={`appearance.spacing.verticalBlocks`}
+              label="Between Vertical Blocks"
+              {...propsForMmField}
+            />
+          </ConfigrSubgroup>
+        </ConfigrGroup>
+        <ConfigrGroup label="Bloom Library" level={1}>
+          <ConfigrInput
+            path={`bloomLibrary.summary`}
+            label="Summary"
+            // Wants a way to say to leave more space for a summary.
+          />
+        </ConfigrGroup>
+        <ConfigrGroup label="ePUB" level={1}>
+          <ConfigrSubgroup label="Options" path="epub.options">
+            <ConfigrSelect
+              path={'epub.options.mode'}
+              label="ePUB mode"
+              options={[
+                {
+                  label: 'Fixed - ePUB 3',
+                  value: 'fixed',
+                  description:
+                    'Ask ePUB reader to show pages exactly like you see them in Bloom',
+                },
+                {
+                  label: 'Flowable',
+                  value: 'flowable',
+                  description:
+                    'Allow ePUB readers to lay out images and text however they like',
+                },
+              ]}
+            />
+            <ConfigrBoolean
+              label="Image Descriptions on Page"
+              path="epub.options.imageDescriptionsOnPage"
+            />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Metadata" path="epub.metadata">
+            <ConfigrInput path={`epub.metadata.author`} label="Author" />
+            <ConfigrBoolean
+              label="Flashing Hazard"
+              path="epub.options.flashingHazard"
+              // Want a way that this can be undefined meaning unknown
+              // May want to group these as "Hazards" but trying to avoid too many levels
+            />
+            <ConfigrBoolean
+              label="Motion Simulation Hazard"
+              path="epub.options.motionHazard"
+            />
+          </ConfigrSubgroup>
+        </ConfigrGroup>
+      </ConfigrPane>
+    </div>
+  );
+};
+
+// V1 book settings
+// - custom margins
+//- cover color
+// - Control over image compression
+//- whether to show the page number
+// - choose a “theme” (a css)
+const initialV1BloomBookValues = {
+  appearance: {
+    cover: {
+      coverColor: '#ffcc00',
+    },
+    margins: {
+      marginTop: 44,
+      marginBottom: 44,
+      marginOuter: 44,
+      marginInner: 44,
+    },
+    // Todo: this is used in compressing books for publication, so it belongs in a publish tab.
+    // (If it proves a nuisance to collapse things to one tab, maybe this gives us an excuse to have a second one?)
+    maxImageSize: {
+      width: 600,
+      height: 600,
+    },
+    other: {
+      showPageNumber: true,
+      theme: 'default',
+    },
+  },
+};
+
+export const BloomBookV1: React.FunctionComponent = (props) => {
+  const [results, setResults] = useState('');
+  return (
+    <div
+      css={css`
+        display: flex;
+      `}
+    >
+      <BloomBookInnerV1
+        setValueOnRender={(currentValues) => {
+          const pretty = JSON.stringify(currentValues, null, 4);
+          setResults(pretty);
+        }}
+      />
+      <div
+        css={css`
+          white-space: pre;
+          margin-left: 20px;
+        `}
+      >
+        {results}
+      </div>
+    </div>
+  );
+};
+
+const BloomBookInnerV1: React.FunctionComponent<{
+  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+}> = (props) => {
+  const bloomThemeOverrides = {
+    palette: {
+      primary: {
+        main: '#1D94A4',
+      },
+    },
+  };
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      `}
+    >
+      <ConfigrPane
+        label="Book Settings"
+        initialValues={initialV1BloomBookValues}
+        themeOverrides={bloomThemeOverrides}
+        showSearch={false}
+        {...props}
+      >
+        <ConfigrGroup
+          label=""
+          level={1}
+          // This should have a label, "Appearance", when there is more than one ConfigrGroup.
+          // While there is not, it just takes up space and confuses things.
+        >
+          <ConfigrSubgroup label="Cover" path="appearance.cover">
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={DefaultColorPicker}
+            />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Margins" path="appearance.margins">
+            <ConfigrInput
+              path={`appearance.margins.marginTop`}
+              label="Top"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginBottom`}
+              label="Bottom"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginOuter`}
+              label="Outer"
+              {...propsForMmField}
+            />
+            <ConfigrInput
+              path={`appearance.margins.marginInner`}
+              label="Inner"
+              {...propsForMmField}
+            />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
+            <ConfigrInput
+              path={`appearance.maxImageSize.width`}
+              label="Width"
+              // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
+            />
+            <ConfigrInput path={`appearance.maxImageSize.height`} label="Height" />
+          </ConfigrSubgroup>
+          <ConfigrSubgroup label="Other" path="appearance.other">
+            <ConfigrBoolean
+              label="Show Page Numbers"
+              path="appearance.other.showPageNumber"
+            />
+            <ConfigrInput
+              path={`appearance.other.theme`}
+              label="Theme"
+              // Review: is this meant to be a place where the user can enter an arbitrary CSS file name?
+              // Or are we thinking of providing a fixed set of built-in themes he can choose from, so
+              // this should be a select?
             />
           </ConfigrSubgroup>
         </ConfigrGroup>

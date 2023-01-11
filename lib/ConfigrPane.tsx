@@ -20,7 +20,7 @@ export const ConfigrPane: React.FunctionComponent<{
   showAllGroups?: boolean;
   themeOverrides?: any;
 }> = (props) => {
-  const [currentGroup, setcurrentGroup] = useState<number | undefined>(0);
+  const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
@@ -31,6 +31,8 @@ export const ConfigrPane: React.FunctionComponent<{
   // and which the client actually cares about.
   const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
 
+  const wantGroupChooser = React.Children.toArray(props.children).length > 1;
+
   return (
     <ThemeProvider theme={mergedTheme}>
       <SearchContextProvider>
@@ -40,6 +42,7 @@ export const ConfigrPane: React.FunctionComponent<{
               <React.Fragment>
                 <ConfigrAppBar
                   label={props.label}
+                  showSearch={props.showSearch}
                   searchValue={searchString}
                   setSearchString={(s: string) => {
                     if (searchString !== s) {
@@ -47,7 +50,7 @@ export const ConfigrPane: React.FunctionComponent<{
                       // There should be no selected group if we
                       // have a search term. If the user clears the search,
                       // then we set the selected group to be the 1st one (0).
-                      setcurrentGroup(s ? undefined : 0);
+                      setCurrentGroup(s ? undefined : 0);
                     }
                   }}
                 />
@@ -57,6 +60,7 @@ export const ConfigrPane: React.FunctionComponent<{
                     height: 100%;
                     display: flex;
                     padding-right: 20px;
+                    padding-left: ${wantGroupChooser ? undefined : '20px'};
 
                     .MuiTab-wrapper {
                       text-align: left;
@@ -64,12 +68,14 @@ export const ConfigrPane: React.FunctionComponent<{
                     }
                   `}
                 >
-                  <GroupChooser
-                    currentGroup={currentGroup}
-                    setCurrentGroupIndex={setcurrentGroup}
-                  >
-                    {props.children}
-                  </GroupChooser>
+                  {wantGroupChooser && (
+                    <GroupChooser
+                      currentGroup={currentGroup}
+                      setCurrentGroupIndex={setCurrentGroup}
+                    >
+                      {props.children}
+                    </GroupChooser>
+                  )}
                   <ContentPane currentGroupIndex={currentGroup} {...props} />
                 </div>
               </React.Fragment>
