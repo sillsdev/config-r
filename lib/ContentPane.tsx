@@ -1,5 +1,5 @@
 import { css, SerializedStyles } from '@emotion/react';
-import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
+import React, { useState, ReactElement, ReactNode } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -22,7 +22,6 @@ import {
   Button,
   ListItemButton,
   MenuItem,
-  Select as MuiSelect,
   Tooltip,
   useRadioGroup,
   ToggleButton,
@@ -33,13 +32,11 @@ import {
   Switch,
   Checkbox,
   Select as FormikMuiSelect,
-  RadioGroupProps,
   ToggleButtonGroup,
 } from 'formik-mui';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
-import { DefaultColorPicker } from './DefaultColorPicker';
 
 type valueGetter = () => Object;
 
@@ -407,7 +404,7 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
 export const ConfigrInput: React.FunctionComponent<{
   path: string;
   label: string;
-  stylesForControl?: SerializedStyles;
+  className?: string;
   suffix?: string;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
@@ -427,7 +424,7 @@ export const ConfigrInput: React.FunctionComponent<{
                 }
               : undefined
           }
-          css={props.stylesForControl}
+          className={props.className}
         />
       }
     ></ConfigrRowTwoColumns>
@@ -440,6 +437,66 @@ export const ConfigrCustomStringInput: React.FunctionComponent<{
   path: string;
   label: string;
   control: React.ComponentType<{ value: string; onChange: (value: string) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on boolean data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomBooleanInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: boolean; onChange: (value: boolean) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on number data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomNumberInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: number; onChange: (value: number) => void }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrRowTwoColumns
+      {...props}
+      control={<props.control value={value} onChange={setValue} />}
+    ></ConfigrRowTwoColumns>
+  );
+};
+
+// Clients can use this to create their own custom inputs based on object data.
+// Note, this is untested, but based on ConfigrCustomStringInput which is tested.
+export const ConfigrCustomObjectInput: React.FunctionComponent<{
+  path: string;
+  label: string;
+  control: React.ComponentType<{ value: object; onChange: (value: object) => void }>;
   getErrorMessage?: (data: any) => string | undefined;
 }> = (props) => {
   const [field, meta, helpers] = useField(props.path);
