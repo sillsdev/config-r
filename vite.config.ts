@@ -1,4 +1,3 @@
-import reactRefresh from '@vitejs/plugin-react-refresh';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -14,9 +13,7 @@ const path = require('path');
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  // TODO: switch to @vitejs/plugin-react?
   plugins: [
-    reactRefresh(),
     dts({
       //root: 'lib',
       //outputDir: 'dist/typings',
