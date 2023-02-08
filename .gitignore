@@ -5,3 +5,11 @@ dist-ssr
 *.local
 node_modules/*
 yarn-error.log
+# The following are for yarn berry "Zero-installs", which we aren't attempting yet
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

@@ -2,6 +2,7 @@
   "name": "config-r",
   "version": "0.0.2",
   "license": "MIT",
+  "packageManager": "yarn@3.4.1",
   "keywords": [
     "react",
     "settings"
