@@ -19,17 +19,8 @@ export default defineConfig({
       //outputDir: 'dist/typings',
       tsConfigFilePath: 'tsconfig.json',
     }),
-    react({
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: ['@emotion/babel-plugin'],
-      },
-    }),
+    react({}),
   ],
-  esbuild: {
-    jsxFactory: `jsx`,
-    jsxInject: `import { jsx } from '@emotion/react'`,
-  },
 
   build: {
     lib: {
@@ -45,6 +36,7 @@ export default defineConfig({
         // for externalized deps
         globals: {
           react: 'React',
+          'react-dom': 'ReactDom',
         },
       },
     },
