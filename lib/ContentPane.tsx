@@ -825,13 +825,16 @@ export const ConfigrConditional: React.FunctionComponent<{
   if (!visible) return null;
   return (
     <React.Fragment>
-      {React.Children.map(props.children, (child) => {
-        if (React.isValidElement(child)) {
-          // clone in order to inject this disabled prop. It's up to the child
-          // to support that prop.
-          return React.cloneElement(child, { disabled: disabled });
-        } else return child;
-      })}
+      {React.Children.map(
+        props.children as React.ReactElement<{ disabled: boolean }>[],
+        (child: React.ReactElement<{ disabled: boolean }>) => {
+          if (React.isValidElement(child)) {
+            // clone in order to inject this disabled prop. It's up to the child
+            // to support that prop.
+            return React.cloneElement(child, { disabled: disabled });
+          } else return child;
+        },
+      )}
     </React.Fragment>
   );
 };
