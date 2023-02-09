@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, ReactElement, ReactNode } from 'react';
+import * as React from 'react';
 import Children from 'react-children-utilities';
 import { SearchContext } from './SearchContextProvider';
 

@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { ChromePicker, ColorResult } from 'react-color';
 import { Dialog } from '@mui/material';
 

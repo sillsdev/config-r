@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 
 export const SearchContext = React.createContext({
   searchString: '' as string | null,

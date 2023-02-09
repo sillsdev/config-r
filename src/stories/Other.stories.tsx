@@ -8,7 +8,7 @@
 
 import { css } from '@emotion/react';
 
-import React from 'react';
+import * as React from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {

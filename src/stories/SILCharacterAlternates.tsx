@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Tooltip } from '@mui/material';
-import React from 'react';
+import * as React from 'react';
 import {
   ConfigrSubgroup,
   ConfigrToggleGroup,

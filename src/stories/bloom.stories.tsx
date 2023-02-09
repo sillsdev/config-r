@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { Link } from '@mui/material';
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {

@@ -1,5 +1,6 @@
 import { css, SerializedStyles } from '@emotion/react';
-import React, { useState, ReactElement, ReactNode } from 'react';
+import * as React from 'react';
+import { useState, ReactElement, ReactNode } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

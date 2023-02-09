@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Mark from 'mark.js';
 
 export const HighlightSearchTerms: React.FunctionComponent<{

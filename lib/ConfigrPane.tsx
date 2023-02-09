@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs } from '@mui/material';
-import React, { useMemo, useState } from 'react';
+import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import { ConfigrGroup, ContentPane } from './ContentPane';
 import { SearchContext, SearchContextProvider } from './SearchContextProvider';

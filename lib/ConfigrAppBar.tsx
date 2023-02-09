@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { makeStyles } from '@mui/styles';
 import { alpha, styled, Theme } from '@mui/material/styles';
