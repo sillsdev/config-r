@@ -1,11 +1,12 @@
 {
-  "name": "config-r",
-  "version": "0.0.2",
+  "name": "@sillsdev/config-r",
   "license": "MIT",
   "packageManager": "yarn@3.4.1",
+  "description": "A react library for a settings UI similar to that of Chrome & Edge.",
   "keywords": [
     "react",
-    "settings"
+    "settings",
+    "preferences"
   ],
   "repository": {
     "type": "git",
@@ -21,7 +22,8 @@
     "lint": "yarn lint:format && yarn lint:fix ",
     "type-check": "tsc",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "formik": "^2.2.9",
