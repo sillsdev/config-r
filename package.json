@@ -89,7 +89,7 @@
   "main": "./dist/configr.es.js",
   "module": "./dist/configr.es.js",
   "//about index.d.ts": "see comment in vite.config.ts",
-  "types": "./dist/lib/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/configr.es.js",
