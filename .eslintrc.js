@@ -26,7 +26,9 @@ module.exports = {
     'plugin:storybook/recommended',
   ],
   //plugins: ['prettier'],
+  plugins: ['@emotion'], // Review: I don't know what check this does
   rules: {
+    'react/no-unknown-property': ['error', { ignore: ['css'] }], // https://github.com/emotion-js/emotion/pull/2882/files
     'react/no-unescaped-entities': 0,
     'no-unused-vars': 0,
     // 'prettier/prettier': [
