@@ -1,5 +1,5 @@
 {
-  "name": "config-r",
+  "name": "@sillsdev/config-r",
   "version": "0.0.2",
   "license": "MIT",
   "packageManager": "yarn@3.4.1",
@@ -49,8 +49,8 @@
     "@mui/icons-material": "^5.5.1",
     "@mui/material": "^5.5.3",
     "@mui/styles": "^5.5.3",
-    "@semantic-release/commit-analyzer": "^9.0.2",
     "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/commit-analyzer": "^9.0.2",
     "@storybook/addon-actions": "^6.5.16",
     "@storybook/addon-essentials": "^6.5.16",
     "@storybook/addon-links": "^6.5.16",
@@ -97,5 +97,8 @@
       "import": "./dist/configr.es.js",
       "require": "./dist/configr.es.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
