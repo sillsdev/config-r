@@ -2,12 +2,14 @@ import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Mark from 'mark.js';
 
-export const HighlightSearchTerms: React.FunctionComponent<React.PropsWithChildren<{
-  searchString: string | null;
-  // we don't care what this means, we just know that we need
-  // to re-render if this changes
-  focussedSubPagePath: any;
-}>> = (props) => {
+export const HighlightSearchTerms: React.FunctionComponent<
+  React.PropsWithChildren<{
+    searchString: string | null;
+    // we don't care what this means, we just know that we need
+    // to re-render if this changes
+    focussedSubPagePath: any;
+  }>
+> = (props) => {
   const [markInstance, setMarkInstance] = useState<Mark>();
   const highlightRoot = useRef(null);
 

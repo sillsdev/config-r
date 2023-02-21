@@ -8,20 +8,22 @@ import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
 
-export const ConfigrPane: React.FunctionComponent<React.PropsWithChildren<{
-  label: string;
-  initialValues: object;
-  children:
-    | React.ReactElement<typeof ConfigrGroup>
-    | React.ReactElement<typeof ConfigrGroup>[];
-  // review; what's this about?
-  //setValueGetter?: (vg: valueGetter) => void;
-  setValueOnRender?: (currentValues: any) => void;
-  showAppBar?: boolean;
-  showSearch?: boolean;
-  showAllGroups?: boolean;
-  themeOverrides?: any;
-}>> = (props) => {
+export const ConfigrPane: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    initialValues: object;
+    children:
+      | React.ReactElement<typeof ConfigrGroup>
+      | React.ReactElement<typeof ConfigrGroup>[];
+    // review; what's this about?
+    //setValueGetter?: (vg: valueGetter) => void;
+    setValueOnRender?: (currentValues: any) => void;
+    showAppBar?: boolean;
+    showSearch?: boolean;
+    showAllGroups?: boolean;
+    themeOverrides?: any;
+  }>
+> = (props) => {
   const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
@@ -91,10 +93,12 @@ export const ConfigrPane: React.FunctionComponent<React.PropsWithChildren<{
   );
 };
 
-const GroupChooser: React.FunctionComponent<React.PropsWithChildren<{
-  currentGroup: number | undefined;
-  setCurrentGroupIndex: (i: number | undefined) => void;
-}>> = (props) => {
+const GroupChooser: React.FunctionComponent<
+  React.PropsWithChildren<{
+    currentGroup: number | undefined;
+    setCurrentGroupIndex: (i: number | undefined) => void;
+  }>
+> = (props) => {
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
       <Tab

@@ -2,9 +2,8 @@ import './App.css';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 
-// import { BloomCollection } from './stories/bloom.stories';
+import { BloomCollection } from './stories/bloom.stories';
 // import { Lameta, Pets } from './stories/Other.stories';
-import ReactJson from 'react-json-view';
 
 function App() {
   const [currentValue, setCurrentValue] = useState({});
@@ -15,16 +14,14 @@ function App() {
         display: flex;
       `}
     >
-      {/* <BloomCollection setValueOnRender={setCurrentValue} /> */}
+      <BloomCollection />
       {/* <Lameta></Lameta> */}
       {/* <Pets></Pets> */}
       <div
         css={css`
           padding: 20px;
         `}
-      >
-        <ReactJson src={currentValue} />
-      </div>
+      ></div>
     </div>
   );
 }

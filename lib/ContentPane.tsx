@@ -294,6 +294,15 @@ const FilterForSubPage: React.FunctionComponent<
   );
 };
 
+export type StringEditorComponent = React.FunctionComponent<{
+  value: string;
+  onChange: (value: string) => void;
+}>;
+export type BooleanEditorComponent = React.FunctionComponent<{
+  value: boolean;
+  onChange: (value: boolean) => void;
+}>;
+
 export const ConfigrRowTwoColumns: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
@@ -456,9 +465,17 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
-    control: React.ComponentType<
-      React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
-    >;
+    // control: React.ComponentType<
+    //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
+    // >;
+    // control: React.ReactElement<
+    //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
+    // >;
+    //control: (value: string, onChange: (x: string) => void) => ReactElement;
+    control: React.FunctionComponent<{
+      value: string;
+      onChange: (value: string) => void;
+    }>;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -480,9 +497,7 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
-    control: React.ComponentType<
-      React.PropsWithChildren<{ value: boolean; onChange: (value: boolean) => void }>
-    >;
+    control: BooleanEditorComponent;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -504,7 +519,7 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
-    control: React.ComponentType<
+    control: React.FunctionComponent<
       React.PropsWithChildren<{ value: number; onChange: (value: number) => void }>
     >;
     getErrorMessage?: (data: any) => string | undefined;
@@ -528,7 +543,7 @@ export const ConfigrCustomObjectInput: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
-    control: React.ComponentType<
+    control: React.FunctionComponent<
       React.PropsWithChildren<{ value: object; onChange: (value: object) => void }>
     >;
     getErrorMessage?: (data: any) => string | undefined;

@@ -7,7 +7,9 @@ export const SearchContext = React.createContext({
   setSearchString: (searchString: string | null) => {},
 });
 
-export const SearchContextProvider: React.FunctionComponent<React.PropsWithChildren<{}>> = (props) => {
+export const SearchContextProvider: React.FunctionComponent<
+  React.PropsWithChildren<{}>
+> = (props) => {
   const defaultSearch = ''; //   new RegExp('(foo)', 'gi'),
   const [searchString, setSearchString] = useState<string | null>(defaultSearch);
 
@@ -20,7 +22,7 @@ export const SearchContextProvider: React.FunctionComponent<React.PropsWithChild
   };
 
   return (
-    (<SearchContext.Provider
+    <SearchContext.Provider
       value={{
         searchString: searchString,
         searchRegEx: searchString
@@ -30,6 +32,6 @@ export const SearchContextProvider: React.FunctionComponent<React.PropsWithChild
       }}
     >
       {props.children}
-    </SearchContext.Provider>)
+    </SearchContext.Provider>
   );
 };

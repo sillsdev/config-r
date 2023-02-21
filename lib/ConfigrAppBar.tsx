@@ -46,12 +46,14 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
   },
 }));
-export const ConfigrAppBar: React.FunctionComponent<React.PropsWithChildren<{
-  label: string;
-  showSearch?: boolean;
-  searchValue: string | null;
-  setSearchString: (s: string) => void;
-}>> = (props) => {
+export const ConfigrAppBar: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    showSearch?: boolean;
+    searchValue: string | null;
+    setSearchString: (s: string) => void;
+  }>
+> = (props) => {
   console.log('Rendering appbar. searchValue=' + props.searchValue);
 
   return (
