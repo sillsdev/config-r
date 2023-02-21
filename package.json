@@ -2,7 +2,7 @@
   "name": "@sillsdev/config-r",
   "version": "0.0.2",
   "license": "MIT",
-  "packageManager": "yarn@3.4.1",
+  "packageManager": "yarn@1.22.19",
   "keywords": [
     "react",
     "settings"
@@ -94,7 +94,6 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/configr.es.js",
       "require": "./dist/configr.es.js"
     }
   },

@@ -30,13 +30,30 @@ export default defineConfig({
     },
     rollupOptions: {
       // don't bundle these with the library
-      external: ['react', 'react-dom'],
+      external: [
+        /@emotion.*/,
+        /@mui.*/,
+        'react',
+        'react/jsx-runtime',
+        'react-dom',
+        'react-dom/client',
+      ],
       output: {
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
           react: 'React',
           'react-dom': 'ReactDom',
+          '@emotion/react': 'emotion-react',
+          '@emotion/react/jsx-runtime': 'emotion-react-jsx-runtime',
+          '@mui/material': 'mui-material',
+          '@mui/material/styles': 'mui-material/styles',
+          '@mui/material/utils?commonjs-external': 'mui-matierial-utils',
+          'react/jsx-runtime': 'react-jsx-runtime',
+          '@mui/material/FormControl': 'mui-material-formcontrol',
+          '@mui/material/FormHelperText': 'mui-material-form-helper-text',
+          '@mui/material/InputLabel': 'mui-material-input-label',
+          '@mui/material/Select': 'mui-material-select',
         },
       },
     },

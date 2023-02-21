@@ -17,6 +17,7 @@ export const ConfigrPane: React.FunctionComponent<{
   // review; what's this about?
   //setValueGetter?: (vg: valueGetter) => void;
   setValueOnRender?: (currentValues: any) => void;
+  showAppBar?: boolean;
   showSearch?: boolean;
   showAllGroups?: boolean;
   themeOverrides?: any;
@@ -41,20 +42,22 @@ export const ConfigrPane: React.FunctionComponent<{
           {({ searchString, setSearchString }) => {
             return (
               <React.Fragment>
-                <ConfigrAppBar
-                  label={props.label}
-                  showSearch={props.showSearch}
-                  searchValue={searchString}
-                  setSearchString={(s: string) => {
-                    if (searchString !== s) {
-                      setSearchString(s);
-                      // There should be no selected group if we
-                      // have a search term. If the user clears the search,
-                      // then we set the selected group to be the 1st one (0).
-                      setCurrentGroup(s ? undefined : 0);
-                    }
-                  }}
-                />
+                {props.showAppBar && (
+                  <ConfigrAppBar
+                    label={props.label}
+                    showSearch={props.showSearch}
+                    searchValue={searchString}
+                    setSearchString={(s: string) => {
+                      if (searchString !== s) {
+                        setSearchString(s);
+                        // There should be no selected group if we
+                        // have a search term. If the user clears the search,
+                        // then we set the selected group to be the 1st one (0).
+                        setCurrentGroup(s ? undefined : 0);
+                      }
+                    }}
+                  />
+                )}
                 <div
                   css={css`
                     background-color: #f8f9fa;
