@@ -8,7 +8,7 @@ import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
 
-export const ConfigrPane: React.FunctionComponent<{
+export const ConfigrPane: React.FunctionComponent<React.PropsWithChildren<{
   label: string;
   initialValues: object;
   children:
@@ -21,7 +21,7 @@ export const ConfigrPane: React.FunctionComponent<{
   showSearch?: boolean;
   showAllGroups?: boolean;
   themeOverrides?: any;
-}> = (props) => {
+}>> = (props) => {
   const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
@@ -91,10 +91,10 @@ export const ConfigrPane: React.FunctionComponent<{
   );
 };
 
-const GroupChooser: React.FunctionComponent<{
+const GroupChooser: React.FunctionComponent<React.PropsWithChildren<{
   currentGroup: number | undefined;
   setCurrentGroupIndex: (i: number | undefined) => void;
-}> = (props) => {
+}>> = (props) => {
   const groupLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
       <Tab

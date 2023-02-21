@@ -4,11 +4,11 @@ import { SearchContext } from './SearchContextProvider';
 
 // If Search is empty, pass through.
 // Else, pass through so long as the given label or kids have the search term
-export const FilterForSearchText: React.FunctionComponent<{
+export const FilterForSearchText: React.FunctionComponent<React.PropsWithChildren<{
   label: string;
   description?: string | React.ReactNode;
   kids: React.ReactNode;
-}> = (props) => {
+}>> = (props) => {
   // enhance: would the "react-children-utilities/Children" utilities simplify this?
   return (
     <SearchContext.Consumer>

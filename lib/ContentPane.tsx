@@ -49,16 +49,18 @@ const FocusPageContext = React.createContext({
   setFocussedSubPagePath: (p: string) => {},
 });
 
-export const ContentPane: React.FunctionComponent<{
-  // this is the whole settings object that we are editing
-  initialValues: object;
-  currentGroupIndex?: number;
-  children:
-    | React.ReactElement<typeof ConfigrGroup>
-    | React.ReactElement<typeof ConfigrGroup>[];
-  setValueGetter?: (vg: valueGetter) => void;
-  setValueOnRender?: (currentValues: any) => void;
-}> = (props) => {
+export const ContentPane: React.FunctionComponent<
+  React.PropsWithChildren<{
+    // this is the whole settings object that we are editing
+    initialValues: object;
+    currentGroupIndex?: number;
+    children:
+      | React.ReactElement<typeof ConfigrGroup>
+      | React.ReactElement<typeof ConfigrGroup>[];
+    setValueGetter?: (vg: valueGetter) => void;
+    setValueOnRender?: (currentValues: any) => void;
+  }>
+> = (props) => {
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
@@ -108,13 +110,15 @@ export const ContentPane: React.FunctionComponent<{
   );
 };
 
-export const VisibleGroups: React.FunctionComponent<{
-  currentGroup?: number;
-  focussedSubPagePath?: string;
-  children:
-    | React.ReactElement<typeof ConfigrGroup>
-    | React.ReactElement<typeof ConfigrGroup>[];
-}> = (props) => {
+export const VisibleGroups: React.FunctionComponent<
+  React.PropsWithChildren<{
+    currentGroup?: number;
+    focussedSubPagePath?: string;
+    children:
+      | React.ReactElement<typeof ConfigrGroup>
+      | React.ReactElement<typeof ConfigrGroup>[];
+  }>
+> = (props) => {
   return (
     <SearchContext.Consumer>
       {({ searchString }) => {
@@ -147,12 +151,14 @@ export const VisibleGroups: React.FunctionComponent<{
   );
 };
 
-export const ConfigrGroup: React.FunctionComponent<{
-  label: string;
-  description?: string | React.ReactNode;
-  // use hasSubgroups when this contains ConfigrSubGroups that provide their own background
-  level?: undefined | 1 | 2;
-}> = (props) => {
+export const ConfigrGroup: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    description?: string | React.ReactNode;
+    // use hasSubgroups when this contains ConfigrSubGroups that provide their own background
+    level?: undefined | 1 | 2;
+  }>
+> = (props) => {
   return (
     <FilterForSearchText {...props} kids={props.children}>
       <div
@@ -174,9 +180,11 @@ export const ConfigrGroup: React.FunctionComponent<{
   );
 };
 
-const PaperGroup: React.FunctionComponent<{
-  label?: string;
-}> = (props) => {
+const PaperGroup: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label?: string;
+  }>
+> = (props) => {
   const childrenWithStore = getChildrenWithStore(props);
   return (
     <Paper
@@ -210,7 +218,9 @@ function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
 
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
-export const FilterAndJoinWithDividers: React.FunctionComponent<{}> = (props) => {
+export const FilterAndJoinWithDividers: React.FunctionComponent<
+  React.PropsWithChildren<{}>
+> = (props) => {
   const count = React.Children.toArray(props.children).length;
   return props.children
     ? React.Children.toArray(props.children).reduce(
@@ -232,11 +242,13 @@ export const FilterAndJoinWithDividers: React.FunctionComponent<{}> = (props) =>
     : null;
 };
 
-export const ConfigrRowOneColumn: React.FunctionComponent<{
-  label: string;
-  description?: string | React.ReactNode;
-  control: React.ReactNode;
-}> = (props) => {
+export const ConfigrRowOneColumn: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    description?: string | React.ReactNode;
+    control: React.ReactNode;
+  }>
+> = (props) => {
   return (
     <ListItem
       //className={'MuiListItem-alignItemsFlexStart'}
@@ -257,9 +269,11 @@ export const ConfigrRowOneColumn: React.FunctionComponent<{
 };
 
 // If a subPage is in effect, only render if we are part of it
-const FilterForSubPage: React.FunctionComponent<{
-  path: string;
-}> = (props) => {
+const FilterForSubPage: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+  }>
+> = (props) => {
   return (
     <FocusPageContext.Consumer>
       {({ focussedSubPagePath }) => {
@@ -280,17 +294,19 @@ const FilterForSubPage: React.FunctionComponent<{
   );
 };
 
-export const ConfigrRowTwoColumns: React.FunctionComponent<{
-  label: string;
-  labelCss?: SerializedStyles;
-  path: string;
-  description?: string;
-  control: React.ReactNode;
-  disabled?: boolean;
-  height?: string;
-  indented?: boolean;
-  onClick?: () => void;
-}> = (props) => {
+export const ConfigrRowTwoColumns: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    labelCss?: SerializedStyles;
+    path: string;
+    description?: string;
+    control: React.ReactElement;
+    disabled?: boolean;
+    height?: string;
+    indented?: boolean;
+    onClick?: () => void;
+  }>
+> = (props) => {
   const inner = (
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
@@ -348,6 +364,10 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
           ).length;
           if (count) {
             return (
+              // I haven't managed to get this work yet
+              // <Tooltip open={true} title="hello">
+              //   {row}
+              // </Tooltip>
               <div>
                 {row}
                 <span
@@ -358,10 +378,6 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
                   {`${count} matches`}
                 </span>
               </div>
-              // I haven't managed to get this work yet
-              // <Tooltip open={true} title="hello">
-              //   {row}
-              // </Tooltip>
             );
           }
         }
@@ -402,13 +418,15 @@ export const ConfigrRowTwoColumns: React.FunctionComponent<{
 //       props.store!.update((s: any) => props.set(s, e.target.value)),
 //   };
 // }
-export const ConfigrInput: React.FunctionComponent<{
-  path: string;
-  label: string;
-  className?: string;
-  suffix?: string;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrInput: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    className?: string;
+    suffix?: string;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -434,12 +452,16 @@ export const ConfigrInput: React.FunctionComponent<{
 
 // Clients can use this to create their own custom inputs based on string data.
 // For example, <DefaultColorPicker> or some other color picker.
-export const ConfigrCustomStringInput: React.FunctionComponent<{
-  path: string;
-  label: string;
-  control: React.ComponentType<{ value: string; onChange: (value: string) => void }>;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrCustomStringInput: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    control: React.ComponentType<
+      React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -454,12 +476,16 @@ export const ConfigrCustomStringInput: React.FunctionComponent<{
 
 // Clients can use this to create their own custom inputs based on boolean data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
-export const ConfigrCustomBooleanInput: React.FunctionComponent<{
-  path: string;
-  label: string;
-  control: React.ComponentType<{ value: boolean; onChange: (value: boolean) => void }>;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrCustomBooleanInput: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    control: React.ComponentType<
+      React.PropsWithChildren<{ value: boolean; onChange: (value: boolean) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -474,12 +500,16 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<{
 
 // Clients can use this to create their own custom inputs based on number data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
-export const ConfigrCustomNumberInput: React.FunctionComponent<{
-  path: string;
-  label: string;
-  control: React.ComponentType<{ value: number; onChange: (value: number) => void }>;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrCustomNumberInput: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    control: React.ComponentType<
+      React.PropsWithChildren<{ value: number; onChange: (value: number) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -494,12 +524,16 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<{
 
 // Clients can use this to create their own custom inputs based on object data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
-export const ConfigrCustomObjectInput: React.FunctionComponent<{
-  path: string;
-  label: string;
-  control: React.ComponentType<{ value: object; onChange: (value: object) => void }>;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrCustomObjectInput: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    control: React.ComponentType<
+      React.PropsWithChildren<{ value: object; onChange: (value: object) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -512,15 +546,17 @@ export const ConfigrCustomObjectInput: React.FunctionComponent<{
   );
 };
 
-export const ConfigrSelect: React.FunctionComponent<{
-  path: string;
-  label: string;
-  indented?: boolean;
-  options: Array<{ value: string; label?: string; description?: string } | number>;
-  enableWhen?: string | ((currentValues: object) => boolean);
-  description?: string;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrSelect: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    indented?: boolean;
+    options: Array<{ value: string; label?: string; description?: string } | number>;
+    enableWhen?: string | ((currentValues: object) => boolean);
+    description?: string;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const disabled = !useBooleanBasedOnValues(true, props.enableWhen);
   return (
     <ConfigrRowTwoColumns
@@ -572,11 +608,13 @@ export const ConfigrSelect: React.FunctionComponent<{
   );
 };
 
-export const ConfigrSubgroup: React.FunctionComponent<{
-  label: string;
-  path: string;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrSubgroup: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    path: string;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   return (
     <FilterForSubPage {...props}>
       <ConfigrGroup {...props} level={2}>
@@ -591,12 +629,14 @@ export const ConfigrSubgroup: React.FunctionComponent<{
 // the whole settings area switches to that of the page, and a back
 // button, labeled with the name of the page, is shown at the top.
 // We only allow a single level of nesting.
-export const ConfigrSubPage: React.FunctionComponent<{
-  label: string;
-  labelCss?: SerializedStyles;
-  path: string;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrSubPage: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    labelCss?: SerializedStyles;
+    path: string;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   return (
     <FocusPageContext.Consumer>
       {({ focussedSubPagePath, setFocussedSubPagePath }) => {
@@ -643,12 +683,14 @@ export const ConfigrSubPage: React.FunctionComponent<{
 // and then render them using relative paths. I figured out how to do it this way sooner,
 // is probably possible with a bunch of cloning so that the path prop could be changed
 // to the full path that formik requires. E.g. path="./iso" could be changed to path="project.languages[0].iso"
-export const ConfigrForEach: React.FunctionComponent<{
-  path: string; // really, `path`
-  searchTerms: string;
-  render: (pathPrefix: string, index: number) => React.ReactNode;
-  getErrorMessage?: (data: any) => string | undefined;
-}> = (props) => {
+export const ConfigrForEach: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string; // really, `path`
+    searchTerms: string;
+    render: (pathPrefix: string, index: number) => React.ReactNode;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
   const { values } = useFormikContext();
   const items = getFormValueFromPath(values, props.path);
   return (
@@ -660,12 +702,14 @@ export const ConfigrForEach: React.FunctionComponent<{
   );
 };
 
-export const ConfigrBoolean: React.FunctionComponent<{
-  path: string;
-  label: string;
-  description?: string;
-  immediateEffect?: boolean;
-}> = (props) => {
+export const ConfigrBoolean: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    description?: string;
+    immediateEffect?: boolean;
+  }>
+> = (props) => {
   const [field, meta, helpers] = useField(props.path);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
@@ -691,11 +735,13 @@ export const ConfigrBoolean: React.FunctionComponent<{
   );
 };
 
-export const ConfigrRadioGroup: React.FunctionComponent<{
-  path: string;
-  label: string;
-  row?: boolean;
-}> = (props) => {
+export const ConfigrRadioGroup: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    row?: boolean;
+  }>
+> = (props) => {
   return (
     // I could imagine wanting the radio buttons in the right column. There aren't any examples of this in chrome:settings.
     // Note that normally in chrome:settings, radios are the sole child of an entire group (e.g. "on startup", "cookie settings",
@@ -708,11 +754,13 @@ export const ConfigrRadioGroup: React.FunctionComponent<{
     ></ConfigrRowOneColumn>
   );
 };
-export const ConfigrRadioGroupRaw: React.FunctionComponent<{
-  path: string;
-  label: string;
-  row?: boolean;
-}> = (props) => {
+export const ConfigrRadioGroupRaw: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    row?: boolean;
+  }>
+> = (props) => {
   const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below? Probably onchange, value
   console.log('radiogroup field ' + JSON.stringify(field));
   return (
@@ -722,10 +770,12 @@ export const ConfigrRadioGroupRaw: React.FunctionComponent<{
   );
 };
 
-export const ConfigrRadio: React.FunctionComponent<{
-  value: any;
-  label?: string; // either include a label or a single child
-}> = (props) => {
+export const ConfigrRadio: React.FunctionComponent<
+  React.PropsWithChildren<{
+    value: any;
+    label?: string; // either include a label or a single child
+  }>
+> = (props) => {
   const radioContext = useRadioGroup();
   console.log('useRadioGroup ' + JSON.stringify(radioContext));
   if (props.label) {
@@ -737,12 +787,14 @@ export const ConfigrRadio: React.FunctionComponent<{
   }
 };
 
-export const ConfigrToggleGroup: React.FunctionComponent<{
-  path: string;
-  label: string;
-  row?: boolean;
-  height?: string;
-}> = (props) => {
+export const ConfigrToggleGroup: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    row?: boolean;
+    height?: string;
+  }>
+> = (props) => {
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -750,12 +802,14 @@ export const ConfigrToggleGroup: React.FunctionComponent<{
     ></ConfigrRowTwoColumns>
   );
 };
-export const ConfigrToggleGroupRaw: React.FunctionComponent<{
-  path: string;
-  label: string;
-  row?: boolean;
-  height?: string;
-}> = (props) => {
+export const ConfigrToggleGroupRaw: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    row?: boolean;
+    height?: string;
+  }>
+> = (props) => {
   return (
     <Field component={ToggleButtonGroup} name={props.path} type="checkbox" exclusive>
       {props.children}
@@ -770,14 +824,16 @@ export function ConfigrMakeToggle(value: any, content: ReactNode) {
 }
 
 // Use for things like a file or folder chooser.
-export const ConfigrChooserButton: React.FunctionComponent<{
-  path: string;
-  label: string;
-  description?: string;
-  buttonLabel: string;
-  chooseAction: (currentValue: string) => string;
-  disabled?: boolean;
-}> = (props) => {
+export const ConfigrChooserButton: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    description?: string;
+    buttonLabel: string;
+    chooseAction: (currentValue: string) => string;
+    disabled?: boolean;
+  }>
+> = (props) => {
   const { setFieldValue } = useFormikContext();
   const [field] = useField(props.path);
 
@@ -816,10 +872,12 @@ export const ConfigrChooserButton: React.FunctionComponent<{
 };
 
 // set visibility or enabled state based on provided predicates
-export const ConfigrConditional: React.FunctionComponent<{
-  enableWhen?: (currentValues: object) => boolean;
-  visibleWhen?: (currentValues: object) => boolean;
-}> = (props) => {
+export const ConfigrConditional: React.FunctionComponent<
+  React.PropsWithChildren<{
+    enableWhen?: (currentValues: object) => boolean;
+    visibleWhen?: (currentValues: object) => boolean;
+  }>
+> = (props) => {
   const { values } = useFormikContext<object>();
   const disabled = props.enableWhen ? !props.enableWhen(values) : false;
   const visible = props.visibleWhen ? props.visibleWhen(values) : true;
