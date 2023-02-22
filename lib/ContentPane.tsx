@@ -110,7 +110,7 @@ export const ContentPane: React.FunctionComponent<
   );
 };
 
-export const VisibleGroups: React.FunctionComponent<
+const VisibleGroups: React.FunctionComponent<
   React.PropsWithChildren<{
     currentGroup?: number;
     focussedSubPagePath?: string;
@@ -218,9 +218,9 @@ function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
 
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
-export const FilterAndJoinWithDividers: React.FunctionComponent<
-  React.PropsWithChildren<{}>
-> = (props) => {
+const FilterAndJoinWithDividers: React.FunctionComponent<React.PropsWithChildren<{}>> = (
+  props,
+) => {
   const count = React.Children.toArray(props.children).length;
   return props.children
     ? React.Children.toArray(props.children).reduce(
@@ -242,7 +242,7 @@ export const FilterAndJoinWithDividers: React.FunctionComponent<
     : null;
 };
 
-export const ConfigrRowOneColumn: React.FunctionComponent<
+const ConfigrRowOneColumn: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     description?: string | React.ReactNode;
@@ -294,16 +294,16 @@ const FilterForSubPage: React.FunctionComponent<
   );
 };
 
-export type StringEditorComponent = React.FunctionComponent<{
+type StringEditorComponent = React.FunctionComponent<{
   value: string;
   onChange: (value: string) => void;
 }>;
-export type BooleanEditorComponent = React.FunctionComponent<{
+type BooleanEditorComponent = React.FunctionComponent<{
   value: boolean;
   onChange: (value: boolean) => void;
 }>;
 
-export const ConfigrRowTwoColumns: React.FunctionComponent<
+const ConfigrRowTwoColumns: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     labelCss?: SerializedStyles;

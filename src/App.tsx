@@ -17,11 +17,6 @@ function App() {
       <BloomCollection />
       {/* <Lameta></Lameta> */}
       {/* <Pets></Pets> */}
-      <div
-        css={css`
-          padding: 20px;
-        `}
-      ></div>
     </div>
   );
 }

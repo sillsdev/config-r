@@ -7,6 +7,7 @@ import { ConfigrGroup, ContentPane } from './ContentPane';
 import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
+import { JsonViewer } from '@textea/json-viewer';
 
 export const ConfigrPane: React.FunctionComponent<
   React.PropsWithChildren<{
@@ -22,6 +23,7 @@ export const ConfigrPane: React.FunctionComponent<
     showSearch?: boolean;
     showAllGroups?: boolean;
     themeOverrides?: any;
+    showJson?: boolean;
   }>
 > = (props) => {
   const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
@@ -37,59 +39,90 @@ export const ConfigrPane: React.FunctionComponent<
 
   const wantGroupChooser = React.Children.toArray(props.children).length > 1;
 
-  return (
-    <ThemeProvider theme={mergedTheme}>
-      <SearchContextProvider>
-        <SearchContext.Consumer>
-          {({ searchString, setSearchString }) => {
-            return (
-              <React.Fragment>
-                {props.showAppBar && (
-                  <ConfigrAppBar
-                    label={props.label}
-                    showSearch={props.showSearch}
-                    searchValue={searchString}
-                    setSearchString={(s: string) => {
-                      if (searchString !== s) {
-                        setSearchString(s);
-                        // There should be no selected group if we
-                        // have a search term. If the user clears the search,
-                        // then we set the selected group to be the 1st one (0).
-                        setCurrentGroup(s ? undefined : 0);
-                      }
-                    }}
-                  />
-                )}
-                <div
-                  css={css`
-                    background-color: #f8f9fa;
-                    height: 100%;
-                    display: flex;
-                    padding-right: 20px;
-                    padding-left: ${wantGroupChooser ? undefined : '20px'};
+  const [currentValues, setCurrentValues] = useState(props.initialValues);
+  const setValueOnRenderWrapper = (currentValues: any) => {
+    if (props.setValueOnRender) props.setValueOnRender(currentValues);
+    setCurrentValues(currentValues);
+  };
 
-                    .MuiTab-wrapper {
-                      text-align: left;
-                      align-items: start;
-                    }
-                  `}
-                >
-                  {wantGroupChooser && (
-                    <GroupChooser
-                      currentGroup={currentGroup}
-                      setCurrentGroupIndex={setCurrentGroup}
-                    >
-                      {props.children}
-                    </GroupChooser>
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: row;
+      `}
+    >
+      <ThemeProvider theme={mergedTheme}>
+        <SearchContextProvider>
+          <SearchContext.Consumer>
+            {({ searchString, setSearchString }) => {
+              return (
+                <React.Fragment>
+                  {props.showAppBar && (
+                    <ConfigrAppBar
+                      label={props.label}
+                      showSearch={props.showSearch}
+                      searchValue={searchString}
+                      setSearchString={(s: string) => {
+                        if (searchString !== s) {
+                          setSearchString(s);
+                          // There should be no selected group if we
+                          // have a search term. If the user clears the search,
+                          // then we set the selected group to be the 1st one (0).
+                          setCurrentGroup(s ? undefined : 0);
+                        }
+                      }}
+                    />
                   )}
-                  <ContentPane currentGroupIndex={currentGroup} {...props} />
-                </div>
-              </React.Fragment>
-            );
-          }}
-        </SearchContext.Consumer>
-      </SearchContextProvider>
-    </ThemeProvider>
+                  <div
+                    css={css`
+                      background-color: #f8f9fa;
+                      height: 100%;
+                      display: flex;
+                      padding-right: 20px;
+                      padding-left: ${wantGroupChooser ? undefined : '20px'};
+
+                      .MuiTab-wrapper {
+                        text-align: left;
+                        align-items: start;
+                      }
+                    `}
+                  >
+                    {wantGroupChooser && (
+                      <GroupChooser
+                        currentGroup={currentGroup}
+                        setCurrentGroupIndex={setCurrentGroup}
+                      >
+                        {props.children}
+                      </GroupChooser>
+                    )}
+                    <ContentPane
+                      currentGroupIndex={currentGroup}
+                      setValueOnRender={setValueOnRenderWrapper}
+                      {...props}
+                    />
+                  </div>
+                </React.Fragment>
+              );
+            }}
+          </SearchContext.Consumer>
+        </SearchContextProvider>
+      </ThemeProvider>
+      {props.showJson && (
+        <div
+          css={css`
+            white-space: pre;
+            margin-left: 20px;
+            .data-type-label {
+              color: lightblue;
+              font-size: 7px;
+            }
+          `}
+        >
+          <JsonViewer value={currentValues}></JsonViewer>
+        </div>
+      )}
+    </div>
   );
 };
 

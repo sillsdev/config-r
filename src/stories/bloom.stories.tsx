@@ -69,18 +69,10 @@ export const BloomCollection: React.FunctionComponent = (props) => {
     >
       <BloomCollectionInner
         setValueOnRender={(currentValues) => {
-          const pretty = JSON.stringify(currentValues, null, 4);
-          setResults(pretty);
+          // const pretty = JSON.stringify(currentValues, null, 4);
+          // setResults(pretty);
         }}
       />
-      <div
-        css={css`
-          white-space: pre;
-          margin-left: 20px;
-        `}
-      >
-        {results}
-      </div>
     </div>
   );
 };
@@ -108,6 +100,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
+        showJson={true}
         {...props}
       >
         <ConfigrGroup label="Languages" level={1}>
