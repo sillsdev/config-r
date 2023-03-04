@@ -16,6 +16,7 @@ import {
   ConfigrSelect,
   ConfigrCustomStringInput,
   ConfigrCustomNumberInput,
+  ConfigrCustomObjectInput,
 } from '../../lib/ContentPane';
 import { ConfigrColorPicker } from '../../lib/ConfigrColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
@@ -630,9 +631,8 @@ const BloomBookInnerV1: React.FunctionComponent<{
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
             <BloomResolutionSlider
-              path={`appearance.maxImageSize.width`}
+              path={`appearance.maxImageSize`}
               label="Max Resolution"
-              units="px"
               // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
             />
           </ConfigrSubgroup>
@@ -655,29 +655,29 @@ const BloomBookInnerV1: React.FunctionComponent<{
   );
 };
 
-export const BloomResolutionSlider: React.FunctionComponent<
+type Resolution = {
+  maxWidth: number;
+  maxHeight: number;
+};
+
+const BloomResolutionSlider: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
-    units?: string;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
-  const [field, meta, helpers] = useField(props.path);
-  const { value } = meta;
-  const { setValue } = helpers;
-
   return (
-    <ConfigrCustomNumberInput
+    <ConfigrCustomObjectInput<Resolution>
       control={BloomResolutionSliderInner}
       {...props}
-    ></ConfigrCustomNumberInput>
+    ></ConfigrCustomObjectInput>
   );
 };
 
 const BloomResolutionSliderInner: React.FunctionComponent<{
-  value: number;
-  onChange: (value: number) => void;
+  value: Resolution;
+  onChange: (value: Resolution) => void;
 }> = (props) => {
   const sizes = [
     { l: 'Small', w: 600, h: 600 },
@@ -685,7 +685,10 @@ const BloomResolutionSliderInner: React.FunctionComponent<{
     { l: 'Full HD', w: 1920, h: 1080 },
     { l: '4k', w: 3840, h: 2160 },
   ];
-  const currentIndex = sizes.findIndex((x) => x.w === props.value) || 0;
+  let currentIndex = sizes.findIndex((x) => x.w === props.value.maxWidth);
+  if (currentIndex === -1) {
+    currentIndex = 0;
+  }
   const current = sizes[currentIndex];
 
   return (
@@ -693,6 +696,7 @@ const BloomResolutionSliderInner: React.FunctionComponent<{
       css={css`
         display: flex;
         flex-direction: column;
+        width: 200px; // todo: what should this be?
       `}
     >
       <Typography
@@ -706,18 +710,17 @@ const BloomResolutionSliderInner: React.FunctionComponent<{
         max={sizes.length - 1}
         min={0}
         step={1}
-        //scale={calculateValue}
         value={currentIndex}
-        valueLabelFormat={(value: number) => {
+        valueLabelFormat={() => {
           return `${current.w}x${current.h}`;
         }}
         onChange={(e, value) => {
-          props.onChange(sizes[value as number].w);
+          props.onChange({
+            maxWidth: sizes[value as number].w,
+            maxHeight: sizes[value as number].h,
+          });
         }}
         valueLabelDisplay="auto"
-        css={css`
-          width: 200px; // todo: what should this be?
-        `}
       ></Slider>
     </div>
   );

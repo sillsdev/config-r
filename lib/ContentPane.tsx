@@ -549,16 +549,16 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
 
 // Clients can use this to create their own custom inputs based on object data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
-export const ConfigrCustomObjectInput: React.FunctionComponent<
-  React.PropsWithChildren<{
+export function ConfigrCustomObjectInput<T>(
+  props: React.PropsWithChildren<{
     path: string;
     label: string;
     control: React.FunctionComponent<
-      React.PropsWithChildren<{ value: object; onChange: (value: object) => void }>
+      React.PropsWithChildren<{ value: T; onChange: (value: T) => void }>
     >;
     getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+  }>,
+) {
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -569,7 +569,7 @@ export const ConfigrCustomObjectInput: React.FunctionComponent<
       control={<props.control value={value} onChange={setValue} />}
     ></ConfigrRowTwoColumns>
   );
-};
+}
 
 export const ConfigrSelect: React.FunctionComponent<
   React.PropsWithChildren<{
