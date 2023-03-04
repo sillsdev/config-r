@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Link } from '@mui/material';
+import { Link, Slider, ThemeOptions, Typography } from '@mui/material';
 import * as React from 'react';
 import { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
@@ -15,9 +15,11 @@ import {
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
   ConfigrCustomStringInput,
+  ConfigrCustomNumberInput,
 } from '../../lib/ContentPane';
-import { DefaultColorPicker } from './DefaultColorPicker';
+import { ConfigrColorPicker } from '../../lib/ConfigrColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
+import { useField } from 'formik';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
@@ -60,7 +62,7 @@ export default {
 };
 
 export const BloomCollection: React.FunctionComponent = (props) => {
-  const [results, setResults] = useState('');
+  //const [results, setResults] = useState('');
   return (
     <div
       css={css`
@@ -80,10 +82,10 @@ export const BloomCollection: React.FunctionComponent = (props) => {
 const BloomCollectionInner: React.FunctionComponent<{
   setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
-  const bloomThemeOverrides = {
+  const bloomThemeOverrides: ThemeOptions = {
     palette: {
       primary: {
-        main: '#1D94A4',
+        main: '#a108e8',
       },
     },
   };
@@ -101,7 +103,10 @@ const BloomCollectionInner: React.FunctionComponent<{
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
         showJson={true}
-        {...props}
+        css={css`
+          background-color: #cfa7e7;
+        `}
+        // {...props}
       >
         <ConfigrGroup label="Languages" level={1}>
           <ConfigrForEach
@@ -387,10 +392,7 @@ const initialBloomBookValues = {
 };
 
 const propsForMmField = {
-  suffix: 'mm',
-  css: css`
-    width: 100px;
-  `,
+  units: 'mm',
 };
 
 // This doesn't yet have Configr elements for all the options above. I wanted to focus on things that might be a problem.
@@ -426,7 +428,7 @@ const BloomBookInner: React.FunctionComponent<{
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
-              control={DefaultColorPicker}
+              control={ConfigrColorPicker}
             />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
@@ -601,7 +603,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
-              control={DefaultColorPicker}
+              control={ConfigrColorPicker}
             />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
@@ -627,12 +629,12 @@ const BloomBookInnerV1: React.FunctionComponent<{
             />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
-            <ConfigrInput
+            <BloomResolutionSlider
               path={`appearance.maxImageSize.width`}
-              label="Width"
+              label="Max Resolution"
+              units="px"
               // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
             />
-            <ConfigrInput path={`appearance.maxImageSize.height`} label="Height" />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Other" path="appearance.other">
             <ConfigrBoolean
@@ -649,6 +651,74 @@ const BloomBookInnerV1: React.FunctionComponent<{
           </ConfigrSubgroup>
         </ConfigrGroup>
       </ConfigrPane>
+    </div>
+  );
+};
+
+export const BloomResolutionSlider: React.FunctionComponent<
+  React.PropsWithChildren<{
+    path: string;
+    label: string;
+    units?: string;
+    getErrorMessage?: (data: any) => string | undefined;
+  }>
+> = (props) => {
+  const [field, meta, helpers] = useField(props.path);
+  const { value } = meta;
+  const { setValue } = helpers;
+
+  return (
+    <ConfigrCustomNumberInput
+      control={BloomResolutionSliderInner}
+      {...props}
+    ></ConfigrCustomNumberInput>
+  );
+};
+
+const BloomResolutionSliderInner: React.FunctionComponent<{
+  value: number;
+  onChange: (value: number) => void;
+}> = (props) => {
+  const sizes = [
+    { l: 'Small', w: 600, h: 600 },
+    { l: 'HD', w: 1280, h: 720 },
+    { l: 'Full HD', w: 1920, h: 1080 },
+    { l: '4k', w: 3840, h: 2160 },
+  ];
+  const currentIndex = sizes.findIndex((x) => x.w === props.value) || 0;
+  const current = sizes[currentIndex];
+
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+      `}
+    >
+      <Typography
+        css={css`
+          text-align: right;
+        `}
+        variant="h3"
+      >{`${current.l}`}</Typography>
+      <Slider
+        track={false}
+        max={sizes.length - 1}
+        min={0}
+        step={1}
+        //scale={calculateValue}
+        value={currentIndex}
+        valueLabelFormat={(value: number) => {
+          return `${current.w}x${current.h}`;
+        }}
+        onChange={(e, value) => {
+          props.onChange(sizes[value as number].w);
+        }}
+        valueLabelDisplay="auto"
+        css={css`
+          width: 200px; // todo: what should this be?
+        `}
+      ></Slider>
     </div>
   );
 };
