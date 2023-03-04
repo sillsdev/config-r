@@ -126,7 +126,7 @@ const VisibleGroups: React.FunctionComponent<
           <div
             id="groups"
             css={css`
-              width: 600px;
+              width: 500px;
               //overflow-y: scroll; //allows us to scroll the groups without
               //scrolling the heading tabs
               overflow-y: auto;
@@ -164,7 +164,7 @@ export const ConfigrGroup: React.FunctionComponent<
       <div
         className="indentIfInSubPage"
         css={css`
-          margin-top: 21px !important;
+          //margin-top: 21px !important;
           margin-bottom: 12px !important;
         `}
       >
@@ -191,7 +191,9 @@ const PaperGroup: React.FunctionComponent<
       className="indentIfInSubPage"
       elevation={2}
       css={css`
-        width: 100%;
+        //width: 100%; doesn't work with shadow
+        margin-left: 3px; //needed to show shadow
+        margin-right: 3px; //needed to show shadow
         margin-bottom: 12px !important;
       `}
     >
@@ -432,7 +434,8 @@ export const ConfigrInput: React.FunctionComponent<
     path: string;
     label: string;
     className?: string;
-    suffix?: string;
+    type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
+    units?: string;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -444,15 +447,22 @@ export const ConfigrInput: React.FunctionComponent<
           component={TextField}
           variant="standard"
           name={props.path}
-          type="text"
+          type={props.type ?? 'text'}
           InputProps={
-            props.suffix
+            props.units
               ? {
-                  endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                  endAdornment: (
+                    <InputAdornment position="end">{props.units}</InputAdornment>
+                  ),
                 }
               : undefined
           }
-          className={props.className}
+          css={css`
+            input {
+              text-align: end;
+            }
+          `}
+          //className={props.className}
         />
       }
     ></ConfigrRowTwoColumns>
@@ -627,6 +637,7 @@ export const ConfigrSubgroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     path: string;
+    description?: string | React.ReactNode;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {

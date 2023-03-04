@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Tab, Tabs } from '@mui/material';
+import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
@@ -22,8 +22,9 @@ export const ConfigrPane: React.FunctionComponent<
     showAppBar?: boolean;
     showSearch?: boolean;
     showAllGroups?: boolean;
-    themeOverrides?: any;
+    themeOverrides?: ThemeOptions;
     showJson?: boolean;
+    className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
   }>
 > = (props) => {
   const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
@@ -35,7 +36,10 @@ export const ConfigrPane: React.FunctionComponent<
   // We *can* get at the outer theme in a couple ways, but it comes as a complete
   // set of properties, and I don't see how to know which ones are just defaults
   // and which the client actually cares about.
-  const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
+  //const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
+  const mergedTheme = props.themeOverrides
+    ? createTheme(defaultConfigrTheme, props.themeOverrides!)
+    : createTheme(defaultConfigrTheme);
 
   const wantGroupChooser = React.Children.toArray(props.children).length > 1;
 
@@ -76,7 +80,7 @@ export const ConfigrPane: React.FunctionComponent<
                   )}
                   <div
                     css={css`
-                      background-color: #f8f9fa;
+                      // no. Make client set the background color: background-color: #f8f9fa;
                       height: 100%;
                       display: flex;
                       padding-right: 20px;
@@ -87,6 +91,7 @@ export const ConfigrPane: React.FunctionComponent<
                         align-items: start;
                       }
                     `}
+                    className={props.className} // allow client to set things like background color
                   >
                     {wantGroupChooser && (
                       <GroupChooser
@@ -166,12 +171,16 @@ const GroupChooser: React.FunctionComponent<
             orientation="vertical"
             css={css`
               min-width: 150px;
-              padding-left: 12px;
               .MuiTabs-indicator {
                 display: none;
               }
               .Mui-selected {
                 font-weight: bold;
+              }
+              button {
+                padding-left: 0;
+                min-height: 0;
+                padding-top: 0;
               }
             `}
           >
