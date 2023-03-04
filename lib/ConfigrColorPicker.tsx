@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChromePicker, ColorResult } from 'react-color';
 import { Dialog } from '@mui/material';
 
-export const DefaultColorPicker: React.FunctionComponent<{
+export const ConfigrColorPicker: React.FunctionComponent<{
   value: string;
   onChange: (value: string) => void;
 }> = (props) => {
