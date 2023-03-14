@@ -346,7 +346,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                   css={css`
                     &,
                     * {
-                      max-width: calc(100% - 20px);
+                      // this is a hack... we need to figured out how to have this MUI List stuff allow a text along the bottom
+                      max-width: calc(100% - 200px);
                     }
                   `}
                 >

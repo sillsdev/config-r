@@ -15,6 +15,7 @@
     "dev": "start http://localhost:3000 && vite",
     "// see https://github.com/vitejs/vite/issues/3461, this uses a totally different builder that has its typescript typings act more together than vitejs": "",
     "build": "tsc && vite build",
+    "build:dev": "tsc && vite build --mode development --minify false --sourcemap true --watch",
     "serve": "vite preview",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
     "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" ",

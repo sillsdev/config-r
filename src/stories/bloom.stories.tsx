@@ -139,6 +139,9 @@ const BloomCollectionInner: React.FunctionComponent<{
                         { label: 'Arial', value: 'Arial' },
                         { label: 'Andika New Basic', value: 'Andika New Basic' },
                       ]}
+                      description={
+                        'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
+                      }
                     ></ConfigrSelect>
                   )}
 
