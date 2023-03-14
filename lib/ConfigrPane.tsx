@@ -44,10 +44,16 @@ export const ConfigrPane: React.FunctionComponent<
   const wantGroupChooser = React.Children.toArray(props.children).length > 1;
 
   const [currentValues, setCurrentValues] = useState(props.initialValues);
-  const setValueOnRenderWrapper = (currentValues: any) => {
-    if (props.setValueOnRender) props.setValueOnRender(currentValues);
-    setCurrentValues(currentValues);
+
+  const setValueOnRenderWrapper = (newValues: any) => {
+    // It's not clear why are allowing setValueOnRender to ever be undefined... how else would you get the result?
+    // But anyhow, first we call the client...
+    if (props.setValueOnRender) props.setValueOnRender(newValues);
+    // and then we update our own state for the sake of the JsonViewer
+    setCurrentValues(newValues);
   };
+
+  const { setValueOnRender, ...propsToPass } = props;
 
   return (
     <div
@@ -103,8 +109,8 @@ export const ConfigrPane: React.FunctionComponent<
                     )}
                     <ContentPane
                       currentGroupIndex={currentGroup}
+                      {...propsToPass}
                       setValueOnRender={setValueOnRenderWrapper}
-                      {...props}
                     />
                   </div>
                 </React.Fragment>
