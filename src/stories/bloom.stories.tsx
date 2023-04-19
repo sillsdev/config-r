@@ -437,6 +437,12 @@ const BloomBookInner: React.FunctionComponent<{
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
             <ConfigrInput
+              label="Gap"
+              path="appearance.imageTextGapMillimeters"
+              units="mm"
+            />
+
+            <ConfigrInput
               path={`appearance.margins.marginTop`}
               label="Top"
               {...propsForMmField}
