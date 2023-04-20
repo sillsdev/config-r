@@ -192,8 +192,8 @@ const PaperGroup: React.FunctionComponent<
       elevation={2}
       css={css`
         //width: 100%; doesn't work with shadow
-        margin-left: 3px; //needed to show shadow
-        margin-right: 3px; //needed to show shadow
+        margin-left: 2px; //needed to show shadow
+        margin-right: 2px; //needed to show shadow
         margin-bottom: 12px !important;
       `}
     >

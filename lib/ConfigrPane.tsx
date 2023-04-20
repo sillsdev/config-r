@@ -85,6 +85,7 @@ export const ConfigrPane: React.FunctionComponent<
                     />
                   )}
                   <div
+                    id="configr-pane"
                     css={css`
                       // no. Make client set the background color: background-color: #f8f9fa;
                       height: 100%;
