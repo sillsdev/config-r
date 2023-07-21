@@ -106,6 +106,8 @@ const BloomCollectionInner: React.FunctionComponent<{
         showJson={true}
         css={css`
           background-color: #cfa7e7;
+          padding: 20px;
+          width: 700px;
         `}
         // {...props}
       >
@@ -425,6 +427,10 @@ const BloomBookInner: React.FunctionComponent<{
         initialValues={initialBloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
+        css={css`
+          padding: 20px;
+          width: 700px;
+        `}
         {...props}
       >
         <ConfigrGroup label="Appearance" level={1}>
@@ -604,6 +610,10 @@ const BloomBookInnerV1: React.FunctionComponent<{
         initialValues={initialV1BloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={false}
+        css={css`
+          padding: 20px;
+          width: 700px;
+        `}
         {...props}
       >
         <ConfigrGroup

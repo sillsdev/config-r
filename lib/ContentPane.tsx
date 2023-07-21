@@ -126,7 +126,6 @@ const VisibleGroups: React.FunctionComponent<
           <div
             id="groups"
             css={css`
-              width: 500px;
               //overflow-y: scroll; //allows us to scroll the groups without
               //scrolling the heading tabs
               overflow-y: auto;
@@ -322,7 +321,13 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
         const row = (
-          <React.Fragment>
+          <div
+            css={css`
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+            `}
+          >
             {/* Left side */}
             <ListItemText
               primaryTypographyProps={{ variant: 'h4' }}
@@ -337,23 +342,6 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                 }
               `}
               primary={props.label}
-              secondary={
-                <Typography
-                  variant="caption"
-                  // enhance: the default component, span, ignores the line-height of our caption
-                  // but if we use p, we get a console error because the parent is already a p.body2
-                  //component={'p'}
-                  css={css`
-                    &,
-                    * {
-                      // this is a hack... we need to figured out how to have this MUI List stuff allow a text along the bottom
-                      max-width: calc(100% - 200px);
-                    }
-                  `}
-                >
-                  {props.description}
-                </Typography>
-              }
             />
             {/* Right side */}
             <ListItemSecondaryAction
@@ -368,7 +356,23 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
             >
               {props.control}
             </ListItemSecondaryAction>
-          </React.Fragment>
+            <Typography
+              variant="caption"
+              // enhance: the default component, span, ignores the line-height of our caption
+              // but if we use p, we get a console error because the parent is already a p.body2
+              //component={'p'}
+              css={css`
+                &,
+                * {
+                  // this is a hack... we need to figured out how to have this MUI List stuff allow a text along the bottom
+                  max-width: calc(100% - 200px);
+                  color: ${props.disabled ? disabledGrey : 'unset'};
+                }
+              `}
+            >
+              {props.description}
+            </Typography>
+          </div>
         );
         if (searchRegEx) {
           const count = React.Children.toArray(props.children).filter((c) =>
