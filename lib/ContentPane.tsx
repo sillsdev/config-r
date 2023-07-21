@@ -437,6 +437,8 @@ export const ConfigrInput: React.FunctionComponent<
     className?: string;
     type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
     units?: string;
+    description?: string;
+    disabled?: boolean;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -477,6 +479,7 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
     path: string;
     label: string;
     disabled?: boolean;
+    description?: string;
     // control: React.ComponentType<
     //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
     // >;
@@ -513,6 +516,8 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
     path: string;
     label: string;
     control: BooleanEditorComponent;
+    description?: string;
+    disabled?: boolean;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -537,6 +542,8 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
     control: React.FunctionComponent<
       React.PropsWithChildren<{ value: number; onChange: (value: number) => void }>
     >;
+    description?: string;
+    disabled?: boolean;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -558,6 +565,8 @@ export function ConfigrCustomObjectInput<T>(
   props: React.PropsWithChildren<{
     path: string;
     label: string;
+    description?: string;
+    disabled?: boolean;
     control: React.FunctionComponent<
       React.PropsWithChildren<{ value: T; onChange: (value: T) => void }>
     >;
@@ -778,6 +787,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
+    description?: string;
+    disabled?: boolean;
     row?: boolean;
   }>
 > = (props) => {
@@ -798,6 +809,8 @@ export const ConfigrRadioGroupRaw: React.FunctionComponent<
     path: string;
     label: string;
     row?: boolean;
+    description?: string;
+    disabled?: boolean;
   }>
 > = (props) => {
   const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below? Probably onchange, value
@@ -832,6 +845,8 @@ export const ConfigrToggleGroup: React.FunctionComponent<
     label: string;
     row?: boolean;
     height?: string;
+    description?: string;
+    disabled?: boolean;
   }>
 > = (props) => {
   return (
@@ -847,6 +862,8 @@ export const ConfigrToggleGroupRaw: React.FunctionComponent<
     label: string;
     row?: boolean;
     height?: string;
+    description?: string;
+    disabled?: boolean;
   }>
 > = (props) => {
   return (

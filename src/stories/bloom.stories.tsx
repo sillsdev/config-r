@@ -433,6 +433,7 @@ const BloomBookInner: React.FunctionComponent<{
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               disabled={true}
+              description={'this is custom'}
               control={ConfigrColorPicker}
             />
           </ConfigrSubgroup>
@@ -501,6 +502,7 @@ const BloomBookInner: React.FunctionComponent<{
             />
             <ConfigrBoolean
               label="Image Descriptions on Page"
+              description="Normally image descriptions are just audio, but this puts them in print as well."
               path="epub.options.imageDescriptionsOnPage"
             />
           </ConfigrSubgroup>
