@@ -6,6 +6,7 @@ import { Dialog } from '@mui/material';
 
 export const ConfigrColorPicker: React.FunctionComponent<{
   value: string;
+  disabled?: boolean;
   onChange: (value: string) => void;
 }> = (props) => {
   const [displayColorPicker, setDisplayColorPicker] = useState<boolean>(false);
@@ -26,7 +27,7 @@ export const ConfigrColorPicker: React.FunctionComponent<{
 
   return (
     <div>
-      <SwatchButton color={color} onClick={handleClick} />
+      <SwatchButton disabled={props.disabled} color={color} onClick={handleClick} />
 
       <Dialog open={displayColorPicker} onClose={handleClose}>
         <ChromePicker
@@ -43,16 +44,19 @@ export const ConfigrColorPicker: React.FunctionComponent<{
 
 export const SwatchButton: React.FunctionComponent<{
   color: string;
+  disabled?: boolean;
   onClick: () => void;
 }> = (props) => {
   return (
     <button
       onClick={props.onClick}
+      disabled={props.disabled}
       css={css`
         border: solid 1px black;
         background-color: white;
         padding: 2px;
         cursor: pointer;
+        opacity: ${props.disabled ? 0.2 : 1};
       `}
     >
       <div

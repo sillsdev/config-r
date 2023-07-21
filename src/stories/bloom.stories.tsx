@@ -432,6 +432,7 @@ const BloomBookInner: React.FunctionComponent<{
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
+              disabled={true}
               control={ConfigrColorPicker}
             />
           </ConfigrSubgroup>
@@ -649,6 +650,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
             <ConfigrBoolean
               label="Show Page Numbers"
               path="appearance.other.showPageNumber"
+              disabled={true}
             />
             <ConfigrInput
               path={`appearance.other.theme`}

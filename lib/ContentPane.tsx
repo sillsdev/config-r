@@ -476,6 +476,7 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
+    disabled?: boolean;
     // control: React.ComponentType<
     //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
     // >;
@@ -485,6 +486,7 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
     //control: (value: string, onChange: (x: string) => void) => ReactElement;
     control: React.FunctionComponent<{
       value: string;
+      disabled?: boolean;
       onChange: (value: string) => void;
     }>;
     getErrorMessage?: (data: any) => string | undefined;
@@ -497,7 +499,9 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={
+        <props.control disabled={props.disabled} value={value} onChange={setValue} />
+      }
     ></ConfigrRowTwoColumns>
   );
 };
@@ -577,13 +581,14 @@ export const ConfigrSelect: React.FunctionComponent<
     path: string;
     label: string;
     indented?: boolean;
+    disabled?: boolean;
     options: Array<{ value: string; label?: string; description?: string } | number>;
     enableWhen?: string | ((currentValues: object) => boolean);
     description?: string;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
-  const disabled = !useBooleanBasedOnValues(true, props.enableWhen);
+  const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -733,6 +738,7 @@ export const ConfigrBoolean: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
+    disabled?: boolean;
     description?: string;
     immediateEffect?: boolean;
   }>
@@ -747,7 +753,13 @@ export const ConfigrBoolean: React.FunctionComponent<
   const control = props.immediateEffect ? (
     <Field component={Switch} type="checkbox" name={props.path} label={props.label} />
   ) : (
-    <Field component={Checkbox} type="checkbox" name={props.path} label={props.label} />
+    <Field
+      component={Checkbox}
+      type="checkbox"
+      disabled={props.disabled}
+      name={props.path}
+      label={props.label}
+    />
   );
 
   return (

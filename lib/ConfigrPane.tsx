@@ -90,9 +90,7 @@ export const ConfigrPane: React.FunctionComponent<
                       // no. Make client set the background color: background-color: #f8f9fa;
                       height: 100%;
                       display: flex;
-                      padding-right: 20px;
-                      padding-left: ${wantGroupChooser ? undefined : '20px'};
-
+                      //padding-left: ${wantGroupChooser ? undefined : '20px'};
                       .MuiTab-wrapper {
                         text-align: left;
                         align-items: start;
