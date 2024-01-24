@@ -40,7 +40,7 @@ const initialBloomCollectionValues = {
       font: 'Arial',
       script: {
         rtl: true,
-        avoidAsianScriptWordBreaking: false,
+        avoidAsianScriptWordBreaking: true,
         tallerLines: false,
         fontSizeInTools: false,
       },
@@ -150,12 +150,14 @@ const BloomCollectionInner: React.FunctionComponent<{
                   {!language.isSignLanguage && (
                     <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                       <ConfigrBoolean
+                        disabledValue={true}
                         label="This is a right to left script, like Arabic"
                         path={`${prefix}.script.rtl`}
                       />
                       <ConfigrBoolean
                         label="Do not use special Asian script word breaking"
                         path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                        disabledValue={false}
                       />
                       <ConfigrBoolean
                         label="This script requires taller lines"

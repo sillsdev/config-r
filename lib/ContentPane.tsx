@@ -65,6 +65,36 @@ export const ContentPane: React.FunctionComponent<
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
 
+  const valuesToReportRef = React.useRef(props.initialValues);
+
+  const valuesToReportJsonRef = React.useRef(JSON.stringify(props.initialValues));
+
+  const setValueOnRenderWrapper = (newValues: any) => {
+    if (!props.setValueOnRender) return;
+
+    let valueToReport = newValues;
+    if (valueToReport[kDisabledValuePrefix]) {
+      // A shallow clone is enough, we just want to NOT remove kDisabledValuePrefix from the
+      // current values. But we DO want to remove it from the values we report!
+      valueToReport = { ...valueToReport };
+      delete valueToReport[kDisabledValuePrefix];
+    }
+    const newStringValues = JSON.stringify(valueToReport);
+    // It's very important that we don't call setValueOnRender with a new cloned
+    // object each time, or we're likely to get into an infinite loop of re-renders,
+    // as some parent re-renders this whole component when its settings state changes.
+    // So we use the two ref objects to make sure we pass the same instance each time
+    // unless the JSON has changed.
+    // This also allows us to avoid calling setValueOnRender at all if nothing has changed.
+    // Review: is it a good thing to not call setValueOnRender if nothing has changed?
+    // If so, is there a better name for this function, now it is NOT called on every render?
+    // Maybe just onChange?
+    if (newStringValues === valuesToReportJsonRef.current) return;
+    valuesToReportJsonRef.current = newStringValues;
+    valuesToReportRef.current = valueToReport;
+    props.setValueOnRender(valuesToReportRef.current);
+  };
+
   return (
     <FocusPageContext.Provider
       value={{
@@ -86,9 +116,9 @@ export const ContentPane: React.FunctionComponent<
             props.setValueGetter(() => {
               return values;
             });
-          if (props.setValueOnRender) {
-            props.setValueOnRender(values);
-          }
+
+          setValueOnRenderWrapper(values);
+
           return (
             <form
               onSubmit={handleSubmit}
@@ -747,6 +777,8 @@ export const ConfigrForEach: React.FunctionComponent<
   );
 };
 
+export const kDisabledValuePrefix = 'disabledValue$';
+
 export const ConfigrBoolean: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
@@ -754,23 +786,67 @@ export const ConfigrBoolean: React.FunctionComponent<
     disabled?: boolean;
     description?: string;
     immediateEffect?: boolean;
+    // If disabledValue is set, then the checkbox is disabled, and the checkbox is checked
+    // or not based on disabledValue rather then the value indicated by the path.
+    // The value in the main settings object is not affected and may be different from
+    // the value determined by disabledValue and shown in the checkbox.
+    // This does not work when immediateEffect is true, and should always be undefined in that case.
+    disabledValue?: boolean;
   }>
 > = (props) => {
-  const [field, meta, helpers] = useField(props.path);
+  const { path, disabled, disabledValue, ...propsToPass } = props;
+  const { values } = useFormikContext();
+  let actualPath = path;
+  if (props.disabledValue !== undefined) {
+    let disabledValues = (values as any)[kDisabledValuePrefix];
+    if (!disabledValues) {
+      disabledValues = {};
+      (values as any)[kDisabledValuePrefix] = disabledValues;
+    }
+    // Something elsewhere in configr treats dot and square brackets specially,
+    // as paths into child objects and arrays. If we leave them in, then the
+    // code won't find a disabledValue that just uses the whole path as a prop name.
+    // So we replace them with underscores.
+    const disabledPath = actualPath
+      .replace(/\./g, '_')
+      .replace(/\[/g, '_')
+      .replace(/\]/g, '_');
+    // Review: this is a somewhat naughty thing to do. We're modifying an object
+    // that is part of the formik state. But the thing we're adding is unlikely
+    // to be noticed by any other code, and it works.
+    // If we decide this is unacceptable, the only other idea I've had is to pass
+    // a list of disabledValue paths to the ContentPane, and have it modify the
+    // initialValues object before passing it to Formik.
+    disabledValues[disabledPath] = props.disabledValue;
+    actualPath = kDisabledValuePrefix + '.' + disabledPath;
+  }
+
+  // I don't think this is useful when we are using disabledValue and actualPath
+  // is different from props.path. But the rules of hooks won't let us NOT define
+  // it conditionally, and I think it's safer to point it at the phony field than
+  // the real one we definitely don't want to modify.
+  const [field, meta, helpers] = useField(actualPath);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
-  if (field.value === undefined || field.value === null) {
+  // (but don't change anything if disabledValue is set)
+  if (
+    props.disabledValue === undefined &&
+    (field.value === undefined || field.value === null)
+  ) {
     // get a console error if we make this change while rendering
     window.setTimeout(() => helpers.setValue(false), 0);
   }
+  const reallyDisabled = props.disabled || props.disabledValue !== undefined;
   const control = props.immediateEffect ? (
+    // Review: this branch doesn't seem to support disabled, so maybe shouldn't
+    // support disabledValue either?
     <Field component={Switch} type="checkbox" name={props.path} label={props.label} />
   ) : (
     <Field
       component={Checkbox}
       type="checkbox"
-      disabled={props.disabled}
-      name={props.path}
+      disabled={reallyDisabled}
+      name={actualPath}
       label={props.label}
     />
   );
@@ -779,10 +855,15 @@ export const ConfigrBoolean: React.FunctionComponent<
     <ConfigrRowTwoColumns
       // clicking the row is the same as clicking the toggle control
       onClick={() => {
+        // I have no idea why this is needed. But without it, clicking the row
+        // toggles the value even when disabled.
+        if (reallyDisabled) return;
         helpers.setValue(!field.value);
       }}
       control={control}
-      {...props}
+      {...propsToPass}
+      disabled={reallyDisabled}
+      path={actualPath}
     />
   );
 };
