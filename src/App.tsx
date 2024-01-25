@@ -2,8 +2,8 @@ import './App.css';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 
-import { BloomCollection } from './stories/bloom.stories';
-// import { Lameta, Pets } from './stories/Other.stories';
+import { BloomBook, BloomCollection } from './stories/bloom.stories';
+import { Lameta, Pets } from './stories/Other.stories';
 
 function App() {
   const [currentValue, setCurrentValue] = useState({});
@@ -14,7 +14,9 @@ function App() {
         display: flex;
       `}
     >
+      {/* Comment out all but one of these, otherwise, they stack horizontally and don't work well. */}
       <BloomCollection />
+      {/* <BloomBook /> */}
       {/* <Lameta></Lameta> */}
       {/* <Pets></Pets> */}
     </div>

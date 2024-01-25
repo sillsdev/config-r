@@ -59,6 +59,7 @@ export const CharacterAlternate: React.FunctionComponent<{
       path={`${props.path}.cv${props.definition.cvNum}`}
       label={props.definition.name}
       height={'60px'}
+      disabledValue={"1"} // silly but works for both examples
       // todo: this css injection does nothing
       css={css`
         .Mui-selected * {

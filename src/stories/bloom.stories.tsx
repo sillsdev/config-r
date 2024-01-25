@@ -40,7 +40,7 @@ const initialBloomCollectionValues = {
       font: 'Arial',
       script: {
         rtl: true,
-        avoidAsianScriptWordBreaking: false,
+        avoidAsianScriptWordBreaking: true,
         tallerLines: false,
         fontSizeInTools: false,
       },
@@ -144,18 +144,21 @@ const BloomCollectionInner: React.FunctionComponent<{
                       description={
                         'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
                       }
+                      disabledValue='Arial'
                     ></ConfigrSelect>
                   )}
 
                   {!language.isSignLanguage && (
                     <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                       <ConfigrBoolean
+                        disabledValue={true}
                         label="This is a right to left script, like Arabic"
                         path={`${prefix}.script.rtl`}
                       />
                       <ConfigrBoolean
                         label="Do not use special Asian script word breaking"
                         path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                        disabledValue={false}
                       />
                       <ConfigrBoolean
                         label="This script requires taller lines"
@@ -253,7 +256,7 @@ const BloomCollectionInner: React.FunctionComponent<{
           }
         >
           <ConfigrSubgroup label="" path="">
-            <ConfigrRadioGroup path="enterprise-mode" label="Status">
+            <ConfigrRadioGroup path="enterprise-mode" label="Status" disabledValue='subscribed'>
               <ConfigrRadio label="Subscribed" value="subscribed" />
               <ConfigrRadio label="Funded by the local community only" value="local" />
               <ConfigrRadio label="None" value="none" />
@@ -438,7 +441,8 @@ const BloomBookInner: React.FunctionComponent<{
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
-              disabled={true}
+              //disabled={true}
+              disabledValue="#ff80ee"
               description={'this is custom'}
               control={ConfigrColorPicker}
             />

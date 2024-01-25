@@ -65,6 +65,36 @@ export const ContentPane: React.FunctionComponent<
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
 
+  const valuesToReportRef = React.useRef(props.initialValues);
+
+  const valuesToReportJsonRef = React.useRef(JSON.stringify(props.initialValues));
+
+  const setValueOnRenderWrapper = (newValues: any) => {
+    if (!props.setValueOnRender) return;
+
+    let valueToReport = newValues;
+    if (valueToReport[kDisabledValuePrefix]) {
+      // A shallow clone is enough, we just want to NOT remove kDisabledValuePrefix from the
+      // current values. But we DO want to remove it from the values we report!
+      valueToReport = { ...valueToReport };
+      delete valueToReport[kDisabledValuePrefix];
+    }
+    const newStringValues = JSON.stringify(valueToReport);
+    // It's very important that we don't call setValueOnRender with a new cloned
+    // object each time, or we're likely to get into an infinite loop of re-renders,
+    // as some parent re-renders this whole component when its settings state changes.
+    // So we use the two ref objects to make sure we pass the same instance each time
+    // unless the JSON has changed.
+    // This also allows us to avoid calling setValueOnRender at all if nothing has changed.
+    // Review: is it a good thing to not call setValueOnRender if nothing has changed?
+    // If so, is there a better name for this function, now it is NOT called on every render?
+    // Maybe just onChange?
+    if (newStringValues === valuesToReportJsonRef.current) return;
+    valuesToReportJsonRef.current = newStringValues;
+    valuesToReportRef.current = valueToReport;
+    props.setValueOnRender(valuesToReportRef.current);
+  };
+
   return (
     <FocusPageContext.Provider
       value={{
@@ -86,9 +116,9 @@ export const ContentPane: React.FunctionComponent<
             props.setValueGetter(() => {
               return values;
             });
-          if (props.setValueOnRender) {
-            props.setValueOnRender(values);
-          }
+
+          setValueOnRenderWrapper(values);
+
           return (
             <form
               onSubmit={handleSubmit}
@@ -301,6 +331,7 @@ type StringEditorComponent = React.FunctionComponent<{
 }>;
 type BooleanEditorComponent = React.FunctionComponent<{
   value: boolean;
+  disabled?: boolean;
   onChange: (value: boolean) => void;
 }>;
 
@@ -414,6 +445,75 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   );
 };
 
+// Properties that are common to (nearly?) all Configr leaf controls.
+// In particular useDisabledValue manipulates path and disabled to implement
+// the disabledValue feature. The others are just included here so we don't
+// have to repeat them on each control.
+interface IConfigrProps<T> {
+  path: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+    // If disabledValue is set, then the control is disabled, and the value shown
+    // is based on disabledValue rather then the value indicated by the path.
+    // The value in the main settings object is not affected and may be different from
+    // the value determined by disabledValue and shown in the control.
+    disabledValue?: T;
+}
+
+// This is a helper function used by most of the controls below.
+// These components have props that extend some variant of IConfigrProps.
+// They are declared with 'originalProps' as the argument they are passed,
+// and then have as the first line one like
+//    const props = useDisabledValue(originalProps) as IConfigrInputProps;
+// This is all a control has to do to implement the disabledValue prop
+// (assuming that it suitably implements the disabled prop).
+// If disabledValue is set, then the output props will have disabled set to true,
+// and its path will be changed to point to a field added to the formik state that
+// has the value that we want the control to show.
+// All other props (even ones not in IConfigrProps) are passed through unchanged.
+function useDisabledValue<T>(props: IConfigrProps<T>): IConfigrProps<T> {
+  // We don't need this if we're not using disabledValue, but the rules of hooks
+  // won't let us call it conditionally.
+  const { values } = useFormikContext();
+  if (props.disabledValue === undefined) return props;
+  let disabledValues = (values as any)[kDisabledValuePrefix];
+  // We need a field in the formik state to hold the value that we want the
+  // disabled control to show. We keep all of these in a single object in
+  // a defined field, so that we can easily find and remove them when we
+  // are returning the values to the client.
+  if (!disabledValues) {
+    disabledValues = {};
+    (values as any)[kDisabledValuePrefix] = disabledValues;
+  }
+  // Something elsewhere in configr treats dot and square brackets specially,
+  // as paths into child objects and arrays. If we leave them in, then the
+  // code won't find a disabledValue that just uses the whole path as a prop name.
+  // So we replace them with underscores.
+  const disabledPath = props.path
+    .replace(/\./g, '_')
+    .replace(/\[/g, '_')
+    .replace(/\]/g, '_');
+  // Review: this is a somewhat naughty thing to do. We're modifying an object
+  // that is part of the formik state. But the thing we're adding is unlikely
+  // to be noticed by any other code, and it works.
+  // If we decide this is unacceptable, the only other idea I've had is to pass
+  // a list of disabledValue paths to the ContentPane, and have it modify the
+  // initialValues object before passing it to Formik.
+  disabledValues[disabledPath] = props.disabledValue;
+  return { ...props, disabled: true, path: kDisabledValuePrefix + '.' + disabledPath };
+}
+
+const kDisabledValuePrefix = 'disabledValue$';
+
+// Note: string|number covers 'text' | 'number' | 'email' but may need to be extended if we support other types.
+interface IConfigrInputProps extends IConfigrProps<string|number> {
+  className?: string;
+  type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
+  units?: string;
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 // function getCheckedStateProps(props: any) {
 //   return {
 //     checked: props.store!.useState(props.get),
@@ -434,18 +534,12 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
 //       props.store!.update((s: any) => props.set(s, e.target.value)),
 //   };
 // }
+// Review: numbers are slightly weird when disabled...a spinner control appears and is not obviously disabled,
+// though nothing happens when you clickit.
 export const ConfigrInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    className?: string;
-    type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
-    units?: string;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+  React.PropsWithChildren<IConfigrInputProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as IConfigrInputProps;
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -476,14 +570,7 @@ export const ConfigrInput: React.FunctionComponent<
   );
 };
 
-// Clients can use this to create their own custom inputs based on string data.
-// For example, <DefaultColorPicker> or some other color picker.
-export const ConfigrCustomStringInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    disabled?: boolean;
-    description?: string;
+interface ICustomStringInputProps extends IConfigrProps<string> {
     // control: React.ComponentType<
     //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
     // >;
@@ -497,8 +584,14 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
       onChange: (value: string) => void;
     }>;
     getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+}
+
+// Clients can use this to create their own custom inputs based on string data.
+// For example, <DefaultColorPicker> or some other color picker.
+export const ConfigrCustomStringInput: React.FunctionComponent<
+  React.PropsWithChildren<ICustomStringInputProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as ICustomStringInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -513,18 +606,17 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   );
 };
 
+interface ICustomBooleanInputProps extends IConfigrProps<boolean> {
+  control: BooleanEditorComponent;
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 // Clients can use this to create their own custom inputs based on boolean data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export const ConfigrCustomBooleanInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    control: BooleanEditorComponent;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+  React.PropsWithChildren<ICustomBooleanInputProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as ICustomBooleanInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -532,25 +624,24 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={<props.control disabled = {props.disabled} value={value} onChange={setValue} />}
     ></ConfigrRowTwoColumns>
   );
 };
+
+interface ICustomNumberInputProps extends IConfigrProps<number> {
+  control: React.FunctionComponent<
+      React.PropsWithChildren<{ value: number; disabled?: boolean;onChange: (value: number) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+}
 
 // Clients can use this to create their own custom inputs based on number data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export const ConfigrCustomNumberInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    control: React.FunctionComponent<
-      React.PropsWithChildren<{ value: number; onChange: (value: number) => void }>
-    >;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+  React.PropsWithChildren<ICustomNumberInputProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as ICustomNumberInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -558,25 +649,24 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={<props.control disabled = {props.disabled} value={value} onChange={setValue} />}
     ></ConfigrRowTwoColumns>
   );
 };
 
+interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
+  control: React.FunctionComponent<
+      React.PropsWithChildren<{ value: T; disabled?: boolean; onChange: (value: T) => void }>
+    >;
+    getErrorMessage?: (data: any) => string | undefined;
+}
+
 // Clients can use this to create their own custom inputs based on object data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export function ConfigrCustomObjectInput<T>(
-  props: React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    disabled?: boolean;
-    control: React.FunctionComponent<
-      React.PropsWithChildren<{ value: T; onChange: (value: T) => void }>
-    >;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>,
+  originalProps: React.PropsWithChildren<ICustomObjectInputProps<T>>,
 ) {
+  const props = useDisabledValue(originalProps) as ICustomObjectInputProps<T>;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -584,23 +674,22 @@ export function ConfigrCustomObjectInput<T>(
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={<props.control value={value} disabled = {props.disabled} onChange={setValue} />}
     ></ConfigrRowTwoColumns>
   );
 }
 
-export const ConfigrSelect: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    indented?: boolean;
-    disabled?: boolean;
-    options: Array<{ value: string; label?: string; description?: string } | number>;
+interface ISelectProps extends IConfigrProps<string> {
+  indented?: boolean;
+  options: Array<{ value: string; label?: string; description?: string } | number>;
     enableWhen?: string | ((currentValues: object) => boolean);
-    description?: string;
     getErrorMessage?: (data: any) => string | undefined;
-  }>
-> = (props) => {
+}
+
+export const ConfigrSelect: React.FunctionComponent<
+  React.PropsWithChildren<ISelectProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   return (
     <ConfigrRowTwoColumns
@@ -747,15 +836,16 @@ export const ConfigrForEach: React.FunctionComponent<
   );
 };
 
+interface IConfigrBooleanProps extends IConfigrProps<boolean> {
+  // When immediateEffect is true, disabled does not work, and disabledValue will
+  // misbehave: the control will seem to work but not actually save the setting.
+  immediateEffect?: boolean;
+}
+
 export const ConfigrBoolean: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    disabled?: boolean;
-    description?: string;
-    immediateEffect?: boolean;
-  }>
-> = (props) => {
+  React.PropsWithChildren<IConfigrBooleanProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as IConfigrBooleanProps;
   const [field, meta, helpers] = useField(props.path);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
@@ -787,15 +877,16 @@ export const ConfigrBoolean: React.FunctionComponent<
   );
 };
 
+interface IRadioGroupProps extends IConfigrProps<string> {
+  row?: boolean;
+}
+
+// Review: disabledValue sets the value and prevents changing the value, but we
+// don't yet have CSS to make the whole group LOOK disabled.
 export const ConfigrRadioGroup: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    disabled?: boolean;
-    row?: boolean;
-  }>
-> = (props) => {
+  React.PropsWithChildren<IRadioGroupProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as IRadioGroupProps;
   return (
     // I could imagine wanting the radio buttons in the right column. There aren't any examples of this in chrome:settings.
     // Note that normally in chrome:settings, radios are the sole child of an entire group (e.g. "on startup", "cookie settings",
@@ -808,6 +899,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<
     ></ConfigrRowOneColumn>
   );
 };
+// Review: should we support disabledValue here? It's public, but looks meant to be used internally
+// as part of the implementation of ConfigrRadioGroup
 export const ConfigrRadioGroupRaw: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
@@ -843,16 +936,15 @@ export const ConfigrRadio: React.FunctionComponent<
   }
 };
 
-export const ConfigrToggleGroup: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    row?: boolean;
+interface IToggleGroupProps extends IConfigrProps<string> {
+  row?: boolean;
     height?: string;
-    description?: string;
-    disabled?: boolean;
-  }>
-> = (props) => {
+}
+
+export const ConfigrToggleGroup: React.FunctionComponent<
+  React.PropsWithChildren<IToggleGroupProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as IToggleGroupProps;
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -860,6 +952,7 @@ export const ConfigrToggleGroup: React.FunctionComponent<
     ></ConfigrRowTwoColumns>
   );
 };
+// Review: need disabledValue here?
 export const ConfigrToggleGroupRaw: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
@@ -883,17 +976,16 @@ export function ConfigrMakeToggle(value: any, content: ReactNode) {
   return <ToggleButton value={value}>{content}</ToggleButton>;
 }
 
+interface IChooserButtonProps extends IConfigrProps<string> {
+  buttonLabel: string;
+  chooseAction: (currentValue: string) => string;
+}
+
 // Use for things like a file or folder chooser.
 export const ConfigrChooserButton: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    buttonLabel: string;
-    chooseAction: (currentValue: string) => string;
-    disabled?: boolean;
-  }>
-> = (props) => {
+  React.PropsWithChildren<IChooserButtonProps>
+> = (originalProps) => {
+  const props = useDisabledValue(originalProps) as IChooserButtonProps;
   const { setFieldValue } = useFormikContext();
   const [field] = useField(props.path);
 
