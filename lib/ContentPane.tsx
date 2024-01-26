@@ -58,12 +58,45 @@ export const ContentPane: React.FunctionComponent<
       | React.ReactElement<typeof ConfigrGroup>
       | React.ReactElement<typeof ConfigrGroup>[];
     setValueGetter?: (vg: valueGetter) => void;
-    setValueOnRender?: (currentValues: any) => void;
+    onChange?: (currentValues: any) => void;
   }>
 > = (props) => {
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
   const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
+
+  const valuesToReportRef = React.useRef(props.initialValues);
+
+  const valuesToReportJsonRef = React.useRef(JSON.stringify(props.initialValues));
+
+  const onChangeWrapper = (newValues: any) => {
+    if (!props.onChange) return;
+
+    let valueToReport = newValues;
+    if (valueToReport[kOverrideValuePrefix]) {
+      // Note: this is a shallow clone which means after the top level it's pointing to
+      // the original objects. This is fine, because we're only going to use it to remove
+      // a single property from the top level.
+      valueToReport = { ...newValues };
+      delete valueToReport[kOverrideValuePrefix];
+    }
+    // Note: If we start using text inputs, we wonder if the speed of this could
+    // become a problem as it will be stringifying the whole object on every keystroke.
+    // But this is a common strategy for solving this "did something really change"
+    // problem in react. If it were a problem we could perhaps switch to onBlur
+    // instead of onChange for ConfigrInput with text.
+    const newStringValues = JSON.stringify(valueToReport);
+    // It's very important that we don't call onChange with a new cloned
+    // object each time, or we're likely to get into an infinite loop of re-renders,
+    // as some parent re-renders this whole component when its settings state changes.
+    // So we use the two ref objects to make sure we pass the same instance each time
+    // unless the JSON has changed.
+    // This also allows us to avoid calling onChange at all if nothing has changed.
+    if (newStringValues === valuesToReportJsonRef.current) return;
+    valuesToReportJsonRef.current = newStringValues;
+    valuesToReportRef.current = valueToReport;
+    props.onChange(valuesToReportRef.current);
+  };
 
   return (
     <FocusPageContext.Provider
@@ -86,9 +119,9 @@ export const ContentPane: React.FunctionComponent<
             props.setValueGetter(() => {
               return values;
             });
-          if (props.setValueOnRender) {
-            props.setValueOnRender(values);
-          }
+
+          onChangeWrapper(values);
+
           return (
             <form
               onSubmit={handleSubmit}
@@ -301,6 +334,7 @@ type StringEditorComponent = React.FunctionComponent<{
 }>;
 type BooleanEditorComponent = React.FunctionComponent<{
   value: boolean;
+  disabled?: boolean;
   onChange: (value: boolean) => void;
 }>;
 
@@ -414,6 +448,70 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   );
 };
 
+// Properties that are common to (nearly?) all Configr leaf controls.
+// In particular useoverrideValue manipulates path and disabled to implement
+// the overrideValue feature. The others are just included here so we don't
+// have to repeat them on each control.
+interface IConfigrProps<T> {
+  path: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+  // If overrideValue is set, then the control is disabled, and the value shown
+  // is based on overrideValue rather then the value indicated by the path.
+  // The value in the main settings object is not affected and may be different from
+  // the value determined by overrideValue and shown in the control.
+  overrideValue?: T;
+  // explain why it is over-ridden
+  overrideDescription?: string;
+}
+
+// This hook implements the overrideValue prop. It does this by putting
+// the override value into temporary property and setting the path to
+// point to it. The control is then disabled, so we end up with a
+// disabled control that shows the override value.
+// It takes your props and gives you a replacement.
+function useModifyForOverride<T>(props: IConfigrProps<T>): IConfigrProps<T> {
+  // We don't need this if we're not using overrideValue, but the rules of hooks
+  // won't let us call it conditionally.
+  const { values } = useFormikContext();
+  if (props.overrideValue === undefined) return props;
+
+  // Something elsewhere in configr treats dot and square brackets specially,
+  // as paths into child objects and arrays. If we leave them in, then the
+  // code won't find a overrideValue that just uses the whole path as a prop name.
+  // So we replace them with underscores.
+  const disabledPath = props.path.replace(/[.[\]]/g, '_');
+
+  let overrideValues = (values as any)[kOverrideValuePrefix];
+  if (!(values as any)[kOverrideValuePrefix]) {
+    // this is the first overrideValue we've seen, so create a place to put them
+    (values as any)[kOverrideValuePrefix] = overrideValues = {};
+  }
+  // Note: We're modifying an object that is part of the formik state, which might
+  // be a sketchy thing to do. But the thing we're adding is unlikely
+  // to be noticed by any other code, and it works.
+  // If we decide this is unacceptable, the only other idea I've had is to pass
+  // a list of overrideValue paths to the ContentPane, and have it modify the
+  // initialValues object before passing it to Formik.
+  overrideValues[disabledPath] = props.overrideValue;
+
+  const description = `${props.description ?? ''} (${props.overrideDescription ?? ''})`
+    .replace(' ()', '')
+    .trim();
+
+  return {
+    ...props,
+    description,
+    disabled: true,
+    path: kOverrideValuePrefix + '.' + disabledPath,
+  };
+}
+
+const kOverrideValuePrefix = 'overrideValue$';
+
+// Note: string|number covers 'text' | 'number' | 'email' but may need to be extended if we support other types.
+
 // function getCheckedStateProps(props: any) {
 //   return {
 //     checked: props.store!.useState(props.get),
@@ -434,18 +532,18 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
 //       props.store!.update((s: any) => props.set(s, e.target.value)),
 //   };
 // }
+// TODO: the spinner control isn't visually disabling correctly (but nothing happens when you click it)
 export const ConfigrInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    className?: string;
-    type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
-    units?: string;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
+  React.PropsWithChildren<
+    IConfigrProps<string | number> & {
+      className?: string;
+      type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
+      units?: string;
+      getErrorMessage?: (data: any) => string | undefined;
+    }
+  >
 > = (props) => {
+  props = useModifyForOverride(props);
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -454,7 +552,7 @@ export const ConfigrInput: React.FunctionComponent<
           component={TextField}
           variant="standard"
           name={props.path}
-          type={props.type ?? 'text'}
+          type={props.type ?? 'text'} // type "number" gives you a spinner control
           InputProps={
             props.units
               ? {
@@ -476,29 +574,21 @@ export const ConfigrInput: React.FunctionComponent<
   );
 };
 
+interface ICustomStringInputProps extends IConfigrProps<string> {
+  control: React.FunctionComponent<{
+    value: string;
+    disabled?: boolean;
+    onChange: (value: string) => void;
+  }>;
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 // Clients can use this to create their own custom inputs based on string data.
 // For example, <DefaultColorPicker> or some other color picker.
 export const ConfigrCustomStringInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    disabled?: boolean;
-    description?: string;
-    // control: React.ComponentType<
-    //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
-    // >;
-    // control: React.ReactElement<
-    //   React.PropsWithChildren<{ value: string; onChange: (value: string) => void }>
-    // >;
-    //control: (value: string, onChange: (x: string) => void) => ReactElement;
-    control: React.FunctionComponent<{
-      value: string;
-      disabled?: boolean;
-      onChange: (value: string) => void;
-    }>;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
+  React.PropsWithChildren<ICustomStringInputProps>
 > = (props) => {
+  props = useModifyForOverride(props) as ICustomStringInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -513,18 +603,17 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   );
 };
 
+interface ICustomBooleanInputProps extends IConfigrProps<boolean> {
+  control: BooleanEditorComponent;
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 // Clients can use this to create their own custom inputs based on boolean data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export const ConfigrCustomBooleanInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    control: BooleanEditorComponent;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
+  React.PropsWithChildren<ICustomBooleanInputProps>
 > = (props) => {
+  props = useModifyForOverride(props) as ICustomBooleanInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -532,25 +621,30 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={
+        <props.control disabled={props.disabled} value={value} onChange={setValue} />
+      }
     ></ConfigrRowTwoColumns>
   );
 };
+
+interface ICustomNumberInputProps extends IConfigrProps<number> {
+  control: React.FunctionComponent<
+    React.PropsWithChildren<{
+      value: number;
+      disabled?: boolean;
+      onChange: (value: number) => void;
+    }>
+  >;
+  getErrorMessage?: (data: any) => string | undefined;
+}
 
 // Clients can use this to create their own custom inputs based on number data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export const ConfigrCustomNumberInput: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    control: React.FunctionComponent<
-      React.PropsWithChildren<{ value: number; onChange: (value: number) => void }>
-    >;
-    description?: string;
-    disabled?: boolean;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
+  React.PropsWithChildren<ICustomNumberInputProps>
 > = (props) => {
+  props = useModifyForOverride(props) as ICustomNumberInputProps;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -558,25 +652,30 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={
+        <props.control disabled={props.disabled} value={value} onChange={setValue} />
+      }
     ></ConfigrRowTwoColumns>
   );
 };
 
+interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
+  control: React.FunctionComponent<
+    React.PropsWithChildren<{
+      value: T;
+      disabled?: boolean;
+      onChange: (value: T) => void;
+    }>
+  >;
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 // Clients can use this to create their own custom inputs based on object data.
 // Note, this is untested, but based on ConfigrCustomStringInput which is tested.
 export function ConfigrCustomObjectInput<T>(
-  props: React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    disabled?: boolean;
-    control: React.FunctionComponent<
-      React.PropsWithChildren<{ value: T; onChange: (value: T) => void }>
-    >;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>,
+  props: React.PropsWithChildren<ICustomObjectInputProps<T>>,
 ) {
+  props = useModifyForOverride(props) as ICustomObjectInputProps<T>;
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
@@ -584,23 +683,24 @@ export function ConfigrCustomObjectInput<T>(
   return (
     <ConfigrRowTwoColumns
       {...props}
-      control={<props.control value={value} onChange={setValue} />}
+      control={
+        <props.control value={value} disabled={props.disabled} onChange={setValue} />
+      }
     ></ConfigrRowTwoColumns>
   );
 }
 
+interface ISelectProps extends IConfigrProps<string> {
+  indented?: boolean;
+  options: Array<{ value: string; label?: string; description?: string } | number>;
+  enableWhen?: string | ((currentValues: object) => boolean);
+  getErrorMessage?: (data: any) => string | undefined;
+}
+
 export const ConfigrSelect: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    indented?: boolean;
-    disabled?: boolean;
-    options: Array<{ value: string; label?: string; description?: string } | number>;
-    enableWhen?: string | ((currentValues: object) => boolean);
-    description?: string;
-    getErrorMessage?: (data: any) => string | undefined;
-  }>
+  React.PropsWithChildren<ISelectProps>
 > = (props) => {
+  props = useModifyForOverride(props) as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   return (
     <ConfigrRowTwoColumns
@@ -748,14 +848,15 @@ export const ConfigrForEach: React.FunctionComponent<
 };
 
 export const ConfigrBoolean: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    disabled?: boolean;
-    description?: string;
-    immediateEffect?: boolean;
-  }>
+  React.PropsWithChildren<
+    IConfigrProps<boolean> & {
+      // When immediateEffect is true, disabled does not work, and overrideValue will
+      // misbehave: the control will seem to work but not actually save the setting.
+      immediateEffect?: boolean;
+    }
+  >
 > = (props) => {
+  props = useModifyForOverride(props);
   const [field, meta, helpers] = useField(props.path);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
@@ -787,15 +888,16 @@ export const ConfigrBoolean: React.FunctionComponent<
   );
 };
 
+interface IRadioGroupProps extends IConfigrProps<string> {
+  row?: boolean;
+}
+
+// TODO: overrideValue sets the value and prevents changing the value, but we
+// don't yet have CSS to make the whole group LOOK disabled.
 export const ConfigrRadioGroup: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    disabled?: boolean;
-    row?: boolean;
-  }>
+  React.PropsWithChildren<IRadioGroupProps>
 > = (props) => {
+  props = useModifyForOverride(props) as IRadioGroupProps;
   return (
     // I could imagine wanting the radio buttons in the right column. There aren't any examples of this in chrome:settings.
     // Note that normally in chrome:settings, radios are the sole child of an entire group (e.g. "on startup", "cookie settings",
@@ -808,7 +910,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<
     ></ConfigrRowOneColumn>
   );
 };
-export const ConfigrRadioGroupRaw: React.FunctionComponent<
+
+const ConfigrRadioGroupRaw: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
@@ -817,8 +920,8 @@ export const ConfigrRadioGroupRaw: React.FunctionComponent<
     disabled?: boolean;
   }>
 > = (props) => {
-  const [field] = useField(props.path); // REVIEW: what are we using out of `field` in the RadioGroup below? Probably onchange, value
-  console.log('radiogroup field ' + JSON.stringify(field));
+  // Enhance: it's not clear what are we using out of `field` in the RadioGroup below. Probably onchange, value
+  const [field] = useField(props.path);
   return (
     <RadioGroup row={props.row} {...field} {...props}>
       {props.children}
@@ -843,16 +946,15 @@ export const ConfigrRadio: React.FunctionComponent<
   }
 };
 
+interface IToggleGroupProps extends IConfigrProps<string> {
+  row?: boolean;
+  height?: string;
+}
+
 export const ConfigrToggleGroup: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    row?: boolean;
-    height?: string;
-    description?: string;
-    disabled?: boolean;
-  }>
+  React.PropsWithChildren<IToggleGroupProps>
 > = (props) => {
+  props = useModifyForOverride(props) as IToggleGroupProps;
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -860,7 +962,8 @@ export const ConfigrToggleGroup: React.FunctionComponent<
     ></ConfigrRowTwoColumns>
   );
 };
-export const ConfigrToggleGroupRaw: React.FunctionComponent<
+
+const ConfigrToggleGroupRaw: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string;
     label: string;
@@ -883,17 +986,21 @@ export function ConfigrMakeToggle(value: any, content: ReactNode) {
   return <ToggleButton value={value}>{content}</ToggleButton>;
 }
 
+interface IChooserButtonProps extends IConfigrProps<string> {
+  buttonLabel: string;
+  chooseAction: (currentValue: string) => string;
+}
+
 // Use for things like a file or folder chooser.
 export const ConfigrChooserButton: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-    label: string;
-    description?: string;
-    buttonLabel: string;
-    chooseAction: (currentValue: string) => string;
-    disabled?: boolean;
-  }>
+  React.PropsWithChildren<
+    IConfigrProps<string> & {
+      buttonLabel: string;
+      chooseAction: (currentValue: string) => string;
+    }
+  >
 > = (props) => {
+  props = useModifyForOverride(props) as IChooserButtonProps;
   const { setFieldValue } = useFormikContext();
   const [field] = useField(props.path);
 

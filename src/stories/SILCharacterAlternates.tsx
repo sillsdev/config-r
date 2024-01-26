@@ -59,6 +59,8 @@ export const CharacterAlternate: React.FunctionComponent<{
       path={`${props.path}.cv${props.definition.cvNum}`}
       label={props.definition.name}
       height={'60px'}
+      overrideValue={'1'} // silly but works for both examples
+      overrideDescription="This is locked by Kyrgyzstan xmatter"
       // todo: this css injection does nothing
       css={css`
         .Mui-selected * {

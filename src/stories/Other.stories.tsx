@@ -50,11 +50,13 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         label="Pet Settings"
         initialValues={initialPetValues}
         showSearch={true}
+        showJson={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
         showAllGroups={true}
       >
         <ConfigrGroup label="Dog">
           <ConfigrInput path="dog.name" label="Name" />
+          <ConfigrInput path="dog.age" label="Age" type="number" />
           <ConfigrBoolean
             path="dog.friendly"
             label="Friendly"

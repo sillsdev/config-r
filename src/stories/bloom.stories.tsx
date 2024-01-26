@@ -40,7 +40,7 @@ const initialBloomCollectionValues = {
       font: 'Arial',
       script: {
         rtl: true,
-        avoidAsianScriptWordBreaking: false,
+        avoidAsianScriptWordBreaking: true,
         tallerLines: false,
         fontSizeInTools: false,
       },
@@ -71,7 +71,7 @@ export const BloomCollection: React.FunctionComponent = (props) => {
       `}
     >
       <BloomCollectionInner
-        setValueOnRender={(currentValues) => {
+        onChange={(currentValues) => {
           // const pretty = JSON.stringify(currentValues, null, 4);
           // setResults(pretty);
         }}
@@ -81,7 +81,7 @@ export const BloomCollection: React.FunctionComponent = (props) => {
 };
 
 const BloomCollectionInner: React.FunctionComponent<{
-  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides: ThemeOptions = {
     palette: {
@@ -144,18 +144,24 @@ const BloomCollectionInner: React.FunctionComponent<{
                       description={
                         'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
                       }
+                      overrideValue="Arial"
+                      overrideDescription="This is locked by Kyrgyzstan xmatter"
                     ></ConfigrSelect>
                   )}
 
                   {!language.isSignLanguage && (
                     <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
                       <ConfigrBoolean
+                        overrideValue={true}
+                        overrideDescription="This is locked by Kyrgyzstan xmatter"
                         label="This is a right to left script, like Arabic"
                         path={`${prefix}.script.rtl`}
                       />
                       <ConfigrBoolean
                         label="Do not use special Asian script word breaking"
                         path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                        overrideValue={false}
+                        overrideDescription="This is locked by Kyrgyzstan xmatter"
                       />
                       <ConfigrBoolean
                         label="This script requires taller lines"
@@ -261,6 +267,19 @@ const BloomCollectionInner: React.FunctionComponent<{
           </ConfigrSubgroup>
 
           <ConfigrSubgroup label="" path="">
+            <ConfigrRadioGroup
+              path="enterprise-mode"
+              label="An override locked one"
+              overrideValue="subscribed"
+              overrideDescription="This is locked by Kyrgyzstan xmatter"
+            >
+              <ConfigrRadio label="Subscribed" value="subscribed" />
+              <ConfigrRadio label="Funded by the local community only" value="local" />
+              <ConfigrRadio label="None" value="none" />
+            </ConfigrRadioGroup>
+          </ConfigrSubgroup>
+
+          <ConfigrSubgroup label="" path="">
             <ConfigrSelect
               label="BloomLibrary.org Bookshelf"
               path={'bookshelf'}
@@ -312,7 +331,7 @@ export const BloomBook: React.FunctionComponent = (props) => {
       `}
     >
       <BloomBookInner
-        setValueOnRender={(currentValues) => {
+        onChange={(currentValues) => {
           const pretty = JSON.stringify(currentValues, null, 4);
           setResults(pretty);
         }}
@@ -404,7 +423,7 @@ const propsForMmField = {
 // This doesn't yet have Configr elements for all the options above. I wanted to focus on things that might be a problem.
 // One I don't know how to do at all with the current components is the list of checkboxes for which languages to include.
 const BloomBookInner: React.FunctionComponent<{
-  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
     palette: {
@@ -438,7 +457,9 @@ const BloomBookInner: React.FunctionComponent<{
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
-              disabled={true}
+              //disabled={true}
+              overrideValue="#ff80ee"
+              overrideDescription="This is locked by Kyrgyzstan xmatter"
               description={'this is custom'}
               control={ConfigrColorPicker}
             />
@@ -570,7 +591,7 @@ export const BloomBookV1: React.FunctionComponent = (props) => {
       `}
     >
       <BloomBookInnerV1
-        setValueOnRender={(currentValues) => {
+        onChange={(currentValues) => {
           const pretty = JSON.stringify(currentValues, null, 4);
           setResults(pretty);
         }}
@@ -588,7 +609,7 @@ export const BloomBookV1: React.FunctionComponent = (props) => {
 };
 
 const BloomBookInnerV1: React.FunctionComponent<{
-  setValueOnRender?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: any) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
     palette: {

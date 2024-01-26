@@ -18,7 +18,7 @@ export const ConfigrPane: React.FunctionComponent<
       | React.ReactElement<typeof ConfigrGroup>[];
     // review; what's this about?
     //setValueGetter?: (vg: valueGetter) => void;
-    setValueOnRender?: (currentValues: any) => void;
+    onChange?: (currentValues: any) => void;
     showAppBar?: boolean;
     showSearch?: boolean;
     showAllGroups?: boolean;
@@ -45,15 +45,15 @@ export const ConfigrPane: React.FunctionComponent<
 
   const [currentValues, setCurrentValues] = useState(props.initialValues);
 
-  const setValueOnRenderWrapper = (newValues: any) => {
-    // It's not clear why are allowing setValueOnRender to ever be undefined... how else would you get the result?
+  const onChangeWrapper = (newValues: any) => {
+    // It's not clear why are allowing onChange to ever be undefined... how else would you get the result?
     // But anyhow, first we call the client...
-    if (props.setValueOnRender) props.setValueOnRender(newValues);
+    if (props.onChange) props.onChange(newValues);
     // and then we update our own state for the sake of the JsonViewer
     setCurrentValues(newValues);
   };
 
-  const { setValueOnRender, ...propsToPass } = props;
+  const { onChange, ...propsToPass } = props;
 
   return (
     <div
@@ -109,7 +109,7 @@ export const ConfigrPane: React.FunctionComponent<
                     <ContentPane
                       currentGroupIndex={currentGroup}
                       {...propsToPass}
-                      setValueOnRender={setValueOnRenderWrapper}
+                      onChange={onChangeWrapper}
                     />
                   </div>
                 </React.Fragment>
