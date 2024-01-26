@@ -34,7 +34,6 @@ const initialPetValues = {
   bird: { name: 'Poly!', kind: 'parrot' },
 };
 
-
 export const Pets: React.FunctionComponent<{}> = (props) => {
   let getCurrentValues: () => object;
 
@@ -56,8 +55,8 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showAllGroups={true}
       >
         <ConfigrGroup label="Dog">
-          <ConfigrInput path="dog.name" label="Name" disabledValue="Toby"/>
-          <ConfigrInput path="dog.age" label="Age" type="number" disabledValue={5}/>
+          <ConfigrInput path="dog.name" label="Name" />
+          <ConfigrInput path="dog.age" label="Age" type="number" />
           <ConfigrBoolean
             path="dog.friendly"
             label="Friendly"
@@ -121,7 +120,6 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
               path="files.largeFileFolder"
               label="Large File Folder Location"
               buttonLabel="Choose..."
-              disabledValue='stuck with this'
               chooseAction={(currentValue: string) => {
                 return 'x' + (currentValue || '');
               }}
