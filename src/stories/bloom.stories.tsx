@@ -284,7 +284,7 @@ const BloomCollectionInner: React.FunctionComponent<{
               label="BloomLibrary.org Bookshelf"
               path={'bookshelf'}
               description={
-                'Projects that have Bloom Enterprise subscriptions can arrange for one or more bookshelves on the Bloom Library. All books uploaded from this collection will go into the selected bookshelf.'
+                'Projects that have [Bloom Enterprise subscriptions](https://sites.google.com/sil.org/bloom-program/bloom-enterprise) can arrange for one or more bookshelves on the [Bloom Library](https://bloomlibrary.org). All books uploaded from this collection will go into the selected bookshelf.'
               }
               options={[{ label: 'TODO', value: 'TODO' }]}
             ></ConfigrSelect>

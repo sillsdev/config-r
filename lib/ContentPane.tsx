@@ -201,7 +201,9 @@ export const ConfigrGroup: React.FunctionComponent<
         `}
       >
         <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
-        <Typography variant={'caption'}>{props.description}</Typography>
+        <Typography variant={'caption'}>
+          {descriptionToReact(props.description)}
+        </Typography>
       </div>
       {props.level === 1 ? (
         <div className="indentIfInSubPage">{props.children}</div>
@@ -295,7 +297,7 @@ const ConfigrRowOneColumn: React.FunctionComponent<
       <ListItemText
         primaryTypographyProps={{ variant: 'h4' }}
         primary={props.label}
-        secondary={props.description}
+        secondary={descriptionToReact(props.description)}
       />
       {props.control}
     </ListItem>
@@ -404,7 +406,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                 }
               `}
             >
-              {props.description}
+              {descriptionToReact(props.description)}
             </Typography>
           </div>
         );
@@ -1098,4 +1100,30 @@ function isParent(parentPath: string, childPath: string): boolean {
   // yes: start.font, start.font.feature
   // no: start.font, start.fontfeature
   return childPath.startsWith(parentPath + '.');
+}
+
+function descriptionToReact(description?: string | React.ReactNode) {
+  if (!description) return null;
+  if (typeof description !== 'string') return description; //nothing to do
+
+  // detect markdown links and make them clickable
+  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let m;
+  let lastEnd = 0;
+  const result = [];
+  while ((m = re.exec(description)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (m.index === re.lastIndex) {
+      re.lastIndex++;
+    }
+    result.push(description.substring(lastEnd, m.index));
+    result.push(
+      <a href={m[2]} target="_blank" rel="noreferrer">
+        {m[1]}
+      </a>,
+    );
+    lastEnd = re.lastIndex;
+  }
+  result.push(description.substring(lastEnd));
+  return result;
 }

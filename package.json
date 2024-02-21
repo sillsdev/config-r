@@ -12,7 +12,7 @@
     "url": "https://github.com/sillsdev/config-r"
   },
   "scripts": {
-    "dev": "start http://localhost:3000 && vite",
+    "dev": "start http://localhost:5173 && vite",
     "// see https://github.com/vitejs/vite/issues/3461, this uses a totally different builder that has its typescript typings act more together than vitejs": "",
     "build": "tsc && vite build",
     "build:dev": "tsc && vite build --mode development --minify false --sourcemap true --watch",
