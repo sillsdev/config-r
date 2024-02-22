@@ -237,6 +237,7 @@ const BloomCollectionInner: React.FunctionComponent<{
             options={[
               { label: 'Paper Saver', value: 'Paper Saver' },
               { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+              { label: '--', value: '' },
               {
                 label: 'Traditional',
                 value: 'Traditional',

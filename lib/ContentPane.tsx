@@ -736,6 +736,9 @@ export const ConfigrSelect: React.FunctionComponent<
             }
             const labelToUse = o.label ?? o.value;
             const valueToUse = o.value ?? o.label;
+            if (labelToUse?.startsWith('--')) {
+              return (<Divider key={labelToUse} />);
+            }
             return (
               <MenuItem value={valueToUse} key={labelToUse}>
                 {o.description ? (
