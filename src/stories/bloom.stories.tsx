@@ -315,6 +315,7 @@ const BloomCollectionInner: React.FunctionComponent<{
             <ConfigrBoolean
               label="Spreadsheet Import/Export"
               path="feature.spreadsheet"
+              disabled={true}
             />
           </ConfigrSubgroup>
         </ConfigrGroup>

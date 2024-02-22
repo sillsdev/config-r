@@ -438,7 +438,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     </SearchContext.Consumer>
   );
   return props.onClick ? (
-    <ListItemButton onClick={props.onClick}>{inner}</ListItemButton>
+    <ListItemButton onClick={props.onClick} disabled={props.disabled}>{inner}</ListItemButton>
   ) : (
     <ListItem
       css={css`
