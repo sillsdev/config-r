@@ -306,6 +306,8 @@ const BloomCollectionInner: React.FunctionComponent<{
             <ConfigrBoolean
               label="Show Experimental Book Sources"
               path="feature.experimentalBookSources"
+              immediateEffect={true}
+              disabled={true}
             />
             <ConfigrBoolean
               label="Team Collections"
@@ -315,6 +317,7 @@ const BloomCollectionInner: React.FunctionComponent<{
             <ConfigrBoolean
               label="Spreadsheet Import/Export"
               path="feature.spreadsheet"
+              disabled={true}
             />
           </ConfigrSubgroup>
         </ConfigrGroup>

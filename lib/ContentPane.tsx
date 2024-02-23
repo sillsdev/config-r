@@ -438,7 +438,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     </SearchContext.Consumer>
   );
   return props.onClick ? (
-    <ListItemButton onClick={props.onClick}>{inner}</ListItemButton>
+    <ListItemButton onClick={props.onClick} disabled={props.disabled}>{inner}</ListItemButton>
   ) : (
     <ListItem
       css={css`
@@ -855,7 +855,7 @@ export const ConfigrForEach: React.FunctionComponent<
 export const ConfigrBoolean: React.FunctionComponent<
   React.PropsWithChildren<
     IConfigrProps<boolean> & {
-      // When immediateEffect is true, disabled does not work, and overrideValue will
+      // When immediateEffect is true, overrideValue will
       // misbehave: the control will seem to work but not actually save the setting.
       immediateEffect?: boolean;
     }
