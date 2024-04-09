@@ -164,6 +164,11 @@ const BloomCollectionInner: React.FunctionComponent<{
                         overrideDescription="This is locked by Kyrgyzstan xmatter"
                       />
                       <ConfigrBoolean
+                        label="This script requires taller lines (locked)"
+                        path={`${prefix}.script.tallerLines`}
+                        locked={true}
+                      />
+                      <ConfigrBoolean
                         label="This script requires taller lines"
                         path={`${prefix}.script.tallerLines`}
                       />
@@ -307,7 +312,18 @@ const BloomCollectionInner: React.FunctionComponent<{
               label="Show Experimental Book Sources"
               path="feature.experimentalBookSources"
               immediateEffect={true}
+            />
+              <ConfigrBoolean
+              label="Show Experimental Book Sources (disabled)"
+              path="feature.experimentalBookSources"
+              immediateEffect={true}
               disabled={true}
+            />
+              <ConfigrBoolean
+              label="Show Experimental Book Sources (locked)"
+              path="feature.experimentalBookSources"
+              immediateEffect={true}
+              locked={true}
             />
             <ConfigrBoolean
               label="Team Collections"

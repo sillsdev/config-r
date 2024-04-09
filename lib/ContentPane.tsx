@@ -858,6 +858,10 @@ export const ConfigrBoolean: React.FunctionComponent<
       // When immediateEffect is true, overrideValue will
       // misbehave: the control will seem to work but not actually save the setting.
       immediateEffect?: boolean;
+      // When true, the control will be disabled, but the label will not be greyed out, only the checkbox.
+      // This is useful when the checkbox is one of a set and is disabled because it is the only one that
+      // is turned on; in that case, it should not look less prominent than the others.
+      locked?: boolean;
     }
   >
 > = (props) => {
@@ -870,12 +874,12 @@ export const ConfigrBoolean: React.FunctionComponent<
     window.setTimeout(() => helpers.setValue(false), 0);
   }
   const control = props.immediateEffect ? (
-    <Field component={Switch} type="checkbox" name={props.path} label={props.label} />
+    <Field component={Switch} type="checkbox" name={props.path} label={props.label} disabled={props.disabled || props.locked}/>
   ) : (
     <Field
       component={Checkbox}
       type="checkbox"
-      disabled={props.disabled}
+      disabled={props.disabled || props.locked}
       name={props.path}
       label={props.label}
     />
@@ -885,10 +889,14 @@ export const ConfigrBoolean: React.FunctionComponent<
     <ConfigrRowTwoColumns
       // clicking the row is the same as clicking the toggle control
       onClick={() => {
+        // if locked, we can't change the value, but we didn't tell the component it is disabled
+        // so we still get the click.
+        if (props.locked) return;
         helpers.setValue(!field.value);
       }}
       control={control}
       {...props}
+      disabled = {props.disabled && !props.locked}
     />
   );
 };
