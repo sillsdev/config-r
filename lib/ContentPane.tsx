@@ -896,7 +896,7 @@ export const ConfigrBoolean: React.FunctionComponent<
       }}
       control={control}
       {...props}
-        // If it is locked, we want it to BE disabled but not LOOK disabld (the checkbox is
+        // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
         // the control above, and will LOOK disabled for either disabled or locked or both).
         // Note that the label will still BE disabled since we ignore clicks (above) if locked.
         // Here, we want disabled to be false if locked, even if disabled is also true,
