@@ -25,9 +25,12 @@ export const ConfigrPane: React.FunctionComponent<
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
+    selectedGroupIndex?: number;
   }>
 > = (props) => {
-  const [currentGroup, setCurrentGroup] = useState<number | undefined>(0);
+  const [currentGroup, setCurrentGroup] = useState<number | undefined>(
+    props.selectedGroupIndex ?? 0,
+  );
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI

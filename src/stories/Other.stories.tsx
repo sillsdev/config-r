@@ -53,6 +53,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showJson={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
         showAllGroups={true}
+        selectedGroupIndex={1}
       >
         <ConfigrGroup label="Dog">
           <ConfigrInput path="dog.name" label="Name" />
