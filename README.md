@@ -1,10 +1,10 @@
 ![config-r](https://user-images.githubusercontent.com/8448/147490475-b4d6d3bd-85a5-4ccd-941e-7f6926cc8089.png)
 
-A react library for a settings UI similar to that of Chrome. Uses formik.
+A React library for a settings UI similar to that of Chrome.
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
-> :warning: This is a side project that I work on once in a while, and isn't ready for use yet.
+> :warning: We ship this as part of our [product](https://github.com/BloomBooks/BloomDesktop), but some features (search and nested screens) have not made it to production yet. In addition, we may make visual changes over time. Finally, the only documentation is the code and the storybook stories.
 
 ## Screenshots
 
@@ -17,4 +17,10 @@ A react library for a settings UI similar to that of Chrome. Uses formik.
 ```
 yarn install
 yarn dev
+```
+
+## Installing
+
+```
+npm install @sillsdev/config-r
 ```
