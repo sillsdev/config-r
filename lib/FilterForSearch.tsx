@@ -35,6 +35,15 @@ export const FilterForSearchText: React.FunctionComponent<
             )
               return true;
             // Is this child a subpage? Then it has children we can check.
+            // TODO: this would need to be recursive. Currently it is blocked by subgroups.
+            // This is more than just checking recursively. If we find a match 3 levels
+            // down, it's not really enough to just return true and show the great-great-grandchild.
+            // The user can't tell which of the children of that they are supposed to go down to find
+            // the item(s) we matched on.
+            // We need to mark the intermediate parents. Look at what Chrome settings does, UI-wise. E.g., search Chrome settings
+            // for "sans-serif". It shows the "Appearance" group, then puts a yellow tooltip on the
+            // "Customize fonts" subpage button. Then when you follow that, it highlights the "Sans-serif".
+            // TODO: we should also be looking at `searchTerms`
             const childrenOfSubPage = (c as any).props?.children;
             if (childrenOfSubPage) {
               // among these children...

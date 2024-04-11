@@ -103,6 +103,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
+        showAppBar={true}
         showJson={true}
         css={css`
           background-color: #cfa7e7;
@@ -125,7 +126,7 @@ const BloomCollectionInner: React.FunctionComponent<{
                 >
                   <ConfigrSubPage
                     label={language.id.name}
-                    path={`${prefix}.id`}
+                    subPageKey={`${prefix}-id`}
                     labelCss={css`
                       font-weight: bold !important;
                     `}
@@ -150,7 +151,10 @@ const BloomCollectionInner: React.FunctionComponent<{
                   )}
 
                   {!language.isSignLanguage && (
-                    <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
+                    <ConfigrSubPage
+                      label="Script Settings"
+                      subPageKey={`${prefix}-script`}
+                    >
                       <ConfigrBoolean
                         overrideValue={true}
                         overrideDescription="This is locked by Kyrgyzstan xmatter"
@@ -217,7 +221,10 @@ const BloomCollectionInner: React.FunctionComponent<{
                     </ConfigrSubPage>
                   )}
                   {/* Currently cant' get a subpage inside of another subpage (script), so we have to have the path go to "fontFeatures" */}
-                  <ConfigrSubPage label={'Font Features'} path={`${prefix}.fontFeatures`}>
+                  <ConfigrSubPage
+                    label={'Font Features'}
+                    subPageKey={`${prefix}-fontFeatures`}
+                  >
                     <SILCharacterAlternates
                       path={`${prefix}.fontFeatures.silCharacterAlternates`}
                     />
@@ -468,6 +475,7 @@ const BloomBookInner: React.FunctionComponent<{
         label="Book Settings"
         initialValues={initialBloomBookValues}
         themeOverrides={bloomThemeOverrides}
+        showAppBar={true}
         showSearch={true}
         css={css`
           padding: 20px;
@@ -487,58 +495,64 @@ const BloomBookInner: React.FunctionComponent<{
               control={ConfigrColorPicker}
             />
           </ConfigrSubgroup>
-          <ConfigrSubgroup label="Margins" path="appearance.margins">
-            <ConfigrSelect
-              label={'Gutter'}
-              description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
-              path={'appearance.gutter'}
-              options={[
-                {
-                  label: 'default (0 mm)',
-                  value: '',
-                },
-                { value: '3mm' },
-              ]}
-            />
-            <ConfigrSelect
-              label={'Padding'}
-              description="This has no initial value, and empty string is not valid. Therefore we should see nothing as the selected menu item, and never see padding:'' in the json."
-              path={'appearance.padding'}
-              options={[{ value: '3mm' }, { value: '5mm' }]}
-            />
-            <ConfigrInput
-              label="Gap"
-              path="appearance.imageTextGapMillimeters"
-              units="mm"
-            />
+          <ConfigrSubgroup label="Spacing" path="appearance">
+            <ConfigrSubPage label="Margins" subPageKey="appearance-margins">
+              <ConfigrSelect
+                label={'Padding'}
+                description="This has no initial value, and empty string is not valid. Therefore we should see nothing as the selected menu item, and never see padding:'' in the json."
+                path={'appearance.padding'}
+                options={[{ value: '3mm' }, { value: '5mm' }]}
+              />
+              <ConfigrInput
+                label="Gap"
+                path="appearance.imageTextGapMillimeters"
+                units="mm"
+              />
 
-            <ConfigrInput
-              path={`appearance.margins.marginTop`}
-              label="Top"
-              {...propsForMmField}
-            />
-            <ConfigrInput
-              path={`appearance.margins.marginBottom`}
-              label="Bottom"
-              {...propsForMmField}
-            />
-            <ConfigrInput
-              path={`appearance.margins.marginOuter`}
-              label="Outer"
-              {...propsForMmField}
-            />
-            <ConfigrInput
-              path={`appearance.margins.marginInner`}
-              label="Inner"
-              {...propsForMmField}
-            />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Spacing" path="appearance.cover">
-            <ConfigrInput
-              path={`appearance.spacing.verticalBlocks`}
-              label="Between Vertical Blocks"
-              {...propsForMmField}
-            />
+              <ConfigrInput
+                path={`appearance.margins.marginTop`}
+                label="Top"
+                {...propsForMmField}
+              />
+              <ConfigrInput
+                path={`appearance.margins.marginBottom`}
+                label="Bottom"
+                {...propsForMmField}
+              />
+              <ConfigrInput
+                path={`appearance.margins.marginOuter`}
+                label="Outer"
+                {...propsForMmField}
+              />
+              <ConfigrInput
+                path={`appearance.margins.marginInner`}
+                label="Inner"
+                {...propsForMmField}
+              />
+            </ConfigrSubPage>
+            {/* I'm unhappy about the "path" prop here. It seems to conflate location in the hierarchy with
+             the visual hierarchy.*/}
+            <ConfigrSubPage label="Advanced" subPageKey="book-advanced">
+              <ConfigrSubgroup label="Spacing" path="appearance">
+                <ConfigrSelect
+                  label={'Gutter'}
+                  description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
+                  path={'appearance.gutter'}
+                  options={[
+                    {
+                      label: 'default (0 mm)',
+                      value: '',
+                    },
+                    { value: '3mm' },
+                  ]}
+                />
+                <ConfigrInput
+                  path={`appearance.spacing.verticalBlocks`}
+                  label="Between Vertical Blocks"
+                  {...propsForMmField}
+                />
+              </ConfigrSubgroup>
+            </ConfigrSubPage>
           </ConfigrSubgroup>
         </ConfigrGroup>
         <ConfigrGroup label="Bloom Library" level={1}>

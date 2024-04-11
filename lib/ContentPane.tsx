@@ -45,8 +45,12 @@ const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
 
 const FocusPageContext = React.createContext({
-  focussedSubPagePath: '',
-  setFocussedSubPagePath: (p: string) => {},
+  focussedSubPageKey: '',
+  setFocussedSubPageKey: (p: string) => {},
+});
+
+const AlreadyFilteringContext = React.createContext({
+  alreadyFiltering: false,
 });
 
 export const ContentPane: React.FunctionComponent<
@@ -63,7 +67,7 @@ export const ContentPane: React.FunctionComponent<
 > = (props) => {
   // We allow a single level of nesting (see ConfigrSubPage), that is all that is found in Chrome Settings.
   // A stack would be easy but it would put some strain on the UI to help the user not be lost.
-  const [focussedSubPagePath, setFocussedSubPagePath] = useState('');
+  const [focussedSubPageKey, setFocussedSubPageKey] = useState('');
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
@@ -101,8 +105,8 @@ export const ContentPane: React.FunctionComponent<
   return (
     <FocusPageContext.Provider
       value={{
-        focussedSubPagePath: focussedSubPagePath,
-        setFocussedSubPagePath: setFocussedSubPagePath,
+        focussedSubPageKey,
+        setFocussedSubPageKey,
       }}
     >
       <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
@@ -131,7 +135,7 @@ export const ContentPane: React.FunctionComponent<
             >
               <VisibleGroups
                 currentGroup={props.currentGroupIndex}
-                focussedSubPagePath={focussedSubPagePath}
+                focussedSubPageKey={focussedSubPageKey}
               >
                 {props.children}
               </VisibleGroups>
@@ -146,7 +150,7 @@ export const ContentPane: React.FunctionComponent<
 const VisibleGroups: React.FunctionComponent<
   React.PropsWithChildren<{
     currentGroup?: number;
-    focussedSubPagePath?: string;
+    focussedSubPageKey?: string;
     children:
       | React.ReactElement<typeof ConfigrGroup>
       | React.ReactElement<typeof ConfigrGroup>[];
@@ -167,7 +171,7 @@ const VisibleGroups: React.FunctionComponent<
             {searchString ? (
               <HighlightSearchTerms
                 searchString={searchString}
-                focussedSubPagePath={props.focussedSubPagePath}
+                focussedSubPageKey={props.focussedSubPageKey}
               >
                 {props.children}
               </HighlightSearchTerms>
@@ -188,6 +192,10 @@ export const ConfigrGroup: React.FunctionComponent<
     label: string;
     description?: string | React.ReactNode;
     // use hasSubgroups when this contains ConfigrSubGroups that provide their own background
+    // TODO: remove the need to set this from the public API. If it's empty we could
+    // just assume it's level 1.
+    // Subgroups also have groups and set them to 2
+    // TODO: consider changing the API to have "areas" (things on the left) and "groups" (clusters of rows on the right)
     level?: undefined | 1 | 2;
   }>
 > = (props) => {
@@ -214,6 +222,7 @@ export const ConfigrGroup: React.FunctionComponent<
   );
 };
 
+// TODO: rename to something like RowCluster
 const PaperGroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
@@ -254,10 +263,12 @@ function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
 
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
-const FilterAndJoinWithDividers: React.FunctionComponent<React.PropsWithChildren<{}>> = (
-  props,
-) => {
+const FilterAndJoinWithDividers: React.FunctionComponent<
+  React.PropsWithChildren<{ subPageKey?: string }>
+> = (props) => {
   const count = React.Children.toArray(props.children).length;
+  //return <h1>{`FilterAndJoinWithDividers props.subPageKey='${props.subPageKey}'`}</h1>;
+  //console.log(`<FilterAndJoinWithDividers subPageKey='${props.subPageKey}>`);
   return props.children
     ? React.Children.toArray(props.children).reduce(
         (result: any, child: React.ReactNode, index: number) => {
@@ -305,28 +316,55 @@ const ConfigrRowOneColumn: React.FunctionComponent<
 };
 
 // If a subPage is in effect, only render if we are part of it
-const FilterForSubPage: React.FunctionComponent<
-  React.PropsWithChildren<{
-    path: string;
-  }>
-> = (props) => {
+const FilterForSubPage: React.FunctionComponent<React.PropsWithChildren<{}>> = (
+  props,
+) => {
   return (
-    <FocusPageContext.Consumer>
-      {({ focussedSubPagePath }) => {
-        if (focussedSubPagePath)
-          if (
-            !(
-              (
-                props.path === focussedSubPagePath ||
-                isParent(props.path, focussedSubPagePath) || // we are a parent of the focused thing
-                isParent(focussedSubPagePath, props.path)
-              ) // we are a child of the focused thing
-            )
-          )
-            return null;
-        return <React.Fragment>{props.children}</React.Fragment>;
+    <AlreadyFilteringContext.Consumer>
+      {({ alreadyFiltering }) => {
+        if (alreadyFiltering) return props.children;
+        else
+          return (
+            <AlreadyFilteringContext.Provider value={{ alreadyFiltering: true }}>
+              <FocusPageContext.Consumer>
+                {({ focussedSubPageKey }) => {
+                  //console.log(`<FilterForSubPage> focussedSubPageKey='${focussedSubPageKey}'`);
+
+                  if (!focussedSubPageKey)
+                    return <React.Fragment>{props.children}</React.Fragment>;
+                  return (
+                    <React.Fragment>
+                      {React.Children.map(props.children, (child: any) => {
+                        // console.log(
+                        //   `FilterForSubPage child ${child.props.label} with path=${child.props.path}} with subPageKey=${child.props.subPageKey}`,
+                        // );
+                        if (child && child.props.subPageKey === focussedSubPageKey) {
+                          return child;
+                        }
+                        // now return any children of the child that are in the subPage
+                        if (child && child.props.children) {
+                          return React.Children.map(
+                            child.props.children,
+                            (grandchild: any) => {
+                              if (
+                                grandchild &&
+                                grandchild.props.subPageKey === focussedSubPageKey
+                              ) {
+                                return grandchild;
+                              }
+                            },
+                          );
+                        }
+                        return null;
+                      })}
+                    </React.Fragment>
+                  );
+                }}
+              </FocusPageContext.Consumer>
+            </AlreadyFilteringContext.Provider>
+          );
       }}
-    </FocusPageContext.Consumer>
+    </AlreadyFilteringContext.Consumer>
   );
 };
 
@@ -344,7 +382,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     labelCss?: SerializedStyles;
-    path: string;
+    path: string; //TODO: change this to "key"? It's not used as a path.
     description?: string;
     control: React.ReactElement;
     disabled?: boolean;
@@ -468,6 +506,7 @@ interface IConfigrProps<T> {
   overrideValue?: T;
   // explain why it is over-ridden
   overrideDescription?: string;
+  subPageKey?: string;
 }
 
 // This hook implements the overrideValue prop. It does this by putting
@@ -773,10 +812,13 @@ export const ConfigrSubgroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     path: string;
+    subPageKey?: string;
+    searchTerms?: string;
     description?: string | React.ReactNode;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
+  //console.log(`COnfigrSubgroup subPageKey='${props.subPageKey}'`);
   return (
     <FilterForSubPage {...props}>
       <ConfigrGroup {...props} level={2}>
@@ -795,18 +837,21 @@ export const ConfigrSubPage: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     labelCss?: SerializedStyles;
-    path: string;
+    //path: string;
+    subPageKey: string;
+    searchTerms?: string;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
+  //console.log(`<ConfigrSubPage subPageKey='${props.subPageKey}'`);
   return (
     <FocusPageContext.Consumer>
-      {({ focussedSubPagePath, setFocussedSubPagePath }) => {
-        if (focussedSubPagePath === props.path) {
+      {({ focussedSubPageKey, setFocussedSubPageKey }) => {
+        if (focussedSubPageKey === props.subPageKey) {
           return (
             <React.Fragment>
               <div css={props.labelCss}>
-                <IconButton onClick={() => setFocussedSubPagePath('')}>
+                <IconButton onClick={() => setFocussedSubPageKey('')}>
                   <ArrowBackIcon />
                 </IconButton>
                 {props.label}
@@ -819,7 +864,15 @@ export const ConfigrSubPage: React.FunctionComponent<
                   }
                 `}
               >
-                <FilterAndJoinWithDividers>{props.children}</FilterAndJoinWithDividers>
+                {/* <FilterAndJoinWithDividers subPageKey={props.subPageKey}> */}
+                {/* review */}
+                {React.Children.map(props.children, (child) => {
+                  //console.log(`giving child subPageKey ${props.subPageKey}`);
+                  return React.cloneElement(child as any, {
+                    subPageKey: props.subPageKey,
+                  });
+                })}
+                {/* </FilterAndJoinWithDividers> */}
               </div>
             </React.Fragment>
           );
@@ -829,7 +882,8 @@ export const ConfigrSubPage: React.FunctionComponent<
         else
           return (
             <ConfigrRowTwoColumns
-              onClick={() => setFocussedSubPagePath(props.path)}
+              path={props.subPageKey}
+              onClick={() => setFocussedSubPageKey(props.subPageKey)}
               control={<ArrowRightIcon />}
               {...props}
             />

@@ -62,7 +62,7 @@ export const ConfigrPane: React.FunctionComponent<
     <div
       css={css`
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
       `}
     >
       <ThemeProvider theme={mergedTheme}>
