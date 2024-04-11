@@ -313,13 +313,13 @@ const BloomCollectionInner: React.FunctionComponent<{
               path="feature.experimentalBookSources"
               immediateEffect={true}
             />
-              <ConfigrBoolean
+            <ConfigrBoolean
               label="Show Experimental Book Sources (disabled)"
               path="feature.experimentalBookSources"
               immediateEffect={true}
               disabled={true}
             />
-              <ConfigrBoolean
+            <ConfigrBoolean
               label="Show Experimental Book Sources (locked)"
               path="feature.experimentalBookSources"
               immediateEffect={true}
@@ -373,6 +373,9 @@ export const BloomBook: React.FunctionComponent = (props) => {
 // experiment to see which ones are problems with our current repertoir.
 const initialBloomBookValues = {
   appearance: {
+    // intentionally leaving this out to demonstrate getting a default value
+    // gutter: '5mm',
+
     cover: {
       coverColor: '#ffcc00',
     },
@@ -485,6 +488,24 @@ const BloomBookInner: React.FunctionComponent<{
             />
           </ConfigrSubgroup>
           <ConfigrSubgroup label="Margins" path="appearance.margins">
+            <ConfigrSelect
+              label={'Gutter'}
+              description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
+              path={'appearance.gutter'}
+              options={[
+                {
+                  label: 'default (0 mm)',
+                  value: '',
+                },
+                { value: '3mm' },
+              ]}
+            />
+            <ConfigrSelect
+              label={'Padding'}
+              description="This has no initial value, and empty string is not valid. Therefore we should see nothing as the selected menu item, and never see padding:'' in the json."
+              path={'appearance.padding'}
+              options={[{ value: '3mm' }, { value: '5mm' }]}
+            />
             <ConfigrInput
               label="Gap"
               path="appearance.imageTextGapMillimeters"

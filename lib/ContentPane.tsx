@@ -438,7 +438,9 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     </SearchContext.Consumer>
   );
   return props.onClick ? (
-    <ListItemButton onClick={props.onClick} disabled={props.disabled}>{inner}</ListItemButton>
+    <ListItemButton onClick={props.onClick} disabled={props.disabled}>
+      {inner}
+    </ListItemButton>
   ) : (
     <ListItem
       css={css`
@@ -713,6 +715,16 @@ export const ConfigrSelect: React.FunctionComponent<
           name={props.path}
           disabled={disabled}
           component={FormikMuiSelect}
+          // defaultValue and displayEmpty together allow the props.options to contain a {`value:""`, label:"default"} option
+          // that will show if the value is undefined.
+          // Note that none of the options has this empty string value, that's ok, the control will just not show any selected item.
+          // This does not cause the resulting data to have an empty string, it will still be undefined. Ths is true even
+          // if an empty string option is provided. The only way it gets set to empty string is if the user selected a different
+          // option, and then moved back to the default. What we'd like to do at that point might be to set it back to undefined,
+          // but we don't have that capability yet. So at this point, if you can't handle a value of empty string in the output,
+          // don't provide an option that has empty string as a value. Or massage the data after it comes back.
+          defaultValue={''}
+          displayEmpty={true}
           sx={{ minWidth: 180 }}
           css={css`
             .MuiSelect-select {
@@ -737,7 +749,7 @@ export const ConfigrSelect: React.FunctionComponent<
             const labelToUse = o.label ?? o.value;
             const valueToUse = o.value ?? o.label;
             if (labelToUse?.startsWith('--')) {
-              return (<Divider key={labelToUse} />);
+              return <Divider key={labelToUse} />;
             }
             return (
               <MenuItem value={valueToUse} key={labelToUse}>
@@ -874,7 +886,13 @@ export const ConfigrBoolean: React.FunctionComponent<
     window.setTimeout(() => helpers.setValue(false), 0);
   }
   const control = props.immediateEffect ? (
-    <Field component={Switch} type="checkbox" name={props.path} label={props.label} disabled={props.disabled || props.locked}/>
+    <Field
+      component={Switch}
+      type="checkbox"
+      name={props.path}
+      label={props.label}
+      disabled={props.disabled || props.locked}
+    />
   ) : (
     <Field
       component={Checkbox}
@@ -896,12 +914,12 @@ export const ConfigrBoolean: React.FunctionComponent<
       }}
       control={control}
       {...props}
-        // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
-        // the control above, and will LOOK disabled for either disabled or locked or both).
-        // Note that the label will still BE disabled since we ignore clicks (above) if locked.
-        // Here, we want disabled to be false if locked, even if disabled is also true,
-        // so we get the undimmed label.
-      disabled = {props.disabled && !props.locked}
+      // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
+      // the control above, and will LOOK disabled for either disabled or locked or both).
+      // Note that the label will still BE disabled since we ignore clicks (above) if locked.
+      // Here, we want disabled to be false if locked, even if disabled is also true,
+      // so we get the undimmed label.
+      disabled={props.disabled && !props.locked}
     />
   );
 };
