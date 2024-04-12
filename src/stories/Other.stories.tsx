@@ -20,7 +20,7 @@ import {
   ConfigrRadio,
   ConfigrChooserButton,
   ConfigrConditional,
-  ConfigrSubgroup,
+  ConfigrGroup,
   ConfigrForEach,
   ConfigrSubPage,
 } from '../../lib/ContentPane';
@@ -56,7 +56,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         selectedGroupIndex={1}
       >
         <ConfigrArea label="Dog">
-          <ConfigrSubgroup path="dog">
+          <ConfigrGroup path="dog">
             <ConfigrInput path="dog.name" label="Name" />
             <ConfigrInput path="dog.age" label="Age" type="number" />
             <ConfigrBoolean
@@ -73,10 +73,10 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
                 return 'x' + (currentValue || '');
               }}
             ></ConfigrChooserButton>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
         <ConfigrArea label="Bird">
-          <ConfigrSubgroup path="brid">
+          <ConfigrGroup path="brid">
             <ConfigrInput
               path="bird.name"
               label="Name"
@@ -88,7 +88,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
               <ConfigrRadio label="Parakeet" value="parakeet" />
               <ConfigrRadio label="Parrot" value="parrot" />
             </ConfigrRadioGroup>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
       </ConfigrPane>
     </div>
@@ -113,7 +113,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         showSearch={true}
       >
         <ConfigrArea label="Files">
-          <ConfigrSubgroup path="files">
+          <ConfigrGroup path="files">
             <ConfigrBoolean
               path="files.useLargeFileFolder"
               label="Use Large File Folder"
@@ -131,7 +131,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
                 }}
               ></ConfigrChooserButton>
             </ConfigrConditional>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
       </ConfigrPane>
     </div>

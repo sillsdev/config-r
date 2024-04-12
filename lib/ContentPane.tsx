@@ -59,8 +59,8 @@ export const ContentPane: React.FunctionComponent<
     initialValues: object;
     currentGroupIndex?: number;
     children:
-      | React.ReactElement<typeof ConfigrGroup>
-      | React.ReactElement<typeof ConfigrGroup>[];
+      | React.ReactElement<typeof InternalGroup>
+      | React.ReactElement<typeof InternalGroup>[];
     setValueGetter?: (vg: valueGetter) => void;
     onChange?: (currentValues: any) => void;
   }>
@@ -152,8 +152,8 @@ const VisibleGroups: React.FunctionComponent<
     currentGroup?: number;
     focussedSubPageKey?: string;
     children:
-      | React.ReactElement<typeof ConfigrGroup>
-      | React.ReactElement<typeof ConfigrGroup>[];
+      | React.ReactElement<typeof InternalGroup>
+      | React.ReactElement<typeof InternalGroup>[];
   }>
 > = (props) => {
   return (
@@ -193,17 +193,17 @@ export const ConfigrArea: React.FunctionComponent<
     description?: string | React.ReactNode;
   }>
 > = (props) => {
-  return <ConfigrGroup {...props} level={1} />;
+  return <InternalGroup {...props} level={1} />;
 };
 
-const ConfigrGroup: React.FunctionComponent<
+const InternalGroup: React.FunctionComponent<
   React.PropsWithChildren<{
-    label: string;
+    label?: string;
     description?: string | React.ReactNode;
-    // use hasSubgroups when this contains ConfigrSubGroups that provide their own background
+    // use hasgroups when this contains configrgroups that provide their own background
     // TODO: remove the need to set this from the public API. If it's empty we could
     // just assume it's level 1.
-    // Subgroups also have groups and set them to 2
+    // groups also have groups and set them to 2
     // TODO: consider changing the API to have "areas" (things on the left) and "groups" (clusters of rows on the right)
     level?: undefined | 1 | 2;
   }>
@@ -217,7 +217,9 @@ const ConfigrGroup: React.FunctionComponent<
           margin-bottom: 12px !important;
         `}
       >
-        <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
+        {props.label && (
+          <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
+        )}
         <Typography variant={'caption'}>
           {descriptionToReact(props.description)}
         </Typography>
@@ -816,7 +818,7 @@ export const ConfigrSelect: React.FunctionComponent<
   );
 };
 
-export const ConfigrSubgroup: React.FunctionComponent<
+export const ConfigrGroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
     path: string;
@@ -826,12 +828,12 @@ export const ConfigrSubgroup: React.FunctionComponent<
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
-  //console.log(`COnfigrSubgroup subPageKey='${props.subPageKey}'`);
+  //console.log(`configrgroup subPageKey='${props.subPageKey}'`);
   return (
     <FilterForSubPage {...props}>
-      <ConfigrGroup {...props} level={2}>
+      <InternalGroup {...props} level={2}>
         {props.children}
-      </ConfigrGroup>
+      </InternalGroup>
     </FilterForSubPage>
   );
 };

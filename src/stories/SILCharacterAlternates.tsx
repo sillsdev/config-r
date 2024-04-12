@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import { Tooltip } from '@mui/material';
 import * as React from 'react';
 import {
-  ConfigrSubgroup,
+  ConfigrGroup,
   ConfigrToggleGroup,
   ConfigrMakeToggle,
 } from '../../lib/ContentPane';
@@ -34,9 +34,9 @@ export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> =
 ) => {
   return (
     // TODO: configr can't handle a subpage inside of a subpage <ConfigrSubPage label="Character Alternates" path={`${props.path}`}>
-    // TODO: configr doesn't display subgroups properly in subpages {/* <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
+    // TODO: configr doesn't display groups properly in subpages {/* <configrgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
 
-    <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}>
+    <ConfigrGroup path={`${props.path}`} label={'SIL Font Character Alternates'}>
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate
@@ -46,7 +46,7 @@ export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> =
           />
         );
       })}
-    </ConfigrSubgroup>
+    </ConfigrGroup>
   );
 };
 

@@ -10,7 +10,7 @@ import {
   ConfigrBoolean,
   ConfigrRadioGroup,
   ConfigrRadio,
-  ConfigrSubgroup,
+  ConfigrGroup,
   ConfigrForEach,
   ConfigrSubPage as ConfigrSubPage,
   ConfigrSelect,
@@ -119,11 +119,7 @@ const BloomCollectionInner: React.FunctionComponent<{
             render={(prefix: string, index: number) => {
               const language = initialBloomCollectionValues.languages[index];
               return (
-                <ConfigrSubgroup
-                  path={`${prefix}`}
-                  label={language.label}
-                  key={`${index}`}
-                >
+                <ConfigrGroup path={`${prefix}`} label={language.label} key={`${index}`}>
                   <ConfigrSubPage
                     label={language.id.name}
                     subPageKey={`${prefix}-id`}
@@ -229,7 +225,7 @@ const BloomCollectionInner: React.FunctionComponent<{
                       path={`${prefix}.fontFeatures.silCharacterAlternates`}
                     />
                   </ConfigrSubPage>
-                </ConfigrSubgroup>
+                </ConfigrGroup>
               );
             }}
           ></ConfigrForEach>
@@ -270,15 +266,15 @@ const BloomCollectionInner: React.FunctionComponent<{
             </span>
           }
         >
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="" path="">
             <ConfigrRadioGroup path="enterprise-mode" label="Status">
               <ConfigrRadio label="Subscribed" value="subscribed" />
               <ConfigrRadio label="Funded by the local community only" value="local" />
               <ConfigrRadio label="None" value="none" />
             </ConfigrRadioGroup>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
 
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="" path="">
             <ConfigrRadioGroup
               path="enterprise-mode"
               label="An override locked one"
@@ -289,9 +285,9 @@ const BloomCollectionInner: React.FunctionComponent<{
               <ConfigrRadio label="Funded by the local community only" value="local" />
               <ConfigrRadio label="None" value="none" />
             </ConfigrRadioGroup>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
 
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="" path="">
             <ConfigrSelect
               label="BloomLibrary.org Bookshelf"
               path={'bookshelf'}
@@ -300,22 +296,22 @@ const BloomCollectionInner: React.FunctionComponent<{
               }
               options={[{ label: 'TODO', value: 'TODO' }]}
             ></ConfigrSelect>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
         <ConfigrArea label="Location">
-          <ConfigrSubgroup path="location">
+          <ConfigrGroup path="location">
             <ConfigrInput path={`country`} label="Country" />
             <ConfigrInput path={`province`} label="Province" />
             <ConfigrInput path={`district`} label="District" />
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
 
         <ConfigrArea label="Advanced">
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="" path="">
             <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}
             <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Experimental Features" path="feature">
+          </ConfigrGroup>
+          <ConfigrGroup label="Experimental Features" path="feature">
             <ConfigrBoolean
               label="Show Experimental Book Sources"
               path="feature.experimentalBookSources"
@@ -343,7 +339,7 @@ const BloomCollectionInner: React.FunctionComponent<{
               path="feature.spreadsheet"
               disabled={true}
             />
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
       </ConfigrPane>
     </div>
@@ -485,7 +481,7 @@ const BloomBookInner: React.FunctionComponent<{
         {...props}
       >
         <ConfigrArea label="Appearance">
-          <ConfigrSubgroup label="Cover" path="appearance.cover">
+          <ConfigrGroup label="Cover" path="appearance.cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
@@ -495,8 +491,8 @@ const BloomBookInner: React.FunctionComponent<{
               description={'this is custom'}
               control={ConfigrColorPicker}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Spacing" path="appearance">
+          </ConfigrGroup>
+          <ConfigrGroup label="Spacing" path="appearance">
             <ConfigrSubPage label="Margins" subPageKey="appearance-margins">
               <ConfigrSelect
                 label={'Padding'}
@@ -534,7 +530,7 @@ const BloomBookInner: React.FunctionComponent<{
             {/* I'm unhappy about the "path" prop here. It seems to conflate location in the hierarchy with
              the visual hierarchy.*/}
             <ConfigrSubPage label="Advanced" subPageKey="book-advanced">
-              <ConfigrSubgroup label="Spacing" path="appearance">
+              <ConfigrGroup label="Spacing" path="appearance">
                 <ConfigrSelect
                   label={'Gutter'}
                   description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
@@ -552,9 +548,9 @@ const BloomBookInner: React.FunctionComponent<{
                   label="Between Vertical Blocks"
                   {...propsForMmField}
                 />
-              </ConfigrSubgroup>
+              </ConfigrGroup>
             </ConfigrSubPage>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
         <ConfigrArea label="Bloom Library">
           <ConfigrInput
@@ -564,7 +560,7 @@ const BloomBookInner: React.FunctionComponent<{
           />
         </ConfigrArea>
         <ConfigrArea label="ePUB">
-          <ConfigrSubgroup label="Options" path="epub.options">
+          <ConfigrGroup label="Options" path="epub.options">
             <ConfigrSelect
               path={'epub.options.mode'}
               label="ePUB mode"
@@ -588,8 +584,8 @@ const BloomBookInner: React.FunctionComponent<{
               description="Normally image descriptions are just audio, but this puts them in print as well."
               path="epub.options.imageDescriptionsOnPage"
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Metadata" path="epub.metadata">
+          </ConfigrGroup>
+          <ConfigrGroup label="Metadata" path="epub.metadata">
             <ConfigrInput path={`epub.metadata.author`} label="Author" />
             <ConfigrBoolean
               label="Flashing Hazard"
@@ -601,7 +597,7 @@ const BloomBookInner: React.FunctionComponent<{
               label="Motion Simulation Hazard"
               path="epub.options.motionHazard"
             />
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
       </ConfigrPane>
     </div>
@@ -699,14 +695,14 @@ const BloomBookInnerV1: React.FunctionComponent<{
           // This should have a label, "Appearance", when there is more than one ConfigrArea.
           // While there is not, it just takes up space and confuses things.
         >
-          <ConfigrSubgroup label="Cover" path="appearance.cover">
+          <ConfigrGroup label="Cover" path="appearance.cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               control={ConfigrColorPicker}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Margins" path="appearance.margins">
+          </ConfigrGroup>
+          <ConfigrGroup label="Margins" path="appearance.margins">
             <ConfigrInput
               path={`appearance.margins.marginTop`}
               label="Top"
@@ -727,15 +723,15 @@ const BloomBookInnerV1: React.FunctionComponent<{
               label="Inner"
               {...propsForMmField}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
+          </ConfigrGroup>
+          <ConfigrGroup label="Max Image Size" path="appearance.maxImageSize">
             <BloomResolutionSlider
               path={`appearance.maxImageSize`}
               label="Max Resolution"
               // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Other" path="appearance.other">
+          </ConfigrGroup>
+          <ConfigrGroup label="Other" path="appearance.other">
             <ConfigrBoolean
               label="Show Page Numbers"
               path="appearance.other.showPageNumber"
@@ -748,7 +744,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
               // Or are we thinking of providing a fixed set of built-in themes he can choose from, so
               // this should be a select?
             />
-          </ConfigrSubgroup>
+          </ConfigrGroup>
         </ConfigrArea>
       </ConfigrPane>
     </div>

@@ -6,7 +6,7 @@ import { SearchContext } from './SearchContextProvider';
 // Else, pass through so long as the given label or kids have the search term
 export const FilterForSearchText: React.FunctionComponent<
   React.PropsWithChildren<{
-    label: string;
+    label?: string;
     description?: string | React.ReactNode;
     kids: React.ReactNode;
   }>
@@ -18,9 +18,9 @@ export const FilterForSearchText: React.FunctionComponent<
         if (!searchRegEx) return <React.Fragment>{props.children}</React.Fragment>;
         const hasMatch =
           /* TODO: currently, if we match on a group's label or description,
-           but then don't match on a subgroup,
+           but then don't match on a group,
           well we just get the label and that's confusing. */
-          searchRegEx.test(props.label) ||
+          (props.label && searchRegEx.test(props.label)) ||
           (props.description && searchRegEx.test(Children.onlyText(props.description))) ||
           // check the children (rows of the group)
           React.Children.toArray(props.kids).some((c) => {
@@ -35,7 +35,7 @@ export const FilterForSearchText: React.FunctionComponent<
             )
               return true;
             // Is this child a subpage? Then it has children we can check.
-            // TODO: this would need to be recursive. Currently it is blocked by subgroups.
+            // TODO: this would need to be recursive. Currently it is blocked by groups.
             // This is more than just checking recursively. If we find a match 3 levels
             // down, it's not really enough to just return true and show the great-great-grandchild.
             // The user can't tell which of the children of that they are supposed to go down to find
