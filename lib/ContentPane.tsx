@@ -187,7 +187,16 @@ const VisibleGroups: React.FunctionComponent<
   );
 };
 
-export const ConfigrGroup: React.FunctionComponent<
+export const ConfigrArea: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    description?: string | React.ReactNode;
+  }>
+> = (props) => {
+  return <ConfigrGroup {...props} level={1} />;
+};
+
+const ConfigrGroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
     description?: string | React.ReactNode;
@@ -213,17 +222,16 @@ export const ConfigrGroup: React.FunctionComponent<
           {descriptionToReact(props.description)}
         </Typography>
       </div>
-      {props.level === 1 ? (
+      {!props.level || props.level < 2 ? (
         <div className="indentIfInSubPage">{props.children}</div>
       ) : (
-        <PaperGroup>{props.children}</PaperGroup>
+        <RowCluster>{props.children}</RowCluster>
       )}
     </FilterForSearchText>
   );
 };
 
-// TODO: rename to something like RowCluster
-const PaperGroup: React.FunctionComponent<
+const RowCluster: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
   }>
@@ -810,7 +818,7 @@ export const ConfigrSelect: React.FunctionComponent<
 
 export const ConfigrSubgroup: React.FunctionComponent<
   React.PropsWithChildren<{
-    label: string;
+    label?: string;
     path: string;
     subPageKey?: string;
     searchTerms?: string;

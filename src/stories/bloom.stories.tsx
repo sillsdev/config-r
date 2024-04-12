@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
-  ConfigrGroup,
+  ConfigrArea,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
@@ -112,7 +112,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         `}
         // {...props}
       >
-        <ConfigrGroup label="Languages" level={1}>
+        <ConfigrArea label="Languages">
           <ConfigrForEach
             path="languages"
             searchTerms="font script right left word breaking Asian name iso"
@@ -233,8 +233,8 @@ const BloomCollectionInner: React.FunctionComponent<{
               );
             }}
           ></ConfigrForEach>
-        </ConfigrGroup>
-        <ConfigrGroup label="Book Defaults">
+        </ConfigrArea>
+        <ConfigrArea label="Book Defaults">
           <ConfigrSelect
             path={'pageNumberStyle'}
             label="Page Numbering Style"
@@ -257,10 +257,9 @@ const BloomCollectionInner: React.FunctionComponent<{
               },
             ]}
           ></ConfigrSelect>
-        </ConfigrGroup>
-        <ConfigrGroup
+        </ConfigrArea>
+        <ConfigrArea
           label="Enterprise"
-          level={1}
           description={
             <span>
               Bloom Enterprise adds features and services that are important for
@@ -302,14 +301,16 @@ const BloomCollectionInner: React.FunctionComponent<{
               options={[{ label: 'TODO', value: 'TODO' }]}
             ></ConfigrSelect>
           </ConfigrSubgroup>
-        </ConfigrGroup>
-        <ConfigrGroup label="Location">
-          <ConfigrInput path={`country`} label="Country" />
-          <ConfigrInput path={`province`} label="Province" />
-          <ConfigrInput path={`district`} label="District" />
-        </ConfigrGroup>
+        </ConfigrArea>
+        <ConfigrArea label="Location">
+          <ConfigrSubgroup path="location">
+            <ConfigrInput path={`country`} label="Country" />
+            <ConfigrInput path={`province`} label="Province" />
+            <ConfigrInput path={`district`} label="District" />
+          </ConfigrSubgroup>
+        </ConfigrArea>
 
-        <ConfigrGroup label="Advanced" level={1}>
+        <ConfigrArea label="Advanced">
           <ConfigrSubgroup label="" path="">
             <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}
             <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
@@ -343,7 +344,7 @@ const BloomCollectionInner: React.FunctionComponent<{
               disabled={true}
             />
           </ConfigrSubgroup>
-        </ConfigrGroup>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );
@@ -483,7 +484,7 @@ const BloomBookInner: React.FunctionComponent<{
         `}
         {...props}
       >
-        <ConfigrGroup label="Appearance" level={1}>
+        <ConfigrArea label="Appearance">
           <ConfigrSubgroup label="Cover" path="appearance.cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
@@ -554,15 +555,15 @@ const BloomBookInner: React.FunctionComponent<{
               </ConfigrSubgroup>
             </ConfigrSubPage>
           </ConfigrSubgroup>
-        </ConfigrGroup>
-        <ConfigrGroup label="Bloom Library" level={1}>
+        </ConfigrArea>
+        <ConfigrArea label="Bloom Library">
           <ConfigrInput
             path={`bloomLibrary.summary`}
             label="Summary"
             // Wants a way to say to leave more space for a summary.
           />
-        </ConfigrGroup>
-        <ConfigrGroup label="ePUB" level={1}>
+        </ConfigrArea>
+        <ConfigrArea label="ePUB">
           <ConfigrSubgroup label="Options" path="epub.options">
             <ConfigrSelect
               path={'epub.options.mode'}
@@ -601,7 +602,7 @@ const BloomBookInner: React.FunctionComponent<{
               path="epub.options.motionHazard"
             />
           </ConfigrSubgroup>
-        </ConfigrGroup>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );
@@ -692,10 +693,10 @@ const BloomBookInnerV1: React.FunctionComponent<{
         `}
         {...props}
       >
-        <ConfigrGroup
+        <ConfigrArea
           label=""
-          level={1}
-          // This should have a label, "Appearance", when there is more than one ConfigrGroup.
+
+          // This should have a label, "Appearance", when there is more than one ConfigrArea.
           // While there is not, it just takes up space and confuses things.
         >
           <ConfigrSubgroup label="Cover" path="appearance.cover">
@@ -748,7 +749,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
               // this should be a select?
             />
           </ConfigrSubgroup>
-        </ConfigrGroup>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );

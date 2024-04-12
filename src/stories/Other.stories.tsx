@@ -13,7 +13,7 @@ import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
   ContentPane,
-  ConfigrGroup,
+  ConfigrArea,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
@@ -55,37 +55,41 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showAllGroups={true}
         selectedGroupIndex={1}
       >
-        <ConfigrGroup label="Dog">
-          <ConfigrInput path="dog.name" label="Name" />
-          <ConfigrInput path="dog.age" label="Age" type="number" />
-          <ConfigrBoolean
-            path="dog.friendly"
-            label="Friendly"
-            description="Does this dog like other dogs?"
-          ></ConfigrBoolean>
-          <ConfigrChooserButton
-            path="dog.photos"
-            label="Folder of dog photos"
-            description="What does the dog look like?"
-            buttonLabel="Choose..."
-            chooseAction={(currentValue: string) => {
-              return 'x' + (currentValue || '');
-            }}
-          ></ConfigrChooserButton>
-        </ConfigrGroup>
-        <ConfigrGroup label="Bird">
-          <ConfigrInput
-            path="bird.name"
-            label="Name"
-            getErrorMessage={(d: IPetSettings) =>
-              d.bird.name.indexOf('!') > -1 ? 'No punctuation allowed' : undefined
-            }
-          />
-          <ConfigrRadioGroup path="bird.kind" label="Kind">
-            <ConfigrRadio label="Parakeet" value="parakeet" />
-            <ConfigrRadio label="Parrot" value="parrot" />
-          </ConfigrRadioGroup>
-        </ConfigrGroup>
+        <ConfigrArea label="Dog">
+          <ConfigrSubgroup path="dog">
+            <ConfigrInput path="dog.name" label="Name" />
+            <ConfigrInput path="dog.age" label="Age" type="number" />
+            <ConfigrBoolean
+              path="dog.friendly"
+              label="Friendly"
+              description="Does this dog like other dogs?"
+            ></ConfigrBoolean>
+            <ConfigrChooserButton
+              path="dog.photos"
+              label="Folder of dog photos"
+              description="What does the dog look like?"
+              buttonLabel="Choose..."
+              chooseAction={(currentValue: string) => {
+                return 'x' + (currentValue || '');
+              }}
+            ></ConfigrChooserButton>
+          </ConfigrSubgroup>
+        </ConfigrArea>
+        <ConfigrArea label="Bird">
+          <ConfigrSubgroup path="brid">
+            <ConfigrInput
+              path="bird.name"
+              label="Name"
+              getErrorMessage={(d: IPetSettings) =>
+                d.bird.name.indexOf('!') > -1 ? 'No punctuation allowed' : undefined
+              }
+            />
+            <ConfigrRadioGroup path="bird.kind" label="Kind">
+              <ConfigrRadio label="Parakeet" value="parakeet" />
+              <ConfigrRadio label="Parrot" value="parrot" />
+            </ConfigrRadioGroup>
+          </ConfigrSubgroup>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );
@@ -108,25 +112,27 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         initialValues={initialLametaValues}
         showSearch={true}
       >
-        <ConfigrGroup label="Files">
-          <ConfigrBoolean
-            path="files.useLargeFileFolder"
-            label="Use Large File Folder"
-            description="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."
-          ></ConfigrBoolean>
-          <ConfigrConditional
-            enableWhen={(values: any) => values.files.useLargeFileFolder}
-          >
-            <ConfigrChooserButton
-              path="files.largeFileFolder"
-              label="Large File Folder Location"
-              buttonLabel="Choose..."
-              chooseAction={(currentValue: string) => {
-                return 'x' + (currentValue || '');
-              }}
-            ></ConfigrChooserButton>
-          </ConfigrConditional>
-        </ConfigrGroup>
+        <ConfigrArea label="Files">
+          <ConfigrSubgroup path="files">
+            <ConfigrBoolean
+              path="files.useLargeFileFolder"
+              label="Use Large File Folder"
+              description="Avoid copying in large files that you already keep somewhere else (e.g. an external drive)."
+            ></ConfigrBoolean>
+            <ConfigrConditional
+              enableWhen={(values: any) => values.files.useLargeFileFolder}
+            >
+              <ConfigrChooserButton
+                path="files.largeFileFolder"
+                label="Large File Folder Location"
+                buttonLabel="Choose..."
+                chooseAction={(currentValue: string) => {
+                  return 'x' + (currentValue || '');
+                }}
+              ></ConfigrChooserButton>
+            </ConfigrConditional>
+          </ConfigrSubgroup>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );
