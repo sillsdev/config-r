@@ -7,7 +7,7 @@ export const HighlightSearchTerms: React.FunctionComponent<
     searchString: string | null;
     // we don't care what this means, we just know that we need
     // to re-render if this changes
-    focussedSubPageKey: any;
+    focussedPageKey: any;
   }>
 > = (props) => {
   const [markInstance, setMarkInstance] = useState<Mark>();
@@ -28,7 +28,7 @@ export const HighlightSearchTerms: React.FunctionComponent<
           if (props.searchString) markInstance.mark(props.searchString);
         },
       });
-  }, [props.searchString, props.focussedSubPageKey]);
+  }, [props.searchString, props.focussedPageKey]);
 
   return <div ref={highlightRoot}>{props.children}</div>;
 };

@@ -25,11 +25,11 @@ export const ConfigrPane: React.FunctionComponent<
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
-    selectedGroupIndex?: number;
+    selectedAreaIndex?: number;
   }>
 > = (props) => {
-  const [currentGroup, setCurrentGroup] = useState<number | undefined>(
-    props.selectedGroupIndex ?? 0,
+  const [currentArea, setCurrentArea] = useState<number | undefined>(
+    props.selectedAreaIndex ?? 0,
   );
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
@@ -44,7 +44,7 @@ export const ConfigrPane: React.FunctionComponent<
     ? createTheme(defaultConfigrTheme, props.themeOverrides!)
     : createTheme(defaultConfigrTheme);
 
-  const wantGroupChooser = React.Children.toArray(props.children).length > 1;
+  const wantAreaChooser = React.Children.toArray(props.children).length > 1;
 
   const [currentValues, setCurrentValues] = useState(props.initialValues);
 
@@ -82,7 +82,7 @@ export const ConfigrPane: React.FunctionComponent<
                           // There should be no selected group if we
                           // have a search term. If the user clears the search,
                           // then we set the selected group to be the 1st one (0).
-                          setCurrentGroup(s ? undefined : 0);
+                          setCurrentArea(s ? undefined : 0);
                         }
                       }}
                     />
@@ -93,7 +93,7 @@ export const ConfigrPane: React.FunctionComponent<
                       // no. Make client set the background color: background-color: #f8f9fa;
                       height: 100%;
                       display: flex;
-                      //padding-left: ${wantGroupChooser ? undefined : '20px'};
+                      //padding-left: ${wantAreaChooser ? undefined : '20px'};
                       .MuiTab-wrapper {
                         text-align: left;
                         align-items: start;
@@ -101,16 +101,16 @@ export const ConfigrPane: React.FunctionComponent<
                     `}
                     className={props.className} // allow client to set things like background color
                   >
-                    {wantGroupChooser && (
-                      <GroupChooser
-                        currentGroup={currentGroup}
-                        setCurrentGroupIndex={setCurrentGroup}
+                    {wantAreaChooser && (
+                      <AreaChooser
+                        currentGroup={currentArea}
+                        setCurrentAreaIndex={setCurrentArea}
                       >
                         {props.children}
-                      </GroupChooser>
+                      </AreaChooser>
                     )}
                     <ContentPane
-                      currentGroupIndex={currentGroup}
+                      currentAreaIndex={currentArea}
                       {...propsToPass}
                       onChange={onChangeWrapper}
                     />
@@ -139,13 +139,13 @@ export const ConfigrPane: React.FunctionComponent<
   );
 };
 
-const GroupChooser: React.FunctionComponent<
+const AreaChooser: React.FunctionComponent<
   React.PropsWithChildren<{
     currentGroup: number | undefined;
-    setCurrentGroupIndex: (i: number | undefined) => void;
+    setCurrentAreaIndex: (i: number | undefined) => void;
   }>
 > = (props) => {
-  const groupLinks = useMemo(() => {
+  const areaLinks = useMemo(() => {
     return React.Children.map(props.children, (g: any) => (
       <Tab
         key={g.props.label}
@@ -173,7 +173,7 @@ const GroupChooser: React.FunctionComponent<
                 console.log('clearing search from onchange from tab');
                 setSearchString('');
               }
-              props.setCurrentGroupIndex(index);
+              props.setCurrentAreaIndex(index);
             }}
             centered={false}
             orientation="vertical"
@@ -192,7 +192,7 @@ const GroupChooser: React.FunctionComponent<
               }
             `}
           >
-            {groupLinks}
+            {areaLinks}
           </Tabs>
         );
       }}

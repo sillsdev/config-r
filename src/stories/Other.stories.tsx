@@ -12,8 +12,7 @@ import * as React from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
-  ContentPane,
-  ConfigrArea,
+  ConfigrPage,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
@@ -22,7 +21,6 @@ import {
   ConfigrConditional,
   ConfigrGroup,
   ConfigrForEach,
-  ConfigrSubPage,
 } from '../../lib/ContentPane';
 
 interface IPetSettings {
@@ -53,10 +51,10 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showJson={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
         showAllGroups={true}
-        selectedGroupIndex={1}
+        selectedAreaIndex={1}
       >
-        <ConfigrArea label="Dog">
-          <ConfigrGroup path="dog">
+        <ConfigrPage label="Dog">
+          <ConfigrGroup label="dog">
             <ConfigrInput path="dog.name" label="Name" />
             <ConfigrInput path="dog.age" label="Age" type="number" />
             <ConfigrBoolean
@@ -74,9 +72,9 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
               }}
             ></ConfigrChooserButton>
           </ConfigrGroup>
-        </ConfigrArea>
-        <ConfigrArea label="Bird">
-          <ConfigrGroup path="brid">
+        </ConfigrPage>
+        <ConfigrPage label="Bird">
+          <ConfigrGroup label="brid">
             <ConfigrInput
               path="bird.name"
               label="Name"
@@ -89,7 +87,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
               <ConfigrRadio label="Parrot" value="parrot" />
             </ConfigrRadioGroup>
           </ConfigrGroup>
-        </ConfigrArea>
+        </ConfigrPage>
       </ConfigrPane>
     </div>
   );
@@ -112,8 +110,8 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         initialValues={initialLametaValues}
         showSearch={true}
       >
-        <ConfigrArea label="Files">
-          <ConfigrGroup path="files">
+        <ConfigrPage label="Files">
+          <ConfigrGroup label="files">
             <ConfigrBoolean
               path="files.useLargeFileFolder"
               label="Use Large File Folder"
@@ -132,7 +130,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
               ></ConfigrChooserButton>
             </ConfigrConditional>
           </ConfigrGroup>
-        </ConfigrArea>
+        </ConfigrPage>
       </ConfigrPane>
     </div>
   );
