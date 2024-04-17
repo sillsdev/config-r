@@ -533,6 +533,13 @@ const BloomBookInner: React.FunctionComponent<{
               {...propsForMmField}
             />
           </ConfigrSubgroup>
+          <ConfigrSubgroup label="disabledTest" path="appearance">
+            <ConfigrBoolean
+              label="Show Page Numbers"
+              path="appearance.disabledTest"
+              disabled={true}
+            />
+          </ConfigrSubgroup>
           <ConfigrSubgroup label="Spacing" path="appearance.cover">
             <ConfigrInput
               path={`appearance.spacing.verticalBlocks`}
