@@ -36,7 +36,7 @@ export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> =
     // TODO: configr can't handle a subpage inside of a subpage <ConfigrSubPage label="Character Alternates" path={`${props.path}`}>
     // TODO: configr doesn't display groups properly in subpages {/* <configrgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
 
-    <ConfigrGroup path={`${props.path}`} label={'SIL Font Character Alternates'}>
+    <ConfigrGroup label={'SIL Font Character Alternates'}>
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate

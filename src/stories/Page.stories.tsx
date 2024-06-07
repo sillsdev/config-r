@@ -12,7 +12,6 @@ import * as React from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
-  ConfigrArea,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
@@ -53,14 +52,14 @@ export const Pages: React.FunctionComponent<{}> = (props) => {
         showAllGroups={true}
       >
         <ConfigrPage label="Dog" pageKey="dog">
-          <ConfigrGroup path="dog">
+          <ConfigrGroup>
             <ConfigrInput path="dog.name" label="Name" />
             <ConfigrPage label="Dog's Friends" pageKey="dogFriends">
-              <ConfigrGroup path="dog">
+              <ConfigrGroup>
                 <ConfigrInput path="dog.friend1" label="Friend1" />
                 <ConfigrInput path="dog.friend2" label="Friend2" />
                 <ConfigrPage label="Group dynamics" pageKey="dogFriendsGroupDynamics">
-                  <ConfigrGroup path="dog">
+                  <ConfigrGroup>
                     <ConfigrInput path="dog.friendGroup.mood" label="mood" />
                   </ConfigrGroup>
                 </ConfigrPage>

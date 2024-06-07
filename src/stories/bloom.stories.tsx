@@ -701,18 +701,35 @@ const BloomBookInnerV1: React.FunctionComponent<{
     >
       <ConfigrPane
         label="Book Settings"
+        selectedAreaIndex={0}
         initialValues={initialV1BloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={false}
+        showAppBar={true}
         css={css`
           padding: 20px;
           width: 700px;
         `}
         {...props}
       >
+        {/* <ConfigrPage
+          label="why are two required?"
+          pageKey="bbv2"
+
+          // This should have a label, "Appearance", when there is more than one ConfigrArea.
+          // While there is not, it just takes up space and confuses things.
+        >
+          <ConfigrGroup label="Cover">
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={ConfigrColorPicker}
+            />
+          </ConfigrGroup>
+        </ConfigrPage> */}
         <ConfigrPage
-          label="what"
-          pageKey="what"
+          label="bbv1"
+          pageKey="bbv1"
 
           // This should have a label, "Appearance", when there is more than one ConfigrArea.
           // While there is not, it just takes up space and confuses things.

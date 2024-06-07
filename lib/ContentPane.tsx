@@ -1,6 +1,6 @@
 import { css, SerializedStyles } from '@emotion/react';
 import * as React from 'react';
-import { useState, ReactElement, ReactNode } from 'react';
+import { useState, ReactElement, ReactNode, useEffect } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -69,16 +69,16 @@ export const ContentPane: React.FunctionComponent<
 > = (props) => {
   const [focussedPageKey, setFocussedPageKey] = useState('');
   React.useEffect(() => {
-    const pageWithCurrentAreaIndex = React.Children.toArray(props.children)[
-      props.currentAreaIndex || 0
-    ];
+    const pageWithCurrentAreaIndex = React.Children.toArray(props.children).filter(
+      (c) => c,
+    )[props.currentAreaIndex || 0];
 
     const pageKey = React.isValidElement(pageWithCurrentAreaIndex)
       ? pageWithCurrentAreaIndex.props?.pageKey
       : undefined;
 
     setFocussedPageKey(pageKey);
-  }, [props.currentAreaIndex]);
+  }, [props.children, props.currentAreaIndex]);
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
@@ -157,8 +157,9 @@ export const ContentPane: React.FunctionComponent<
             >
               {/* return all of our children but add a prop.topLevel=true to each one */}
               {React.Children.map(props.children, (child: any) => {
+                if (!child) return null;
                 return React.cloneElement(child, { topLevel: true });
-              })}
+              })?.filter((c: any) => c)}
             </form>
           );
         }}
@@ -193,11 +194,11 @@ const VisibleGroups: React.FunctionComponent<
                 searchString={searchString}
                 focussedPageKey={props.focussedPageKey}
               >
-                {props.children}
+                {React.Children.toArray(props.children).filter((c) => c)}
               </HighlightSearchTerms>
             ) : (
               React.Children.toArray(props.children).filter(
-                (c: React.ReactNode, index: number) => index === props.currentGroup,
+                (c: React.ReactNode, index: number) => c && index === props.currentGroup,
               )
             )}
           </div>
@@ -207,14 +208,14 @@ const VisibleGroups: React.FunctionComponent<
   );
 };
 
-export const ConfigrArea: React.FunctionComponent<
-  React.PropsWithChildren<{
-    label: string;
-    description?: string | React.ReactNode;
-  }>
-> = (props) => {
-  return <InternalGroup {...props} level={1} />;
-};
+// export const ConfigrArea: React.FunctionComponent<
+//   React.PropsWithChildren<{
+//     label: string;
+//     description?: string | React.ReactNode;
+//   }>
+// > = (props) => {
+//   return <InternalGroup {...props} level={1} />;
+// };
 
 const InternalGroup: React.FunctionComponent<
   React.PropsWithChildren<{
@@ -270,24 +271,25 @@ const RowCluster: React.FunctionComponent<
     return (
       <Paper
         className="indentIfInSubPage"
-      elevation={2}
-      css={css`
-        //width: 100%; doesn't work with shadow
-        margin-left: 2px; //needed to show shadow
-        margin-right: 2px; //needed to show shadow
-        margin-bottom: 12px !important;
-      `}
-    >
-      <List
-        component="nav"
+        elevation={2}
         css={css`
+          //width: 100%; doesn't work with shadow
+          margin-left: 2px; //needed to show shadow
+          margin-right: 2px; //needed to show shadow
+          margin-bottom: 12px !important;
+        `}
+      >
+        <List
+          component="nav"
+          css={css`
             width: calc(100% - 20px);
           `}
         >
           {/* return clones of our children with our props.inFocussedPage */}
           {React.Children.map(props.children, (child: any) => {
+            if (!child) return null;
             return React.cloneElement(child, { inFocussedPage: true });
-          })}
+          })?.filter((c: any) => c)}
         </List>
       </Paper>
     );
@@ -298,6 +300,7 @@ const RowCluster: React.FunctionComponent<
     return (
       <>
         {React.Children.toArray(props.children).filter((child: any) => {
+          if (!child) return null;
           return child.type === ConfigrPage || child.type === ConfigrForEach;
         })}
       </>
@@ -305,16 +308,16 @@ const RowCluster: React.FunctionComponent<
   }
 };
 
-// TODO :this doesn't seem to do anything except strip out... things that aren't elements?
-function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
-  return React.Children.map(props.children, (c, index) => {
-    if (React.isValidElement(c)) {
-      return React.cloneElement(c, {
-        ...c.props,
-      });
-    } else return null;
-  });
-}
+// unused:?this doesn't seem to do anything except strip out... things that aren't elements?
+// function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
+//   return React.Children.map(props.children, (c, index) => {
+//     if (React.isValidElement(c)) {
+//       return React.cloneElement(c, {
+//         ...c.props,
+//       });
+//     } else return null;
+//   });
+// }
 
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
@@ -504,8 +507,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
           </div>
         );
         if (searchRegEx) {
-          const count = React.Children.toArray(props.children).filter((c) =>
-            searchRegEx.exec((c as any).props.label as string),
+          const count = React.Children.toArray(props.children).filter(
+            (c) => c && searchRegEx.exec((c as any).props.label as string),
           ).length;
           if (count) {
             return (
@@ -902,11 +905,13 @@ export const ConfigrPage: React.FunctionComponent<
 > = (props) => {
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
   const childOfWrongType = React.Children.toArray(props.children).find(
-    (child: any) => child.type !== ConfigrGroup && child.type !== ConfigrForEach,
+    (child: any) => child && child.type !== ConfigrGroup && child.type !== ConfigrForEach,
   );
   if (childOfWrongType) {
     throw Error(
-      `<ConfigrPage pageKey='${key}'> ConfigrPage children must be of type ConfigrGroup or ConfigrForEach. Label of offending element is "${childOfWrongType.props.label}"`,
+      `<ConfigrPage pageKey='${key}'> ConfigrPage children must be of type ConfigrGroup or ConfigrForEach. Label of offending element is "${
+        (childOfWrongType as any).props?.label
+      }"`,
     );
   }
   return (
@@ -950,12 +955,14 @@ export const ConfigrPage: React.FunctionComponent<
                 {/* <FilterAndJoinWithDividers pageKey={props.pageKey}> */}
                 {/* review */}
                 {React.Children.map(props.children, (child) => {
-                  //console.log(`giving child pageKey ${props.pageKey}`);
-                  // we have to do this prop drilling because React Contexts can't be created recursively
-                  return React.cloneElement(child as any, {
-                    inFocussedPage: true,
-                  });
-                })}
+                  if (child) {
+                    //console.log(`giving child pageKey ${props.pageKey}`);
+                    // we have to do this prop drilling because React Contexts can't be created recursively
+                    return React.cloneElement(child as any, {
+                      inFocussedPage: true,
+                    });
+                  } else return null;
+                })?.filter((c) => c)}
                 {/* </FilterAndJoinWithDividers> */}
               </div>
             </>
@@ -966,10 +973,10 @@ export const ConfigrPage: React.FunctionComponent<
           return (
             <React.Fragment>
               {React.Children.map(props.children, (child) => {
-                if ((child as any).type === ConfigrGroup) {
+                if (child && (child as any).type === ConfigrGroup) {
                   return child;
                 } else return null;
-              })}
+              })?.filter((c) => c)}
             </React.Fragment>
           );
         }
@@ -1220,6 +1227,10 @@ export const ConfigrConditional: React.FunctionComponent<
     visibleWhen?: (currentValues: object) => boolean;
   }>
 > = (props) => {
+  const [children, setChildren] = useState<React.ReactNode[]>([]);
+  useEffect(() => {
+    setChildren(React.Children.toArray(props.children).filter((c) => c));
+  }, [props.children]);
   const { values } = useFormikContext<object>();
   const disabled = props.enableWhen ? !props.enableWhen(values) : false;
   const visible = props.visibleWhen ? props.visibleWhen(values) : true;
@@ -1227,7 +1238,7 @@ export const ConfigrConditional: React.FunctionComponent<
   return (
     <React.Fragment>
       {React.Children.map(
-        props.children as React.ReactElement<{ disabled: boolean }>[],
+        children as React.ReactElement<{ disabled: boolean }>[],
         (child: React.ReactElement<{ disabled: boolean }>) => {
           if (React.isValidElement(child)) {
             // clone in order to inject this disabled prop. It's up to the child
