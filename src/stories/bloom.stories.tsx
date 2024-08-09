@@ -759,6 +759,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
               {...propsForMmField}
             />
           </ConfigrGroup>
+
           <ConfigrGroup label="Max Image Size">
             <BloomResolutionSlider
               path={`appearance.maxImageSize`}

@@ -482,7 +482,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
               primaryTypographyProps={{ variant: 'h4' }}
               title={props.path}
               css={css`
-                color: ${props.disabled ? disabledGrey : 'unset'};
+                /* no: doing this ends up double-fading the label
+                    color: ${props.disabled ? disabledGrey : 'unset'}; */
                 ${props.height ? 'height:' + props.height : ''}
                 ${props.indented && 'margin-left: 30px;'}
                 user-select: none;
