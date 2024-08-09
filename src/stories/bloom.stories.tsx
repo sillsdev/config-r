@@ -5,14 +5,13 @@ import { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
 
 import {
-  ConfigrGroup,
   ConfigrInput,
   ConfigrBoolean,
   ConfigrRadioGroup,
   ConfigrRadio,
-  ConfigrSubgroup,
+  ConfigrGroup,
   ConfigrForEach,
-  ConfigrSubPage as ConfigrSubPage,
+  ConfigrPage as ConfigrPage,
   ConfigrSelect,
   ConfigrCustomStringInput,
   ConfigrCustomNumberInput,
@@ -103,6 +102,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         initialValues={initialBloomCollectionValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={true}
+        showAppBar={true}
         showJson={true}
         css={css`
           background-color: #cfa7e7;
@@ -111,168 +111,181 @@ const BloomCollectionInner: React.FunctionComponent<{
         `}
         // {...props}
       >
-        <ConfigrGroup label="Languages" level={1}>
-          <ConfigrForEach
-            path="languages"
-            searchTerms="font script right left word breaking Asian name iso"
-            render={(prefix: string, index: number) => {
-              const language = initialBloomCollectionValues.languages[index];
-              return (
-                <ConfigrSubgroup
-                  path={`${prefix}`}
-                  label={language.label}
-                  key={`${index}`}
-                >
-                  <ConfigrSubPage
-                    label={language.id.name}
-                    path={`${prefix}.id`}
-                    labelCss={css`
-                      font-weight: bold !important;
-                    `}
-                  >
-                    <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
-                    <ConfigrInput path={`${prefix}.id.name`} label="Name" />
-                  </ConfigrSubPage>
-                  {!language.isSignLanguage && (
-                    <ConfigrSelect
-                      path={`${prefix}.font`}
-                      label="Default Font"
-                      options={[
-                        { label: 'Arial', value: 'Arial' },
-                        { label: 'Andika New Basic', value: 'Andika New Basic' },
-                      ]}
-                      description={
-                        'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
-                      }
-                      overrideValue="Arial"
-                      overrideDescription="This is locked by Kyrgyzstan xmatter"
-                    ></ConfigrSelect>
-                  )}
-
-                  {!language.isSignLanguage && (
-                    <ConfigrSubPage label="Script Settings" path={`${prefix}.script`}>
-                      <ConfigrBoolean
-                        overrideValue={true}
-                        overrideDescription="This is locked by Kyrgyzstan xmatter"
-                        label="This is a right to left script, like Arabic"
-                        path={`${prefix}.script.rtl`}
-                      />
-                      <ConfigrBoolean
-                        label="Do not use special Asian script word breaking"
-                        path={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                        overrideValue={false}
-                        overrideDescription="This is locked by Kyrgyzstan xmatter"
-                      />
-                      <ConfigrBoolean
-                        label="This script requires taller lines (locked)"
-                        path={`${prefix}.script.tallerLines`}
-                        locked={true}
-                      />
-                      <ConfigrBoolean
-                        label="This script requires taller lines"
-                        path={`${prefix}.script.tallerLines`}
-                      />
-
+        <ConfigrPage label="Languages" pageKey="languages">
+          <ConfigrGroup label="Languages">
+            <ConfigrForEach
+              path="languages"
+              searchTerms="font script right left word breaking Asian name iso"
+              render={(prefix: string, index: number) => {
+                const language = initialBloomCollectionValues.languages[index];
+                console.log('language', language);
+                return (
+                  <ConfigrGroup label={language.label}>
+                    <ConfigrPage
+                      label={language.id.name}
+                      pageKey={`${prefix}-id`} // e.g. languages[0]-id
+                      labelCss={css`
+                        font-weight: bold !important;
+                      `}
+                    >
+                      <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
+                        <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                        <ConfigrInput path={`${prefix}.id.name`} label="Name" />
+                      </ConfigrGroup>
+                    </ConfigrPage>
+                    {!language.isSignLanguage && (
                       <ConfigrSelect
-                        enableWhen={`${prefix}.script.tallerLines`}
-                        indented={true}
-                        path={`${prefix}.script.tallerLines_defaultLineSpacing`}
-                        label="Line Spacing"
+                        path={`${prefix}.font`}
+                        label="Default Font"
                         options={[
-                          { label: 'Default line spacing', value: '0' }, // todo
-                          1.0,
-                          1.1,
-                          1.2,
-                          1.3,
-                          1.4,
-                          1.5,
-                          1.6,
-                          1.7,
-                          1.8,
-                          1.9,
-                          2.0,
-                          2.5,
-                          3.0,
+                          { label: 'Arial', value: 'Arial' },
+                          { label: 'Andika New Basic', value: 'Andika New Basic' },
                         ]}
+                        description={
+                          'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
+                        }
+                        overrideValue="Arial"
+                        overrideDescription="This is locked by Kyrgyzstan xmatter"
                       ></ConfigrSelect>
+                    )}
 
-                      <ConfigrSelect
-                        path={`${prefix}.script.fontSizeInTools`}
-                        label="Font size when displayed in tools"
-                        options={[
-                          { label: 'Default size', value: '0' }, // todo
-                          9,
-                          10,
-                          11,
-                          12,
-                          14,
-                          16,
-                          18,
-                          20,
-                          22,
-                          24,
-                          26,
-                        ]}
-                      ></ConfigrSelect>
-                    </ConfigrSubPage>
-                  )}
-                  {/* Currently cant' get a subpage inside of another subpage (script), so we have to have the path go to "fontFeatures" */}
-                  <ConfigrSubPage label={'Font Features'} path={`${prefix}.fontFeatures`}>
-                    <SILCharacterAlternates
-                      path={`${prefix}.fontFeatures.silCharacterAlternates`}
-                    />
-                  </ConfigrSubPage>
-                </ConfigrSubgroup>
-              );
-            }}
-          ></ConfigrForEach>
-        </ConfigrGroup>
-        <ConfigrGroup label="Book Defaults">
-          <ConfigrSelect
-            path={'pageNumberStyle'}
-            label="Page Numbering Style"
-            options={[
-              { label: 'Decimal', value: 'Decimal' },
-              { label: 'Devanagari', value: 'Devanagari' },
-            ]}
-          ></ConfigrSelect>
-          <ConfigrSelect
-            path={'xmatterPck'}
-            label="Front/Back Matter Pack"
-            options={[
-              { label: 'Paper Saver', value: 'Paper Saver' },
-              { label: 'Super Paper Saver', value: 'Super Paper Saver' },
-              { label: '--', value: '' },
-              {
-                label: 'Traditional',
-                value: 'Traditional',
-                description: 'Credits on the back of the title page.',
-              },
-            ]}
-          ></ConfigrSelect>
-        </ConfigrGroup>
-        <ConfigrGroup
+                    {!language.isSignLanguage && (
+                      <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
+                        <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
+                          <ConfigrBoolean
+                            overrideValue={true}
+                            overrideDescription="This is locked by Kyrgyzstan xmatter"
+                            label="This is a right to left script, like Arabic"
+                            path={`${prefix}.script.rtl`}
+                          />
+                          <ConfigrBoolean
+                            label="Do not use special Asian script word breaking"
+                            path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                            overrideValue={false}
+                            overrideDescription="This is locked by Kyrgyzstan xmatter"
+                          />
+                          <ConfigrBoolean
+                            label="This script requires taller lines (locked)"
+                            path={`${prefix}.script.tallerLines`}
+                            locked={true}
+                          />
+                          <ConfigrBoolean
+                            label="This script requires taller lines"
+                            path={`${prefix}.script.tallerLines`}
+                          />
+
+                          <ConfigrSelect
+                            enableWhen={`${prefix}.script.tallerLines`}
+                            indented={true}
+                            path={`${prefix}.script.tallerLines_defaultLineSpacing`}
+                            label="Line Spacing"
+                            options={[
+                              { label: 'Default line spacing', value: '0' }, // todo
+                              1.0,
+                              1.1,
+                              1.2,
+                              1.3,
+                              1.4,
+                              1.5,
+                              1.6,
+                              1.7,
+                              1.8,
+                              1.9,
+                              2.0,
+                              2.5,
+                              3.0,
+                            ]}
+                          ></ConfigrSelect>
+
+                          <ConfigrSelect
+                            path={`${prefix}.script.fontSizeInTools`}
+                            label="Font size when displayed in tools"
+                            options={[
+                              { label: 'Default size', value: '0' }, // todo
+                              9,
+                              10,
+                              11,
+                              12,
+                              14,
+                              16,
+                              18,
+                              20,
+                              22,
+                              24,
+                              26,
+                            ]}
+                          ></ConfigrSelect>
+                        </ConfigrGroup>
+                      </ConfigrPage>
+                    )}
+
+                    <ConfigrPage
+                      label={'Font Features'}
+                      pageKey={`${prefix}-fontFeatures`}
+                    >
+                      <ConfigrGroup
+                        label={'Font Features' + language.label}
+                        key={`x${index}`}
+                      >
+                        <SILCharacterAlternates
+                          path={`${prefix}.fontFeatures.silCharacterAlternates`}
+                        />
+                      </ConfigrGroup>
+                    </ConfigrPage>
+                  </ConfigrGroup>
+                );
+              }}
+            ></ConfigrForEach>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="Book Defaults" pageKey="book defaults">
+          <ConfigrGroup label="">
+            <ConfigrSelect
+              path={'pageNumberStyle'}
+              label="Page Numbering Style"
+              options={[
+                { label: 'Decimal', value: 'Decimal' },
+                { label: 'Devanagari', value: 'Devanagari' },
+              ]}
+            ></ConfigrSelect>
+            <ConfigrSelect
+              path={'xmatterPck'}
+              label="Front/Back Matter Pack"
+              options={[
+                { label: 'Paper Saver', value: 'Paper Saver' },
+                { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+                { label: '--', value: '' },
+                {
+                  label: 'Traditional',
+                  value: 'Traditional',
+                  description: 'Credits on the back of the title page.',
+                },
+              ]}
+            ></ConfigrSelect>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage
           label="Enterprise"
-          level={1}
-          description={
-            <span>
-              Bloom Enterprise adds features and services that are important for
-              publishers, governments, and international organizations. This paid
-              subscription meets their unique needs while supporting the development and
-              user support of Bloom for the community at large.&nbsp;
-              <Link href="google.com">Learn More</Link>
-            </span>
-          }
+          pageKey="enterprise"
+          // description={
+          //   <span>
+          //     Bloom Enterprise adds features and services that are important for
+          //     publishers, governments, and international organizations. This paid
+          //     subscription meets their unique needs while supporting the development and
+          //     user support of Bloom for the community at large.&nbsp;
+          //     <Link href="google.com">Learn More</Link>
+          //   </span>
+          // }
         >
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="">
             <ConfigrRadioGroup path="enterprise-mode" label="Status">
               <ConfigrRadio label="Subscribed" value="subscribed" />
               <ConfigrRadio label="Funded by the local community only" value="local" />
               <ConfigrRadio label="None" value="none" />
             </ConfigrRadioGroup>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
 
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="">
             <ConfigrRadioGroup
               path="enterprise-mode"
               label="An override locked one"
@@ -283,9 +296,9 @@ const BloomCollectionInner: React.FunctionComponent<{
               <ConfigrRadio label="Funded by the local community only" value="local" />
               <ConfigrRadio label="None" value="none" />
             </ConfigrRadioGroup>
-          </ConfigrSubgroup>
+          </ConfigrGroup>
 
-          <ConfigrSubgroup label="" path="">
+          <ConfigrGroup label="">
             <ConfigrSelect
               label="BloomLibrary.org Bookshelf"
               path={'bookshelf'}
@@ -294,20 +307,22 @@ const BloomCollectionInner: React.FunctionComponent<{
               }
               options={[{ label: 'TODO', value: 'TODO' }]}
             ></ConfigrSelect>
-          </ConfigrSubgroup>
-        </ConfigrGroup>
-        <ConfigrGroup label="Location">
-          <ConfigrInput path={`country`} label="Country" />
-          <ConfigrInput path={`province`} label="Province" />
-          <ConfigrInput path={`district`} label="District" />
-        </ConfigrGroup>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="Location" pageKey="location">
+          <ConfigrGroup>
+            <ConfigrInput path={`country`} label="Country" />
+            <ConfigrInput path={`province`} label="Province" />
+            <ConfigrInput path={`district`} label="District" />
+          </ConfigrGroup>
+        </ConfigrPage>
 
-        <ConfigrGroup label="Advanced" level={1}>
-          <ConfigrSubgroup label="" path="">
-            <ConfigrInput path="collectionName" label="Bloom Collection Name" />{' '}
+        <ConfigrPage label="Advanced" pageKey="advanced">
+          <ConfigrGroup label="AdvancedGroup">
+            <ConfigrInput path="collectionName" label="Bloom Collection Name" />
             <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Experimental Features" path="feature">
+          </ConfigrGroup>
+          <ConfigrGroup label="Experimental Features">
             <ConfigrBoolean
               label="Show Experimental Book Sources"
               path="feature.experimentalBookSources"
@@ -335,8 +350,8 @@ const BloomCollectionInner: React.FunctionComponent<{
               path="feature.spreadsheet"
               disabled={true}
             />
-          </ConfigrSubgroup>
-        </ConfigrGroup>
+          </ConfigrGroup>
+        </ConfigrPage>
       </ConfigrPane>
     </div>
   );
@@ -466,8 +481,10 @@ const BloomBookInner: React.FunctionComponent<{
     >
       <ConfigrPane
         label="Book Settings"
+        selectedAreaIndex={0}
         initialValues={initialBloomBookValues}
         themeOverrides={bloomThemeOverrides}
+        showAppBar={true}
         showSearch={true}
         css={css`
           padding: 20px;
@@ -475,8 +492,8 @@ const BloomBookInner: React.FunctionComponent<{
         `}
         {...props}
       >
-        <ConfigrGroup label="Appearance" level={1}>
-          <ConfigrSubgroup label="Cover" path="appearance.cover">
+        <ConfigrPage label="Appearance" pageKey="appearance">
+          <ConfigrGroup label="Cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
@@ -486,77 +503,80 @@ const BloomBookInner: React.FunctionComponent<{
               description={'this is custom'}
               control={ConfigrColorPicker}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Margins" path="appearance.margins">
-            <ConfigrSelect
-              label={'Gutter'}
-              description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
-              path={'appearance.gutter'}
-              options={[
-                {
-                  label: 'default (0 mm)',
-                  value: '',
-                },
-                { value: '3mm' },
-              ]}
-            />
-            <ConfigrSelect
-              label={'Padding'}
-              description="This has no initial value, and empty string is not valid. Therefore we should see nothing as the selected menu item, and never see padding:'' in the json."
-              path={'appearance.padding'}
-              options={[{ value: '3mm' }, { value: '5mm' }]}
-            />
-            <ConfigrInput
-              label="Gap"
-              path="appearance.imageTextGapMillimeters"
-              units="mm"
-            />
+          </ConfigrGroup>
+          <ConfigrGroup label="Spacing">
+            <ConfigrPage label="Margins" pageKey="appearance-margins">
+              <ConfigrGroup label="Margins">
+                <ConfigrSelect
+                  label={'Padding'}
+                  description="This has no initial value, and empty string is not valid. Therefore we should see nothing as the selected menu item, and never see padding:'' in the json."
+                  path={'appearance.padding'}
+                  options={[{ value: '3mm' }, { value: '5mm' }]}
+                />
+                <ConfigrInput
+                  label="Gap"
+                  path="appearance.imageTextGapMillimeters"
+                  units="mm"
+                />
 
+                <ConfigrInput
+                  path={`appearance.margins.marginTop`}
+                  label="Top"
+                  {...propsForMmField}
+                />
+                <ConfigrInput
+                  path={`appearance.margins.marginBottom`}
+                  label="Bottom"
+                  {...propsForMmField}
+                />
+                <ConfigrInput
+                  path={`appearance.margins.marginOuter`}
+                  label="Outer"
+                  {...propsForMmField}
+                />
+                <ConfigrInput
+                  path={`appearance.margins.marginInner`}
+                  label="Inner"
+                  {...propsForMmField}
+                />
+              </ConfigrGroup>
+            </ConfigrPage>
+            {/* I'm unhappy about the "path" prop here. It seems to conflate location in the hierarchy with
+             the visual hierarchy.*/}
+            <ConfigrPage label="Advanced" pageKey="book-advanced">
+              <ConfigrGroup label="Spacing">
+                <ConfigrSelect
+                  label={'Gutter'}
+                  description="This has no initial value. Therefore we should see 'default (0 mm)' as the selected menu item."
+                  path={'appearance.gutter'}
+                  options={[
+                    {
+                      label: 'default (0 mm)',
+                      value: '',
+                    },
+                    { value: '3mm' },
+                  ]}
+                />
+                <ConfigrInput
+                  path={`appearance.spacing.verticalBlocks`}
+                  label="Between Vertical Blocks"
+                  {...propsForMmField}
+                />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="Bloom Library" pageKey="blorg">
+          <ConfigrGroup>
             <ConfigrInput
-              path={`appearance.margins.marginTop`}
-              label="Top"
-              {...propsForMmField}
+              path={`bloomLibrary.summary`}
+              label="Summary"
+              // Wants a way to say to leave more space for a summary.
             />
-            <ConfigrInput
-              path={`appearance.margins.marginBottom`}
-              label="Bottom"
-              {...propsForMmField}
-            />
-            <ConfigrInput
-              path={`appearance.margins.marginOuter`}
-              label="Outer"
-              {...propsForMmField}
-            />
-            <ConfigrInput
-              path={`appearance.margins.marginInner`}
-              label="Inner"
-              {...propsForMmField}
-            />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="disabledTest" path="appearance">
-            <ConfigrBoolean
-              label="Show Page Numbers"
-              path="appearance.disabledTest"
-              disabled={true}
-            />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Spacing" path="appearance.cover">
-            <ConfigrInput
-              path={`appearance.spacing.verticalBlocks`}
-              label="Between Vertical Blocks"
-              {...propsForMmField}
-            />
-          </ConfigrSubgroup>
-        </ConfigrGroup>
-        <ConfigrGroup label="Bloom Library" level={1}>
-          <ConfigrInput
-            path={`bloomLibrary.summary`}
-            label="Summary"
-            // Wants a way to say to leave more space for a summary.
-          />
-        </ConfigrGroup>
-        <ConfigrGroup label="ePUB" level={1}>
-          <ConfigrSubgroup label="Options" path="epub.options">
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="ePUB" pageKey="epub">
+          <ConfigrGroup label="Options">
             <ConfigrSelect
               path={'epub.options.mode'}
               label="ePUB mode"
@@ -576,12 +596,13 @@ const BloomBookInner: React.FunctionComponent<{
               ]}
             />
             <ConfigrBoolean
+              disabled={true}
               label="Image Descriptions on Page"
               description="Normally image descriptions are just audio, but this puts them in print as well."
               path="epub.options.imageDescriptionsOnPage"
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Metadata" path="epub.metadata">
+          </ConfigrGroup>
+          <ConfigrGroup label="Metadata">
             <ConfigrInput path={`epub.metadata.author`} label="Author" />
             <ConfigrBoolean
               label="Flashing Hazard"
@@ -593,8 +614,8 @@ const BloomBookInner: React.FunctionComponent<{
               label="Motion Simulation Hazard"
               path="epub.options.motionHazard"
             />
-          </ConfigrSubgroup>
-        </ConfigrGroup>
+          </ConfigrGroup>
+        </ConfigrPage>
       </ConfigrPane>
     </div>
   );
@@ -676,29 +697,47 @@ const BloomBookInnerV1: React.FunctionComponent<{
     >
       <ConfigrPane
         label="Book Settings"
+        selectedAreaIndex={0}
         initialValues={initialV1BloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={false}
+        showAppBar={true}
         css={css`
           padding: 20px;
           width: 700px;
         `}
         {...props}
       >
-        <ConfigrGroup
-          label=""
-          level={1}
-          // This should have a label, "Appearance", when there is more than one ConfigrGroup.
+        {/* <ConfigrPage
+          label="why are two required?"
+          pageKey="bbv2"
+
+          // This should have a label, "Appearance", when there is more than one ConfigrArea.
           // While there is not, it just takes up space and confuses things.
         >
-          <ConfigrSubgroup label="Cover" path="appearance.cover">
+          <ConfigrGroup label="Cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               control={ConfigrColorPicker}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Margins" path="appearance.margins">
+          </ConfigrGroup>
+        </ConfigrPage> */}
+        <ConfigrPage
+          label="bbv1"
+          pageKey="bbv1"
+
+          // This should have a label, "Appearance", when there is more than one ConfigrArea.
+          // While there is not, it just takes up space and confuses things.
+        >
+          <ConfigrGroup label="Cover">
+            <ConfigrCustomStringInput
+              path={`appearance.cover.coverColor`}
+              label="Cover Color"
+              control={ConfigrColorPicker}
+            />
+          </ConfigrGroup>
+          <ConfigrGroup label="Margins">
             <ConfigrInput
               path={`appearance.margins.marginTop`}
               label="Top"
@@ -719,15 +758,16 @@ const BloomBookInnerV1: React.FunctionComponent<{
               label="Inner"
               {...propsForMmField}
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Max Image Size" path="appearance.maxImageSize">
+          </ConfigrGroup>
+
+          <ConfigrGroup label="Max Image Size">
             <BloomResolutionSlider
               path={`appearance.maxImageSize`}
               label="Max Resolution"
               // Wants validation to be a positive number, possibly with an upper limit...2000? 5000?
             />
-          </ConfigrSubgroup>
-          <ConfigrSubgroup label="Other" path="appearance.other">
+          </ConfigrGroup>
+          <ConfigrGroup label="Other">
             <ConfigrBoolean
               label="Show Page Numbers"
               path="appearance.other.showPageNumber"
@@ -740,8 +780,8 @@ const BloomBookInnerV1: React.FunctionComponent<{
               // Or are we thinking of providing a fixed set of built-in themes he can choose from, so
               // this should be a select?
             />
-          </ConfigrSubgroup>
-        </ConfigrGroup>
+          </ConfigrGroup>
+        </ConfigrPage>
       </ConfigrPane>
     </div>
   );

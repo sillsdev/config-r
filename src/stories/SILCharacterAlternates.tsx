@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import { Tooltip } from '@mui/material';
 import * as React from 'react';
 import {
-  ConfigrSubgroup,
+  ConfigrGroup,
   ConfigrToggleGroup,
   ConfigrMakeToggle,
 } from '../../lib/ContentPane';
@@ -29,14 +29,15 @@ const SILRomanCharacterAlternate: CharacterAlternateDefinition[] = [
   },
 ];
 
-export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> = (
-  props,
-) => {
+export const SILCharacterAlternates: React.FunctionComponent<{
+  path: string;
+  inFocussedPage?: boolean; // don't set this in tsx, it will get prop-drilled at runtime
+}> = (props) => {
   return (
-    // TODO: configr can't handle a subpage inside of a subpage <ConfigrSubPage label="Character Alternates" path={`${props.path}`}>
-    // TODO: configr doesn't display subgroups properly in subpages {/* <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
-
-    <ConfigrSubgroup path={`${props.path}`} label={'SIL Font Character Alternates'}>
+    <ConfigrGroup
+      label={'SIL Font Character Alternates'}
+      inFocussedPage={props.inFocussedPage}
+    >
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate
@@ -46,7 +47,7 @@ export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> =
           />
         );
       })}
-    </ConfigrSubgroup>
+    </ConfigrGroup>
   );
 };
 
