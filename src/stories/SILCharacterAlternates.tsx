@@ -29,13 +29,15 @@ const SILRomanCharacterAlternate: CharacterAlternateDefinition[] = [
   },
 ];
 
-export const SILCharacterAlternates: React.FunctionComponent<{ path: string,
-  inFocussedPage?: boolean  // don't set this in tsx, it will get prop-drilled at runtime
- }> = (
-  props,
-) => {
+export const SILCharacterAlternates: React.FunctionComponent<{
+  path: string;
+  inFocussedPage?: boolean; // don't set this in tsx, it will get prop-drilled at runtime
+}> = (props) => {
   return (
-      <ConfigrGroup label={'SIL Font Character Alternates'} inFocussedPage={props.inFocussedPage}>
+    <ConfigrGroup
+      label={'SIL Font Character Alternates'}
+      inFocussedPage={props.inFocussedPage}
+    >
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate
