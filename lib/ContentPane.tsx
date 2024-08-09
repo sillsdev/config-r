@@ -895,6 +895,8 @@ export const ConfigrGroup: React.FunctionComponent<
 > = (props) => {
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
   return (
+    // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
+    // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
     //<FilterForSubPage {...props}>
     <InternalGroup {...props} level={2}>
       {props.children}

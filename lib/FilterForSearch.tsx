@@ -34,7 +34,7 @@ export const FilterForSearchText: React.FunctionComponent<
               searchRegEx.test(componentWithSearchTermsProp)
             )
               return true;
-            // Is this child a subpage? Then it has children we can check.
+            // Does this child have children we can check?
             // TODO: this would need to be recursive. Currently it is blocked by groups.
             // This is more than just checking recursively. If we find a match 3 levels
             // down, it's not really enough to just return true and show the great-great-grandchild.
@@ -44,14 +44,14 @@ export const FilterForSearchText: React.FunctionComponent<
             // for "sans-serif". It shows the "Appearance" group, then puts a yellow tooltip on the
             // "Customize fonts" subpage button. Then when you follow that, it highlights the "Sans-serif".
             // TODO: we should also be looking at `searchTerms`
-            const childrenOfSubPage = (c as any).props?.children;
-            if (childrenOfSubPage) {
+            const children = (c as any).props?.children;
+            if (children) {
               // among these children...
-              return React.Children.toArray(childrenOfSubPage).some((c: any) => {
+              return React.Children.toArray(children).some((configrItem: any) => {
                 // ... is there a child (a row of a sub page) that has a label that matches?
-                if (c?.props?.label) {
+                if (configrItem?.props?.label) {
                   // check the label in a great-grand-child (row of a sub page)
-                  return searchRegEx.test(c.props.label);
+                  return searchRegEx.test(configrItem.props.label);
                 }
               });
             }
