@@ -29,14 +29,13 @@ const SILRomanCharacterAlternate: CharacterAlternateDefinition[] = [
   },
 ];
 
-export const SILCharacterAlternates: React.FunctionComponent<{ path: string }> = (
+export const SILCharacterAlternates: React.FunctionComponent<{ path: string,
+  inFocussedPage?: boolean  // don't set this in tsx, it will get prop-drilled at runtime
+ }> = (
   props,
 ) => {
   return (
-    // TODO: configr can't handle a subpage inside of a subpage <ConfigrSubPage label="Character Alternates" path={`${props.path}`}>
-    // TODO: configr doesn't display groups properly in subpages {/* <configrgroup path={`${props.path}`} label={'SIL Font Character Alternates'}> */}
-
-    <ConfigrGroup label={'SIL Font Character Alternates'}>
+      <ConfigrGroup label={'SIL Font Character Alternates'} inFocussedPage={props.inFocussedPage}>
       {SILRomanCharacterAlternate.map((alternate) => {
         return (
           <CharacterAlternate

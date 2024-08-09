@@ -111,23 +111,26 @@ const BloomCollectionInner: React.FunctionComponent<{
         `}
         // {...props}
       >
-        <ConfigrPage label="Languagesx" pageKey="languages">
+        <ConfigrPage label="Languages" pageKey="languages">
           <ConfigrGroup label="Languages">
             <ConfigrForEach
               path="languages"
               searchTerms="font script right left word breaking Asian name iso"
-              render={(prefix: string, index: number) => {
+              render={(prefix: string, index: number, inFocussedPage: boolean) => {
                 const language = initialBloomCollectionValues.languages[index];
                 console.log('language', language);
                 return (
-                  // Todo: we aren't getting inFocussedPage propagate with this approach
                   // TODO: Is Render() the right approach? Or could we have something like <ConfigrGroupList> that is just like a group except uses a template to get the path
-                  // TODO: in other words here we are responsible for sticking in `prefix` and `index`. Could Configr do that for us? Then Configr could be responsible for
+                  // TODO: in other words here we are responsible for sticking in `prefix`, `index`, and `inFocussedPage`. Could Configr do that for us? Then Configr could be responsible for
                   // TODO: any prop-drilling related to focus page.
-                  <ConfigrGroup label={language.label} key={`${index}`}>
+                  <ConfigrGroup
+                    label={language.label}
+                    key={`${index}`}
+                    inFocussedPage={inFocussedPage} // TODO: we really don't want to have clients knowing about inFocussedPage
+                  >
                     <ConfigrPage
                       label={language.id.name}
-                      pageKey={`${prefix}-id`}
+                      pageKey={`${prefix}-id`} // e.g. languages[0]-id
                       labelCss={css`
                         font-weight: bold !important;
                       `}
@@ -228,7 +231,7 @@ const BloomCollectionInner: React.FunctionComponent<{
                       pageKey={`${prefix}-fontFeatures`}
                     >
                       <ConfigrGroup
-                        label={'xFont Features' + language.label}
+                        label={'Font Features' + language.label}
                         key={`x${index}`}
                       >
                         <SILCharacterAlternates

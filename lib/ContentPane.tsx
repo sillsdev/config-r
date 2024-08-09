@@ -995,7 +995,12 @@ export const ConfigrForEach: React.FunctionComponent<
   React.PropsWithChildren<{
     path: string; // really, `path`
     searchTerms: string;
-    render: (pathPrefix: string, index: number) => React.ReactNode;
+    inFocussedPage?: boolean; // is unknown initially but the actual instance that gets rendered has a value that is prop-drilled down from the parent ConfigrPage
+    render: (
+      pathPrefix: string,
+      index: number,
+      inFocussedPage: boolean, // at runtime, this will have been prop-drilled down from the parent ConfigrPage
+    ) => React.ReactNode;
     getErrorMessage?: (data: any) => string | undefined;
   }>
 > = (props) => {
@@ -1004,7 +1009,7 @@ export const ConfigrForEach: React.FunctionComponent<
   return (
     <React.Fragment>
       {items.map((_item: any, index: number) =>
-        props.render(`${props.path}[${index}]`, index),
+        props.render(`${props.path}[${index}]`, index, !!props.inFocussedPage),
       )}
     </React.Fragment>
   );
