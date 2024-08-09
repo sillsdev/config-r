@@ -122,7 +122,12 @@ export const ContentPane: React.FunctionComponent<
     setPageHistoryStack([...pageHistoryStack, focussedPageKey]);
     setFocussedPageKey(pageKey);
   };
-
+  const getTopLevelPages = () => {
+    return React.Children.map(props.children, (child: any) => {
+      if (!child) return null;
+      return React.cloneElement(child, { topLevel: true });
+    }).filter((c: any) => c);
+  };
   return (
     <FocusPageContext.Provider
       value={{
@@ -155,11 +160,23 @@ export const ContentPane: React.FunctionComponent<
                 flex-grow: 1;
               `}
             >
-              {/* return all of our children but add a prop.topLevel=true to each one */}
-              {React.Children.map(props.children, (child: any) => {
-                if (!child) return null;
-                return React.cloneElement(child, { topLevel: true });
-              })?.filter((c: any) => c)}
+              <SearchContext.Consumer>
+                {({ searchString }) => {
+                  if (searchString) {
+                    return (
+                      // This doesn't do any filtering, it just highlights matching things that something else is choosing to show.
+                      <HighlightSearchTerms
+                        searchString={searchString}
+                        focussedPageKey={focussedPageKey}
+                      >
+                        {getTopLevelPages()}
+                      </HighlightSearchTerms>
+                    );
+                  } else {
+                    return getTopLevelPages();
+                  }
+                }}
+              </SearchContext.Consumer>
             </form>
           );
         }}
@@ -168,45 +185,45 @@ export const ContentPane: React.FunctionComponent<
   );
 };
 
-const VisibleGroups: React.FunctionComponent<
-  React.PropsWithChildren<{
-    currentGroup?: number;
-    focussedPageKey?: string;
-    children:
-      | React.ReactElement<typeof InternalGroup>
-      | React.ReactElement<typeof InternalGroup>[];
-  }>
-> = (props) => {
-  return (
-    <SearchContext.Consumer>
-      {({ searchString }) => {
-        return (
-          <div
-            id="groups"
-            css={css`
-              //overflow-y: scroll; //allows us to scroll the groups without
-              //scrolling the heading tabs
-              overflow-y: auto;
-            `}
-          >
-            {searchString ? (
-              <HighlightSearchTerms
-                searchString={searchString}
-                focussedPageKey={props.focussedPageKey}
-              >
-                {React.Children.toArray(props.children).filter((c) => c)}
-              </HighlightSearchTerms>
-            ) : (
-              React.Children.toArray(props.children).filter(
-                (c: React.ReactNode, index: number) => c && index === props.currentGroup,
-              )
-            )}
-          </div>
-        );
-      }}
-    </SearchContext.Consumer>
-  );
-};
+// const VisibleGroups: React.FunctionComponent<
+//   React.PropsWithChildren<{
+//     currentGroup?: number;
+//     focussedPageKey?: string;
+//     children:
+//       | React.ReactElement<typeof InternalGroup>
+//       | React.ReactElement<typeof InternalGroup>[];
+//   }>
+// > = (props) => {
+//   return (
+//     <SearchContext.Consumer>
+//       {({ searchString }) => {
+//         return (
+//           <div
+//             id="groups"
+//             css={css`
+//               //overflow-y: scroll; //allows us to scroll the groups without
+//               //scrolling the heading tabs
+//               overflow-y: auto;
+//             `}
+//           >
+//             {searchString ? (
+//               <HighlightSearchTerms
+//                 searchString={searchString}
+//                 focussedPageKey={props.focussedPageKey}
+//               >
+//                 {React.Children.toArray(props.children).filter((c) => c)}
+//               </HighlightSearchTerms>
+//             ) : (
+//               React.Children.toArray(props.children).filter(
+//                 (c: React.ReactNode, index: number) => c && index === props.currentGroup,
+//               )
+//             )}
+//           </div>
+//         );
+//       }}
+//     </SearchContext.Consumer>
+//   );
+// };
 
 // export const ConfigrArea: React.FunctionComponent<
 //   React.PropsWithChildren<{
