@@ -116,18 +116,11 @@ const BloomCollectionInner: React.FunctionComponent<{
             <ConfigrForEach
               path="languages"
               searchTerms="font script right left word breaking Asian name iso"
-              render={(prefix: string, index: number, inFocussedPage: boolean) => {
+              render={(prefix: string, index: number) => {
                 const language = initialBloomCollectionValues.languages[index];
                 console.log('language', language);
                 return (
-                  // TODO: Is Render() the right approach? Or could we have something like <ConfigrGroupList> that is just like a group except uses a template to get the path
-                  // TODO: in other words here we are responsible for sticking in `prefix`, `index`, and `inFocussedPage`. Could Configr do that for us? Then Configr could be responsible for
-                  // TODO: any prop-drilling related to focus page.
-                  <ConfigrGroup
-                    label={language.label}
-                    key={`${index}`}
-                    inFocussedPage={inFocussedPage} // TODO: we really don't want to have clients knowing about inFocussedPage
-                  >
+                  <ConfigrGroup label={language.label}>
                     <ConfigrPage
                       label={language.id.name}
                       pageKey={`${prefix}-id`} // e.g. languages[0]-id
