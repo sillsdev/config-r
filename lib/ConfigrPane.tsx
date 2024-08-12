@@ -25,12 +25,12 @@ export const ConfigrPane: React.FunctionComponent<
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
-    selectedAreaIndex?: number;
+    initiallySelectedTopLevelPageIndex?: number;
   }>
 > = (props) => {
-  const [currentArea, setCurrentArea] = useState<number | undefined>(
-    props.selectedAreaIndex ?? 0,
-  );
+  const [currentTopLevelPageIndex, setCurrentTopLevelPageIndex] = useState<
+    number | undefined
+  >(props.initiallySelectedTopLevelPageIndex ?? 0);
 
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
@@ -82,7 +82,7 @@ export const ConfigrPane: React.FunctionComponent<
                           // There should be no selected group if we
                           // have a search term. If the user clears the search,
                           // then we set the selected group to be the 1st one (0).
-                          setCurrentArea(s ? undefined : 0);
+                          setCurrentTopLevelPageIndex(s ? undefined : 0);
                         }
                       }}
                     />
@@ -103,14 +103,14 @@ export const ConfigrPane: React.FunctionComponent<
                   >
                     {wantAreaChooser && (
                       <AreaChooser
-                        currentGroup={currentArea}
-                        setCurrentAreaIndex={setCurrentArea}
+                        currentGroup={currentTopLevelPageIndex}
+                        setCurrentAreaIndex={setCurrentTopLevelPageIndex}
                       >
                         {props.children}
                       </AreaChooser>
                     )}
                     <ContentPane
-                      currentAreaIndex={currentArea}
+                      currentAreaIndex={currentTopLevelPageIndex}
                       {...propsToPass}
                       onChange={onChangeWrapper}
                     />

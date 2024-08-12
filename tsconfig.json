@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "types": [/*"@emotion/core",*/ "@emotion/react/types/css-prop", "vite/client"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "types": [ /*"@emotion/core",*/
+      "@emotion/react/types/css-prop",
+      "vite/client"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -19,8 +26,14 @@
     // don't let client access things that are exported only for use within this library
     "stripInternal": true
   },
-  "include": ["./src", ".storybook/lib", "lib"],
-  "exclude": ["node_modules"],
+  "include": [
+    "./src",
+    ".storybook/lib",
+    "lib"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   // for vue-tsc
   "outDir": "dist",
   "declaration": true
