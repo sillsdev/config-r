@@ -83,7 +83,7 @@
     "storybook": "8.2.8",
     "typescript": "^5.5.4",
     "vite": "^5.4.0",
-    "vite-plugin-dts": "^4.0.2"
+    "vite-plugin-dts": "^1.7.2"
   },
   "pre-commit": "lint",
   "files": [
