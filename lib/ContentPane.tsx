@@ -59,26 +59,26 @@ export const ContentPane: React.FunctionComponent<
   React.PropsWithChildren<{
     // this is the whole settings object that we are editing
     initialValues: object;
-    currentAreaIndex?: number;
+    currentTopLevelPageIndex?: number;
     children:
-      | React.ReactElement<typeof InternalGroup>
-      | React.ReactElement<typeof InternalGroup>[];
+      | React.ReactElement<typeof ConfigrPage>
+      | React.ReactElement<typeof ConfigrPage>[];
     setValueGetter?: (vg: valueGetter) => void;
     onChange?: (currentValues: any) => void;
   }>
 > = (props) => {
   const [focussedPageKey, setFocussedPageKey] = useState('');
   React.useEffect(() => {
-    const pageWithCurrentAreaIndex = React.Children.toArray(props.children).filter(
-      (c) => c,
-    )[props.currentAreaIndex || 0];
+    const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[
+      props.currentTopLevelPageIndex || 0
+    ];
 
-    const pageKey = React.isValidElement(pageWithCurrentAreaIndex)
-      ? pageWithCurrentAreaIndex.props?.pageKey
+    const pageKey = React.isValidElement(pageToFocus)
+      ? pageToFocus.props?.pageKey
       : undefined;
 
     setFocussedPageKey(pageKey);
-  }, [props.children, props.currentAreaIndex]);
+  }, [props.children, props.currentTopLevelPageIndex]);
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
@@ -225,62 +225,12 @@ export const ContentPane: React.FunctionComponent<
 //   );
 // };
 
-// export const ConfigrArea: React.FunctionComponent<
-//   React.PropsWithChildren<{
-//     label: string;
-//     description?: string | React.ReactNode;
-//   }>
-// > = (props) => {
-//   return <InternalGroup {...props} level={1} />;
-// };
-
-const InternalGroup: React.FunctionComponent<
-  React.PropsWithChildren<{
-    label?: string;
-    description?: string | React.ReactNode;
-    level?: undefined | 1 | 2;
-  }>
-> = (props) => {
-  return <RowCluster {...props}>{props.children}</RowCluster>;
-  // <FilterForSearchText {...props} kids={props.children}>
-  //   <div
-  //     className="indentIfInSubPage"
-  //     css={css`
-  //       //margin-top: 21px !important;
-  //       margin-bottom: 12px !important;
-  //     `}
-  //   >
-  //     {props.label && (
-  //       <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
-  //     )}
-  //     <Typography variant={'caption'}>
-  //       {descriptionToReact(props.description)}
-  //     </Typography>
-  //   </div>
-  //   {!props.level || props.level <RowCluster 2 ? (
-  //     <div className="indentIfInSubPage">{props.children}</div>
-  //   ) : (
-  //     <RowCluster>{props.children}</RowCluster>
-  //   )}
-  // </FilterForSearchText>
-};
-
-// const RowCluster: React.FunctionComponent<
-//   React.PropsWithChildren<{
-//     label?: string;
-//     inFocussedPage?: boolean;
-//   }>
-// > = (props) => {
-//   return <>{props.children}</>;
-// };
-
 const RowCluster: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
     inFocussedPage?: boolean;
   }>
 > = (props) => {
-  //const childrenWithStore = getChildrenWithStore(props);
   if (props.inFocussedPage) {
     console.log(
       'RowCluster infocus' + 'children:' + React.Children.count(props.children),
@@ -312,29 +262,17 @@ const RowCluster: React.FunctionComponent<
     );
   } else {
     // So we aren't part of the active page, but maybe that page is a descendant of ours
-    // Keep only the children that could contain that page.
-    console.log('RowCluster props', props);
+    // Keep only the children that could contain that page (ConfigrPage || ConfigrForEach).
     return (
       <>
-        {React.Children.toArray(props.children).filter((child: any) => {
-          if (!child) return null;
-          return child.type === ConfigrPage || child.type === ConfigrForEach;
-        })}
+        {React.Children.map(props.children, (child: any) => {
+          if (child?.type === ConfigrPage || child?.type === ConfigrForEach) return child;
+          else return null;
+        }).filter((c: any) => c)}
       </>
     );
   }
 };
-
-// unused:?this doesn't seem to do anything except strip out... things that aren't elements?
-// function getChildrenWithStore(props: React.PropsWithChildren<{}>) {
-//   return React.Children.map(props.children, (c, index) => {
-//     if (React.isValidElement(c)) {
-//       return React.cloneElement(c, {
-//         ...c.props,
-//       });
-//     } else return null;
-//   });
-// }
 
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
@@ -895,15 +833,31 @@ export const ConfigrGroup: React.FunctionComponent<
   }>
 > = (props) => {
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
-  return (
-    // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
-    // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
-    //<FilterForSubPage {...props}>
-    <InternalGroup {...props} level={2}>
-      {props.children}
-    </InternalGroup>
-    //</FilterForSubPage>
-  );
+
+  // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
+  // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
+  return <RowCluster {...props}>{props.children}</RowCluster>;
+  // <FilterForSearchText {...props} kids={props.children}>
+  //   <div
+  //     className="indentIfInSubPage"
+  //     css={css`
+  //       //margin-top: 21px !important;
+  //       margin-bottom: 12px !important;
+  //     `}
+  //   >
+  //     {props.label && (
+  //       <Typography variant={props.level === 2 ? 'h3' : 'h2'}>{props.label}</Typography>
+  //     )}
+  //     <Typography variant={'caption'}>
+  //       {descriptionToReact(props.description)}
+  //     </Typography>
+  //   </div>
+  //   {!props.level || props.level <RowCluster 2 ? (
+  //     <div className="indentIfInSubPage">{props.children}</div>
+  //   ) : (
+  //     <RowCluster>{props.children}</RowCluster>
+  //   )}
+  // </FilterForSearchText>
 };
 
 // In Chrome Settings, most controls live under pages that you get
@@ -921,6 +875,9 @@ export const ConfigrPage: React.FunctionComponent<
     topLevel?: boolean; // NB: not a for public API.
     getErrorMessage?: (data: any) => string | undefined;
     inFocussedPage?: boolean;
+    children:
+      | React.ReactElement<typeof ConfigrGroup | typeof ConfigrForEach>
+      | React.ReactElement<typeof ConfigrGroup | typeof ConfigrForEach>[];
   }>
 > = (props) => {
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
@@ -988,12 +945,15 @@ export const ConfigrPage: React.FunctionComponent<
             </>
           );
         } else {
-          // traverse children that are ConfigrGroups so we should search down them looking for current page
+          // traverse children that can contain pagesso we should search down them looking for current page
           // these will not add anything to the UI except the page we're looking for, if they have it.
           return (
             <React.Fragment>
               {React.Children.map(props.children, (child) => {
-                if (child && (child as any).type === ConfigrGroup) {
+                if (
+                  (child && (child as any).type === ConfigrGroup) ||
+                  (child as any).type === ConfigrForEach
+                ) {
                   return child;
                 } else return null;
               })?.filter((c) => c)}

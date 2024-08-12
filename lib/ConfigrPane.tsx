@@ -3,7 +3,7 @@ import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
-import { ConfigrGroup, ContentPane } from './ContentPane';
+import { ConfigrPage, ContentPane } from './ContentPane';
 import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
@@ -14,10 +14,8 @@ export const ConfigrPane: React.FunctionComponent<
     label: string;
     initialValues: object;
     children:
-      | React.ReactElement<typeof ConfigrGroup>
-      | React.ReactElement<typeof ConfigrGroup>[];
-    // review; what's this about?
-    //setValueGetter?: (vg: valueGetter) => void;
+      | React.ReactElement<typeof ConfigrPage>
+      | React.ReactElement<typeof ConfigrPage>[];
     onChange?: (currentValues: any) => void;
     showAppBar?: boolean;
     showSearch?: boolean;
@@ -110,7 +108,7 @@ export const ConfigrPane: React.FunctionComponent<
                       </AreaChooser>
                     )}
                     <ContentPane
-                      currentAreaIndex={currentTopLevelPageIndex}
+                      currentTopLevelPageIndex={currentTopLevelPageIndex}
                       {...propsToPass}
                       onChange={onChangeWrapper}
                     />

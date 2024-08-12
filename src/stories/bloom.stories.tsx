@@ -104,7 +104,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         showSearch={true}
         showAppBar={true}
         showJson={true}
-        initiallySelectedTopLevelPageIndex={1}
+        initiallySelectedTopLevelPageIndex={0}
         css={css`
           background-color: #cfa7e7;
           padding: 20px;
@@ -112,132 +112,132 @@ const BloomCollectionInner: React.FunctionComponent<{
         `}
         // {...props}
       >
+        {/* <ConfigrPage label={'Important stuff'} pageKey="foo">
+            <ConfigrGroup label={'sho me'}>
+              <ConfigrBoolean label={'hello'} path="blah" />
+            </ConfigrGroup>
+          </ConfigrPage> */}
         <ConfigrPage label="Languages" pageKey="languages">
-          <ConfigrGroup label="Languages">
-            <ConfigrForEach
-              path="languages"
-              searchTerms="font script right left word breaking Asian name iso"
-              render={(prefix: string, index: number) => {
-                const language = initialBloomCollectionValues.languages[index];
-                console.log('language', language);
-                return (
-                  <ConfigrGroup label={language.label}>
-                    <ConfigrPage
-                      label={language.id.name}
-                      pageKey={`${prefix}-id`} // e.g. languages[0]-id
-                      labelCss={css`
-                        font-weight: bold !important;
-                      `}
-                    >
+          <ConfigrForEach
+            path="languages"
+            searchTerms="font script right left word breaking Asian name iso"
+            render={(prefix: string, index: number) => {
+              const language = initialBloomCollectionValues.languages[index];
+              console.log('language', language);
+              return (
+                <ConfigrGroup label={language.label}>
+                  <ConfigrPage
+                    label={language.id.name}
+                    pageKey={`${prefix}-id`} // e.g. languages[0]-id
+                    labelCss={css`
+                      font-weight: bold !important;
+                    `}
+                  >
+                    <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
+                      <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                      <ConfigrInput path={`${prefix}.id.name`} label="Name" />
+                    </ConfigrGroup>
+                  </ConfigrPage>
+                  {!language.isSignLanguage && (
+                    <ConfigrSelect
+                      path={`${prefix}.font`}
+                      label="Default Font"
+                      options={[
+                        { label: 'Arial', value: 'Arial' },
+                        { label: 'Andika New Basic', value: 'Andika New Basic' },
+                      ]}
+                      description={
+                        'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
+                      }
+                      overrideValue="Arial"
+                      overrideDescription="This is locked by Kyrgyzstan xmatter"
+                    ></ConfigrSelect>
+                  )}
+
+                  {!language.isSignLanguage && (
+                    <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
                       <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
-                        <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
-                        <ConfigrInput path={`${prefix}.id.name`} label="Name" />
-                      </ConfigrGroup>
-                    </ConfigrPage>
-                    {!language.isSignLanguage && (
-                      <ConfigrSelect
-                        path={`${prefix}.font`}
-                        label="Default Font"
-                        options={[
-                          { label: 'Arial', value: 'Arial' },
-                          { label: 'Andika New Basic', value: 'Andika New Basic' },
-                        ]}
-                        description={
-                          'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
-                        }
-                        overrideValue="Arial"
-                        overrideDescription="This is locked by Kyrgyzstan xmatter"
-                      ></ConfigrSelect>
-                    )}
-
-                    {!language.isSignLanguage && (
-                      <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
-                        <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
-                          <ConfigrBoolean
-                            overrideValue={true}
-                            overrideDescription="This is locked by Kyrgyzstan xmatter"
-                            label="This is a right to left script, like Arabic"
-                            path={`${prefix}.script.rtl`}
-                          />
-                          <ConfigrBoolean
-                            label="Do not use special Asian script word breaking"
-                            path={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                            overrideValue={false}
-                            overrideDescription="This is locked by Kyrgyzstan xmatter"
-                          />
-                          <ConfigrBoolean
-                            label="This script requires taller lines (locked)"
-                            path={`${prefix}.script.tallerLines`}
-                            locked={true}
-                          />
-                          <ConfigrBoolean
-                            label="This script requires taller lines"
-                            path={`${prefix}.script.tallerLines`}
-                          />
-
-                          <ConfigrSelect
-                            enableWhen={`${prefix}.script.tallerLines`}
-                            indented={true}
-                            path={`${prefix}.script.tallerLines_defaultLineSpacing`}
-                            label="Line Spacing"
-                            options={[
-                              { label: 'Default line spacing', value: '0' }, // todo
-                              1.0,
-                              1.1,
-                              1.2,
-                              1.3,
-                              1.4,
-                              1.5,
-                              1.6,
-                              1.7,
-                              1.8,
-                              1.9,
-                              2.0,
-                              2.5,
-                              3.0,
-                            ]}
-                          ></ConfigrSelect>
-
-                          <ConfigrSelect
-                            path={`${prefix}.script.fontSizeInTools`}
-                            label="Font size when displayed in tools"
-                            options={[
-                              { label: 'Default size', value: '0' }, // todo
-                              9,
-                              10,
-                              11,
-                              12,
-                              14,
-                              16,
-                              18,
-                              20,
-                              22,
-                              24,
-                              26,
-                            ]}
-                          ></ConfigrSelect>
-                        </ConfigrGroup>
-                      </ConfigrPage>
-                    )}
-
-                    <ConfigrPage
-                      label={'Font Features'}
-                      pageKey={`${prefix}-fontFeatures`}
-                    >
-                      <ConfigrGroup
-                        label={'Font Features' + language.label}
-                        key={`x${index}`}
-                      >
-                        <SILCharacterAlternates
-                          path={`${prefix}.fontFeatures.silCharacterAlternates`}
+                        <ConfigrBoolean
+                          overrideValue={true}
+                          overrideDescription="This is locked by Kyrgyzstan xmatter"
+                          label="This is a right to left script, like Arabic"
+                          path={`${prefix}.script.rtl`}
                         />
+                        <ConfigrBoolean
+                          label="Do not use special Asian script word breaking"
+                          path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                          overrideValue={false}
+                          overrideDescription="This is locked by Kyrgyzstan xmatter"
+                        />
+                        <ConfigrBoolean
+                          label="This script requires taller lines (locked)"
+                          path={`${prefix}.script.tallerLines`}
+                          locked={true}
+                        />
+                        <ConfigrBoolean
+                          label="This script requires taller lines"
+                          path={`${prefix}.script.tallerLines`}
+                        />
+
+                        <ConfigrSelect
+                          enableWhen={`${prefix}.script.tallerLines`}
+                          indented={true}
+                          path={`${prefix}.script.tallerLines_defaultLineSpacing`}
+                          label="Line Spacing"
+                          options={[
+                            { label: 'Default line spacing', value: '0' }, // todo
+                            1.0,
+                            1.1,
+                            1.2,
+                            1.3,
+                            1.4,
+                            1.5,
+                            1.6,
+                            1.7,
+                            1.8,
+                            1.9,
+                            2.0,
+                            2.5,
+                            3.0,
+                          ]}
+                        ></ConfigrSelect>
+
+                        <ConfigrSelect
+                          path={`${prefix}.script.fontSizeInTools`}
+                          label="Font size when displayed in tools"
+                          options={[
+                            { label: 'Default size', value: '0' }, // todo
+                            9,
+                            10,
+                            11,
+                            12,
+                            14,
+                            16,
+                            18,
+                            20,
+                            22,
+                            24,
+                            26,
+                          ]}
+                        ></ConfigrSelect>
                       </ConfigrGroup>
                     </ConfigrPage>
-                  </ConfigrGroup>
-                );
-              }}
-            ></ConfigrForEach>
-          </ConfigrGroup>
+                  )}
+
+                  <ConfigrPage label={'Font Features'} pageKey={`${prefix}-fontFeatures`}>
+                    <ConfigrGroup
+                      label={'Font Features' + language.label}
+                      key={`x${index}`}
+                    >
+                      <SILCharacterAlternates
+                        path={`${prefix}.fontFeatures.silCharacterAlternates`}
+                      />
+                    </ConfigrGroup>
+                  </ConfigrPage>
+                </ConfigrGroup>
+              );
+            }}
+          ></ConfigrForEach>
         </ConfigrPage>
         <ConfigrPage label="Book Defaults" pageKey="book defaults">
           <ConfigrGroup label="">
@@ -351,6 +351,11 @@ const BloomCollectionInner: React.FunctionComponent<{
               path="feature.spreadsheet"
               disabled={true}
             />
+            <ConfigrPage label="Super Advanced" pageKey="superadvanced">
+              <ConfigrGroup label="Super Advanced">
+                <ConfigrBoolean label="Make it all harder" path="feature.harder" />
+              </ConfigrGroup>
+            </ConfigrPage>
           </ConfigrGroup>
         </ConfigrPage>
       </ConfigrPane>
