@@ -60,7 +60,9 @@ export const ContentPane: React.FunctionComponent<
     // this is the whole settings object that we are editing
     initialValues: object;
     currentTopLevelPageIndex?: number;
-    children: PageChild | PageChild[];
+    children:
+      | React.ReactElement<typeof ConfigrPage>
+      | React.ReactElement<typeof ConfigrPage>[];
     setValueGetter?: (vg: valueGetter) => void;
     onChange?: (currentValues: any) => void;
   }>
@@ -847,7 +849,14 @@ export const ConfigrGroup: React.FunctionComponent<
   // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
   // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
 
-  return <BoxOfRows {...props}>{props.children}</BoxOfRows>;
+  return (
+    <>
+      {props.inFocussedPage && props.label && (
+        <Typography variant="h3">{props.label}</Typography>
+      )}
+      <BoxOfRows {...props}>{props.children}</BoxOfRows>
+    </>
+  );
 
   // <FilterForSearchText {...props} kids={props.children}>
   //   <div

@@ -119,12 +119,10 @@ const BloomCollectionInner: React.FunctionComponent<{
             </ConfigrGroup>
           </ConfigrPage> */}
 
-        <ConfigrPage label="Languages" pageKey="languages">
-          {!props.onChange && (
-            <ConfigrGroup label="Languages">
-              <h1>test</h1>
-            </ConfigrGroup>
-          )}
+        <ConfigrPage label="Area" pageKey="testinggrouplabel">
+          <ConfigrGroup label="Show this Group Label">
+            <ConfigrBoolean label="foo" path="blah" />
+          </ConfigrGroup>
         </ConfigrPage>
         <ConfigrPage label="Languages" pageKey="languages">
           <ConfigrForEach
@@ -249,7 +247,7 @@ const BloomCollectionInner: React.FunctionComponent<{
           ></ConfigrForEach>
         </ConfigrPage>
         <ConfigrPage label="Book Defaults" pageKey="book defaults">
-          <ConfigrGroup label="Book Defaults">
+          <ConfigrGroup>
             <ConfigrSelect
               path={'pageNumberStyle'}
               label="Page Numbering Style"
@@ -328,7 +326,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         </ConfigrPage>
 
         <ConfigrPage label="Advanced" pageKey="advanced">
-          <ConfigrGroup label="AdvancedGroup">
+          <ConfigrGroup>
             <ConfigrInput path="collectionName" label="Bloom Collection Name" />
             <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
           </ConfigrGroup>
