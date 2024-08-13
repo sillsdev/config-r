@@ -16,6 +16,7 @@ import {
   ConfigrCustomStringInput,
   ConfigrCustomNumberInput,
   ConfigrCustomObjectInput,
+  PageChild,
 } from '../../lib/ContentPane';
 import { ConfigrColorPicker } from '../../lib/ConfigrColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
@@ -117,6 +118,14 @@ const BloomCollectionInner: React.FunctionComponent<{
               <ConfigrBoolean label={'hello'} path="blah" />
             </ConfigrGroup>
           </ConfigrPage> */}
+
+        <ConfigrPage label="Languages" pageKey="languages">
+          {!props.onChange && (
+            <ConfigrGroup label="Languages">
+              <h1>test</h1>
+            </ConfigrGroup>
+          )}
+        </ConfigrPage>
         <ConfigrPage label="Languages" pageKey="languages">
           <ConfigrForEach
             path="languages"
@@ -133,7 +142,7 @@ const BloomCollectionInner: React.FunctionComponent<{
                       font-weight: bold !important;
                     `}
                   >
-                    <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
+                    <ConfigrGroup label={language.label} key={`x${index}`}>
                       <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
                       <ConfigrInput path={`${prefix}.id.name`} label="Name" />
                     </ConfigrGroup>
@@ -156,7 +165,7 @@ const BloomCollectionInner: React.FunctionComponent<{
 
                   {!language.isSignLanguage && (
                     <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
-                      <ConfigrGroup label={'x' + language.label} key={`x${index}`}>
+                      <ConfigrGroup label={language.label} key={`x${index}`}>
                         <ConfigrBoolean
                           overrideValue={true}
                           overrideDescription="This is locked by Kyrgyzstan xmatter"
@@ -240,7 +249,7 @@ const BloomCollectionInner: React.FunctionComponent<{
           ></ConfigrForEach>
         </ConfigrPage>
         <ConfigrPage label="Book Defaults" pageKey="book defaults">
-          <ConfigrGroup label="">
+          <ConfigrGroup label="Book Defaults">
             <ConfigrSelect
               path={'pageNumberStyle'}
               label="Page Numbering Style"

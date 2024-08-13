@@ -28,6 +28,7 @@ export default defineConfig({
       name: 'configr',
       fileName: (format) => `configr.${format}.js`,
     },
+    sourcemap: true,
     rollupOptions: {
       // don't bundle these with the library
       external: [
