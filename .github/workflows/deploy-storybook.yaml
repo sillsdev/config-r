@@ -1,0 +1,25 @@
+name: Build and Publish storybook to GitHub Pages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.build-publish.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Node.js, NPM and Yarn as specified in package.json
+        uses: volta-cli/action@v4
+
+      - name: Deploy Storybook to GitHub Pages
+        uses: bitovi/github-actions-storybook-to-github-pages@v1.0.3
+        with:
+          path: storybook-static
+          install_command: yarn install --frozen-lockfile --network-timeout 1000000
+          build_command: yarn build-storybook
