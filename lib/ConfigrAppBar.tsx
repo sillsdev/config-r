@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { alpha, styled, Theme } from '@mui/material/styles';
+import { alpha, styled } from '@mui/material/styles';
 import { AppBar, Toolbar, Typography, InputBase, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { SearchContext } from './SearchContextProvider';

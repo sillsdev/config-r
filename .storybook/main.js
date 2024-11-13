@@ -1,4 +1,4 @@
-const react = require('@vitejs/plugin-react');
+import react from '@vitejs/plugin-react';
 module.exports = {
   async viteFinal(config) {
     // from https://github.com/storybookjs/builder-vite/issues/210

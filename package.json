@@ -89,20 +89,21 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/configr.es.js",
   "module": "./dist/configr.es.js",
-  "//about index.d.ts": "see comment in vite.config.ts",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/configr.es.js"
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/configr.es.js",
+      "default": "./dist/configr.es.js"
     }
   },
+  "types": "./dist/lib/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "volta": {
     "node": "20.17.0",
     "yarn": "1.22.19"
-  }
+  },
+  "type": "module"
 }

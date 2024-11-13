@@ -10,7 +10,8 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
+    //"verbatimModuleSyntax": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -20,8 +21,5 @@
     "stripInternal": true
   },
   "include": ["./src", ".storybook/lib", "lib"],
-  "exclude": ["node_modules"],
-  // for vue-tsc
-  "outDir": "dist",
-  "declaration": true
+  "exclude": ["node_modules"]
 }

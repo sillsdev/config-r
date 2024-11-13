@@ -1,15 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
-// 1) this one works except for one problem: https://github.com/qmhc/vite-plugin-dts/issues/59
 import dts from 'vite-plugin-dts';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-// 2) I tried just using tsup instead of vitejs for the actual library build, but then of course it has it's own quirks to work though and seems like a bad idea.
-
-// 3) this one (https://github.com/alloc/vite-dts) is unusual in that it basically just points at your source code... it doesn't generate anything.
-//import dumbDts from 'vite-dts';
-
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,29 +13,32 @@ export default defineConfig({
     dts({
       //root: 'lib',
       //outputDir: 'dist/typings',
-      tsConfigFilePath: 'tsconfig.json',
+      //tsConfigFilePath: 'tsconfig.json',
     }),
     react({}),
   ],
 
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'lib/index.ts'),
+      entry: resolve(__dirname, 'lib/index.ts'),
       name: 'configr',
-      fileName: (format) => `configr.${format}.js`,
+      formats: ['es'],
+      fileName: (format) => `configr.${format}${format === 'umd' ? '.cjs' : '.js'}`,
     },
     sourcemap: true,
+    emptyOutDir: true,
     rollupOptions: {
       // don't bundle these with the library
       external: [
-        /@emotion.*/,
-        /@mui.*/,
         'react',
-        'react/jsx-runtime',
+        'react/jsx-runtime.js', // Add .js extension
         'react-dom',
         'react-dom/client',
+        /^@mui\/material\/[^/]+\.js$/, // Match MUI imports with .js extension
+        /^@emotion\/.*$/,
       ],
       output: {
+        exports: 'named',
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
@@ -50,13 +49,24 @@ export default defineConfig({
           '@mui/material': 'mui-material',
           '@mui/material/styles': 'mui-material/styles',
           '@mui/material/utils?commonjs-external': 'mui-matierial-utils',
-          'react/jsx-runtime': 'react-jsx-runtime',
+          'react/jsx-runtime.js': 'react-jsx-runtime', // Update path
           '@mui/material/FormControl': 'mui-material-formcontrol',
           '@mui/material/FormHelperText': 'mui-material-form-helper-text',
           '@mui/material/InputLabel': 'mui-material-input-label',
           '@mui/material/Select': 'mui-material-select',
         },
+        interop: 'auto',
       },
+    },
+  },
+
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      '@mui/material/': '@mui/material/*.js',
+      '@mui/material/styles': '@mui/material/styles/index.js',
+      '@mui/material/utils': '@mui/material/utils/index.js',
+      'react/jsx-runtime': 'react/jsx-runtime.js',
     },
   },
 });
