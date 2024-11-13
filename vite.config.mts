@@ -66,7 +66,7 @@ export default defineConfig({
       '@mui/material/': '@mui/material/*.js',
       '@mui/material/styles': '@mui/material/styles/index.js',
       '@mui/material/utils': '@mui/material/utils/index.js',
-      'react/jsx-runtime': 'react/jsx-runtime.js',
+      //'react/jsx-runtime': 'react/jsx-runtime.js',
     },
   },
 });

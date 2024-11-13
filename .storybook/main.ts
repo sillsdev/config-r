@@ -1,10 +1,26 @@
 import react from '@vitejs/plugin-react';
-module.exports = {
+import path from 'path';
+
+const config = {
   async viteFinal(config) {
-    // from https://github.com/storybookjs/builder-vite/issues/210
     config.plugins = config.plugins.filter(
       (plugin) => !(Array.isArray(plugin) && plugin[0]?.name.includes('vite:react')),
     );
+
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve?.alias,
+        react: path.resolve(__dirname, '../node_modules/react'),
+        'react/jsx-runtime': path.resolve(__dirname, '../node_modules/react/jsx-runtime'),
+      },
+    };
+
+    config.optimizeDeps = {
+      ...config.optimizeDeps,
+      include: [...(config.optimizeDeps?.include ?? []), 'react/jsx-runtime'],
+    };
+
     config.plugins.push(
       react({
         exclude: [/\.stories\.(t|j)sx?$/, /node_modules/],
@@ -14,13 +30,18 @@ module.exports = {
         },
       }),
     );
-    console.log(config.plugins);
+
     return config;
   },
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: ['@storybook/addon-links', '@storybook/addon-essentials'],
-  framework: '@storybook/react-vite',
+  framework: {
+    name: '@storybook/react-vite',
+    options: {},
+  },
   core: {
     builder: '@storybook/builder-vite',
   },
 };
+
+export default config;
