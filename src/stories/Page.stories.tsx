@@ -21,7 +21,9 @@ import {
   ConfigrGroup,
   ConfigrForEach,
   ConfigrPage,
+  ConfigrStatic,
 } from '../../lib/ContentPane';
+import { Alert } from '@mui/material';
 
 interface IPetSettings {
   dog: { name: string; friendly: boolean };
@@ -55,6 +57,9 @@ export const Pages: React.FunctionComponent<{}> = (props) => {
           <ConfigrGroup>
             <ConfigrInput path="dog.name" label="Name" />
             <ConfigrPage label="Dog's Friends" pageKey="dogFriends">
+              <ConfigrStatic>
+                <Alert severity="info">Something about this Dog's Friends sub page</Alert>
+              </ConfigrStatic>
               <ConfigrGroup>
                 <ConfigrInput path="dog.friend1" label="Friend1" />
                 <ConfigrInput path="dog.friend2" label="Friend2" />

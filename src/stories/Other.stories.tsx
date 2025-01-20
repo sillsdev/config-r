@@ -50,11 +50,11 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showSearch={true}
         showJson={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
-        showAllGroups={true}
-        initiallySelectedTopLevelPageIndex={1}
+        //showAllGroups={true}
+        initiallySelectedTopLevelPageIndex={0}
       >
-        <ConfigrPage label="Dog">
-          <ConfigrGroup label="dog">
+        <ConfigrPage label="Dog" pageKey="dog">
+          <ConfigrGroup key={'dog'}>
             <ConfigrInput path="dog.name" label="Name" />
             <ConfigrInput path="dog.age" label="Age" type="number" />
             <ConfigrBoolean
@@ -73,8 +73,8 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
             ></ConfigrChooserButton>
           </ConfigrGroup>
         </ConfigrPage>
-        <ConfigrPage label="Bird">
-          <ConfigrGroup label="brid">
+        <ConfigrPage label="Bird" pageKey="bird">
+          <ConfigrGroup key="bird">
             <ConfigrInput
               path="bird.name"
               label="Name"
@@ -111,7 +111,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         showSearch={true}
       >
         <ConfigrPage label="Files">
-          <ConfigrGroup label="files">
+          <ConfigrGroup>
             <ConfigrBoolean
               path="files.useLargeFileFolder"
               label="Use Large File Folder"
