@@ -835,6 +835,19 @@ export const ConfigrSelect: React.FunctionComponent<
   );
 };
 
+// this is typically used to an message, e.g. explaining something about hte page or why a group is disabled.
+export const ConfigrStatic: React.FunctionComponent<
+  React.PropsWithChildren<{
+    // FOR NOW we aren't supporting searcing on these
+    // searchTerms?: string;
+    // description?: string | React.ReactNode;
+    // getErrorMessage?: (data: any) => string | undefined;
+    // inFocussedPage?: boolean;
+  }>
+> = (props) => {
+  return <>{props.children}</>;
+};
+
 export const ConfigrGroup: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
@@ -897,7 +910,7 @@ export const ConfigrPage: React.FunctionComponent<
     label: string;
     labelCss?: SerializedStyles;
     //path: string;
-    pageKey?: string;
+    pageKey: string; // making this mandatory because it's not clear what you're doing wrong when you omit it and see multiple pages at once
     searchTerms?: string;
     topLevel?: boolean; // NB: not a for public API.
     getErrorMessage?: (data: any) => string | undefined;
@@ -908,11 +921,15 @@ export const ConfigrPage: React.FunctionComponent<
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
 
   const childOfWrongType = React.Children.toArray(props.children).find(
-    (child: any) => child && child.type !== ConfigrGroup && child.type !== ConfigrForEach,
+    (child: any) =>
+      child &&
+      child.type !== ConfigrGroup &&
+      child.type !== ConfigrForEach &&
+      child.type !== ConfigrStatic,
   );
   if (childOfWrongType) {
     throw Error(
-      `<ConfigrPage pageKey='${key}'> ConfigrPage children must be of type ConfigrGroup or ConfigrForEach. Label of offending element is "${
+      `<ConfigrPage pageKey='${key}'> ConfigrPage children must be of type ConfigrGroup, ConfigrForEach, or ConfigrMessage. Label of offending element is "${
         (childOfWrongType as any).props?.label
       }"`,
     );
@@ -942,9 +959,11 @@ export const ConfigrPage: React.FunctionComponent<
               {!props.topLevel && (
                 <div css={props.labelCss}>
                   <IconButton onClick={() => goBack()}>
-                    <ArrowBackIcon />
+                    <ArrowBackIcon />{' '}
+                    <Typography variant={'h4'} component="span">
+                      {props.label}
+                    </Typography>
                   </IconButton>
-                  {props.label}
                 </div>
               )}
               {props.topLevel && props.label && (

@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Link, Slider, ThemeOptions, Typography } from '@mui/material';
+import { Alert, Link, Slider, ThemeOptions, Typography } from '@mui/material';
 import * as React from 'react';
 import { useState } from 'react';
 import { ConfigrPane } from '../../lib/ConfigrPane';
@@ -17,6 +17,7 @@ import {
   ConfigrCustomNumberInput,
   ConfigrCustomObjectInput,
   PageChild,
+  ConfigrStatic,
 } from '../../lib/ContentPane';
 import { ConfigrColorPicker } from '../../lib/ConfigrColorPicker';
 import { SILCharacterAlternates } from './SILCharacterAlternates';
@@ -233,7 +234,7 @@ const BloomCollectionInner: React.FunctionComponent<{
 
                   <ConfigrPage label={'Font Features'} pageKey={`${prefix}-fontFeatures`}>
                     <ConfigrGroup
-                      label={'Font Features' + language.label}
+                      label={'Font Features for ' + language.label}
                       key={`x${index}`}
                     >
                       <SILCharacterAlternates
@@ -506,6 +507,11 @@ const BloomBookInner: React.FunctionComponent<{
         {...props}
       >
         <ConfigrPage label="Appearance" pageKey="appearance">
+          <ConfigrStatic>
+            <Alert severity="info">
+              This is a test of showing a message outside of the visual grouping.
+            </Alert>
+          </ConfigrStatic>
           <ConfigrGroup label="Cover">
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
