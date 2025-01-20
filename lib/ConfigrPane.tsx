@@ -61,78 +61,96 @@ export const ConfigrPane: React.FunctionComponent<
       css={css`
         display: flex;
         flex-direction: column;
+        height: 100%;
       `}
     >
-      <ThemeProvider theme={mergedTheme}>
-        <SearchContextProvider>
-          <SearchContext.Consumer>
-            {({ searchString, setSearchString }) => {
-              return (
-                <React.Fragment>
-                  {props.showAppBar && (
-                    <ConfigrAppBar
-                      label={props.label}
-                      showSearch={props.showSearch}
-                      searchValue={searchString}
-                      setSearchString={(s: string) => {
-                        if (searchString !== s) {
-                          setSearchString(s);
-                          // There should be no selected group if we
-                          // have a search term. If the user clears the search,
-                          // then we set the selected group to be the 1st one (0).
-                          setCurrentTopLevelPageIndex(s ? undefined : 0);
-                        }
-                      }}
-                    />
-                  )}
-                  <div
-                    id="configr-pane"
-                    css={css`
-                      // no. Make client set the background color: background-color: #f8f9fa;
-                      height: 100%;
-                      display: flex;
-                      //padding-left: ${wantAreaChooser ? undefined : '20px'};
-                      .MuiTab-wrapper {
-                        text-align: left;
-                        align-items: start;
-                      }
-                    `}
-                    className={props.className} // allow client to set things like background color
-                  >
-                    {wantAreaChooser && (
-                      <AreaChooser
-                        currentGroup={currentTopLevelPageIndex}
-                        setCurrentAreaIndex={setCurrentTopLevelPageIndex}
-                      >
-                        {props.children}
-                      </AreaChooser>
-                    )}
-                    <ContentPane
-                      currentTopLevelPageIndex={currentTopLevelPageIndex}
-                      {...propsToPass}
-                      onChange={onChangeWrapper}
-                    />
-                  </div>
-                </React.Fragment>
-              );
-            }}
-          </SearchContext.Consumer>
-        </SearchContextProvider>
-      </ThemeProvider>
-      {props.showJson && (
+      <div
+        css={css`
+          display: flex;
+          flex-direction: row;
+          flex: 1;
+        `}
+      >
         <div
           css={css`
-            white-space: pre;
-            margin-left: 20px;
-            .data-type-label {
-              color: lightblue;
-              font-size: 7px;
-            }
+            flex: 1;
           `}
         >
-          <JsonViewer value={currentValues}></JsonViewer>
+          <ThemeProvider theme={mergedTheme}>
+            <SearchContextProvider>
+              <SearchContext.Consumer>
+                {({ searchString, setSearchString }) => {
+                  return (
+                    <React.Fragment>
+                      {props.showAppBar && (
+                        <ConfigrAppBar
+                          label={props.label}
+                          showSearch={props.showSearch}
+                          searchValue={searchString}
+                          setSearchString={(s: string) => {
+                            if (searchString !== s) {
+                              setSearchString(s);
+                              // There should be no selected group if we
+                              // have a search term. If the user clears the search,
+                              // then we set the selected group to be the 1st one (0).
+                              setCurrentTopLevelPageIndex(s ? undefined : 0);
+                            }
+                          }}
+                        />
+                      )}
+                      <div
+                        id="configr-pane"
+                        css={css`
+                          // no. Make client set the background color: background-color: #f8f9fa;
+                          height: 100%;
+                          display: flex;
+                          //padding-left: ${wantAreaChooser ? undefined : '20px'};
+                          .MuiTab-wrapper {
+                            text-align: left;
+                            align-items: start;
+                          }
+                        `}
+                        className={props.className} // allow client to set things like background color
+                      >
+                        {wantAreaChooser && (
+                          <AreaChooser
+                            currentGroup={currentTopLevelPageIndex}
+                            setCurrentAreaIndex={setCurrentTopLevelPageIndex}
+                          >
+                            {props.children}
+                          </AreaChooser>
+                        )}
+                        <ContentPane
+                          currentTopLevelPageIndex={currentTopLevelPageIndex}
+                          {...propsToPass}
+                          onChange={onChangeWrapper}
+                        />
+                      </div>
+                    </React.Fragment>
+                  );
+                }}
+              </SearchContext.Consumer>
+            </SearchContextProvider>
+          </ThemeProvider>
         </div>
-      )}
+        {props.showJson && (
+          <div
+            css={css`
+              white-space: pre;
+              padding: 20px;
+              border-left: 1px solid #eee;
+              width: 300px;
+              flex-shrink: 0;
+              .data-type-label {
+                color: lightblue;
+                font-size: 7px;
+              }
+            `}
+          >
+            <JsonViewer value={currentValues}></JsonViewer>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
