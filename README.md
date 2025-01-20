@@ -4,13 +4,17 @@ A React library for a settings UI similar to that of Chrome.
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
-> :warning: We ship this as part of our [product](https://github.com/BloomBooks/BloomDesktop), but search has not made it to production yet. In addition, we may make visual changes over time. Finally, the only documentation is the code and the storybook stories.
+> :warning: We ship this as part of our [product](https://github.com/BloomBooks/BloomDesktop), but search has not made it to production yet. In addition, we may make visual changes over time. For now, the only documentation is the code and the storybook stories.
 
 ## Screenshots
 
 ![image](https://user-images.githubusercontent.com/8448/147491213-140bf201-e4b0-4ff2-b8a8-ea8a1291ebae.png)
 
 ![image](https://user-images.githubusercontent.com/8448/147994050-d0087afc-db1f-4a88-9744-f93002535239.png)
+
+## Demo
+
+You can play around with [the disorganized stories](https://sillsdev.github.io/config-r).
 
 ## Running
 
