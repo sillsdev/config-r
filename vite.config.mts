@@ -12,8 +12,8 @@ export default defineConfig({
   plugins: [
     dts({
       //root: 'lib',
-      //outputDir: 'dist/typings',
-      //tsConfigFilePath: 'tsconfig.json',
+      // include: ['lib/**/*'],
+      exclude: ['src/**/*', '.storybook/**/*'],
     }),
     react({}),
   ],

@@ -110,7 +110,7 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
         initialValues={initialLametaValues}
         showSearch={true}
       >
-        <ConfigrPage label="Files">
+        <ConfigrPage label="Files" pageKey="files">
           <ConfigrGroup>
             <ConfigrBoolean
               path="files.useLargeFileFolder"
