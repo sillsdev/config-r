@@ -90,14 +90,16 @@
     "dist"
   ],
   "module": "./dist/configr.es.js",
+  "main": "./dist/configr.cjs.js",
   "exports": {
     ".": {
-      "types": "./dist/lib/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/configr.es.js",
+      "require": "./dist/configr.cjs.js",
       "default": "./dist/configr.es.js"
     }
   },
-  "types": "./dist/lib/index.d.ts",
+  "types": "./dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   },

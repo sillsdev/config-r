@@ -22,8 +22,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
       name: 'configr',
-      formats: ['es'],
-      fileName: (format) => `configr.${format}${format === 'umd' ? '.cjs' : '.js'}`,
+      formats: ['es', 'cjs'],
+      fileName: (format) => `configr.${format === 'cjs' ? 'cjs' : 'es'}.js`,
     },
     sourcemap: true,
     emptyOutDir: true,
