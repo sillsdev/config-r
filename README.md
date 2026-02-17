@@ -28,3 +28,16 @@ yarn dev
 ```
 npm install @sillsdev/config-r
 ```
+
+## Migration from v1.0.0-alpha.15 to v1.0.0-alpha18
+
+Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canonical reference for alpha18 API usage. The current codebase enforces several structural rules and new props; the fastest path is to align your code with those patterns.
+
+- `ConfigrPane` children must be `ConfigrPage` or `ConfigrArea` elements only. Wrap groups of pages in `ConfigrArea` to get the left-nav section headings.
+- `ConfigrPage` now requires `pageKey` and throws if it is missing. Keep these keys stable and unique within a pane.
+- `ConfigrPage` children are restricted to `ConfigrGroup`, `ConfigrForEach`, or `ConfigrStatic`. Move any custom layout into `ConfigrGroup` or wrap text/UI-only blocks in `ConfigrStatic`.
+- `ConfigrForEach` now uses a render signature of `(pathPrefix, index) => ReactNode`; build full Formik paths from the prefix (see the languages loop in the story).
+- `ConfigrSelect` options accept numbers or `{ label, value, description }` objects; descriptions become tooltips.
+- Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
+- Custom inputs use `ConfigrCustomStringInput`, `ConfigrCustomNumberInput`, or `ConfigrCustomObjectInput` with a `control` component that receives `value`, `onChange`, and `disabled`.
+- `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, and `initiallySelectedTopLevelPageIndex`.

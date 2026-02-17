@@ -51,7 +51,6 @@ export const Pages: React.FunctionComponent<{}> = (props) => {
         showSearch={true}
         showJson={false}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
-        showAllGroups={true}
       >
         <ConfigrPage label="Dog" pageKey="dog">
           <ConfigrGroup>

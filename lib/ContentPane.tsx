@@ -39,7 +39,9 @@ import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
 
-type valueGetter = () => Object;
+export type ConfigrValues = Record<string, unknown>;
+
+type valueGetter = () => ConfigrValues;
 
 const disabledGrey = 'rgba(5, 1, 1, 0.26)';
 const secondaryGrey = 'rgba(0, 0, 0, 0.54)';
@@ -54,17 +56,27 @@ const AlreadyFilteringContext = React.createContext({
   alreadyFiltering: false,
 });
 
+export const ConfigrArea: React.FunctionComponent<
+  React.PropsWithChildren<{
+    label: string;
+    pageKey?: string;
+    disabled?: boolean;
+    content?: React.ReactNode;
+  }>
+> = (props) => <>{props.children}</>;
+
 // TODO: should not be part of the Api
 export const ContentPane: React.FunctionComponent<
   React.PropsWithChildren<{
     // this is the whole settings object that we are editing
-    initialValues: object;
+    initialValues: ConfigrValues;
     currentTopLevelPageIndex?: number;
     children:
       | React.ReactElement<typeof ConfigrPage>
       | React.ReactElement<typeof ConfigrPage>[];
     setValueGetter?: (vg: valueGetter) => void;
-    onChange?: (currentValues: any) => void;
+    /** Called with the latest values as a plain object (not a JSON string). */
+    onChange?: (currentValues: ConfigrValues) => void;
   }>
 > = (props) => {
   const [focussedPageKey, setFocussedPageKey] = useState('');
@@ -84,11 +96,11 @@ export const ContentPane: React.FunctionComponent<
 
   const valuesToReportJsonRef = React.useRef(JSON.stringify(props.initialValues));
 
-  const onChangeWrapper = (newValues: any) => {
+  const onChangeWrapper = (newValues: ConfigrValues) => {
     if (!props.onChange) return;
 
     let valueToReport = newValues;
-    if (valueToReport[kOverrideValuePrefix]) {
+    if (kOverrideValuePrefix in valueToReport) {
       // Note: this is a shallow clone which means after the top level it's pointing to
       // the original objects. This is fine, because we're only going to use it to remove
       // a single property from the top level.
@@ -915,6 +927,7 @@ export const ConfigrPage: React.FunctionComponent<
     topLevel?: boolean; // NB: not a for public API.
     getErrorMessage?: (data: any) => string | undefined;
     inFocussedPage?: boolean;
+    disabled?: boolean;
     children: PageChild | PageChild[];
   }>
 > = (props) => {
@@ -946,8 +959,12 @@ export const ConfigrPage: React.FunctionComponent<
           return (
             <ConfigrRowTwoColumns
               path={key}
-              onClick={() => goToPage(key)}
+              onClick={() => {
+                if (props.disabled) return;
+                goToPage(key);
+              }}
               control={<ArrowRightIcon />}
+              disabled={props.disabled}
               {...props}
             />
           );

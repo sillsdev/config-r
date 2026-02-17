@@ -9,6 +9,7 @@ import {
   ConfigrBoolean,
   ConfigrRadioGroup,
   ConfigrRadio,
+  ConfigrArea,
   ConfigrGroup,
   ConfigrForEach,
   ConfigrPage as ConfigrPage,
@@ -16,6 +17,7 @@ import {
   ConfigrCustomStringInput,
   ConfigrCustomNumberInput,
   ConfigrCustomObjectInput,
+  ConfigrValues,
   PageChild,
   ConfigrStatic,
 } from '../../lib/ContentPane';
@@ -82,7 +84,7 @@ export const BloomCollection: React.FunctionComponent = (props) => {
 };
 
 const BloomCollectionInner: React.FunctionComponent<{
-  onChange?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: ConfigrValues) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides: ThemeOptions = {
     palette: {
@@ -120,252 +122,294 @@ const BloomCollectionInner: React.FunctionComponent<{
             </ConfigrGroup>
           </ConfigrPage> */}
 
-        <ConfigrPage label="Area" pageKey="testinggrouplabel">
-          <ConfigrGroup label="Show this Group Label">
-            <ConfigrBoolean label="foo" path="blah" />
-          </ConfigrGroup>
-        </ConfigrPage>
-        <ConfigrPage label="Languages" pageKey="languages">
-          <ConfigrForEach
-            path="languages"
-            searchTerms="font script right left word breaking Asian name iso"
-            render={(prefix: string, index: number) => {
-              const language = initialBloomCollectionValues.languages[index];
-              console.log('language', language);
-              return (
-                <ConfigrGroup label={language.label}>
-                  <ConfigrPage
-                    label={language.id.name}
-                    pageKey={`${prefix}-id`} // e.g. languages[0]-id
-                    labelCss={css`
-                      font-weight: bold !important;
-                    `}
-                  >
-                    <ConfigrGroup label={language.label} key={`x${index}`}>
-                      <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
-                      <ConfigrInput path={`${prefix}.id.name`} label="Name" />
-                    </ConfigrGroup>
-                  </ConfigrPage>
-                  {!language.isSignLanguage && (
-                    <ConfigrSelect
-                      path={`${prefix}.font`}
-                      label="Default Font"
-                      options={[
-                        { label: 'Arial', value: 'Arial' },
-                        { label: 'Andika New Basic', value: 'Andika New Basic' },
-                      ]}
-                      description={
-                        'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
-                      }
-                      overrideValue="Arial"
-                      overrideDescription="This is locked by Kyrgyzstan xmatter"
-                    ></ConfigrSelect>
-                  )}
-
-                  {!language.isSignLanguage && (
-                    <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
+        <ConfigrArea
+          label="Collection"
+          content={
+            <Typography variant="body2">
+              Collection settings apply to every book and template stored here.
+            </Typography>
+          }
+        >
+          <ConfigrPage label="Languages" pageKey="languages">
+            <ConfigrForEach
+              path="languages"
+              searchTerms="font script right left word breaking Asian name iso"
+              render={(prefix: string, index: number) => {
+                const language = initialBloomCollectionValues.languages[index];
+                console.log('language', language);
+                return (
+                  <ConfigrGroup label={language.label}>
+                    <ConfigrPage
+                      label={language.id.name}
+                      pageKey={`${prefix}-id`} // e.g. languages[0]-id
+                      labelCss={css`
+                        font-weight: bold !important;
+                      `}
+                    >
                       <ConfigrGroup label={language.label} key={`x${index}`}>
-                        <ConfigrBoolean
-                          overrideValue={true}
-                          overrideDescription="This is locked by Kyrgyzstan xmatter"
-                          label="This is a right to left script, like Arabic"
-                          path={`${prefix}.script.rtl`}
-                        />
-                        <ConfigrBoolean
-                          label="Do not use special Asian script word breaking"
-                          path={`${prefix}.script.avoidAsianScriptWordBreaking`}
-                          overrideValue={false}
-                          overrideDescription="This is locked by Kyrgyzstan xmatter"
-                        />
-                        <ConfigrBoolean
-                          label="This script requires taller lines (locked)"
-                          path={`${prefix}.script.tallerLines`}
-                          locked={true}
-                        />
-                        <ConfigrBoolean
-                          label="This script requires taller lines"
-                          path={`${prefix}.script.tallerLines`}
-                        />
-
-                        <ConfigrSelect
-                          enableWhen={`${prefix}.script.tallerLines`}
-                          indented={true}
-                          path={`${prefix}.script.tallerLines_defaultLineSpacing`}
-                          label="Line Spacing"
-                          options={[
-                            { label: 'Default line spacing', value: '0' }, // todo
-                            1.0,
-                            1.1,
-                            1.2,
-                            1.3,
-                            1.4,
-                            1.5,
-                            1.6,
-                            1.7,
-                            1.8,
-                            1.9,
-                            2.0,
-                            2.5,
-                            3.0,
-                          ]}
-                        ></ConfigrSelect>
-
-                        <ConfigrSelect
-                          path={`${prefix}.script.fontSizeInTools`}
-                          label="Font size when displayed in tools"
-                          options={[
-                            { label: 'Default size', value: '0' }, // todo
-                            9,
-                            10,
-                            11,
-                            12,
-                            14,
-                            16,
-                            18,
-                            20,
-                            22,
-                            24,
-                            26,
-                          ]}
-                        ></ConfigrSelect>
+                        <ConfigrInput path={`${prefix}.id.iso`} label="ISO" />
+                        <ConfigrInput path={`${prefix}.id.name`} label="Name" />
                       </ConfigrGroup>
                     </ConfigrPage>
-                  )}
+                    {!language.isSignLanguage && (
+                      <ConfigrSelect
+                        path={`${prefix}.font`}
+                        label="Default Font"
+                        options={[
+                          { label: 'Arial', value: 'Arial' },
+                          { label: 'Andika New Basic', value: 'Andika New Basic' },
+                        ]}
+                        description={
+                          'Something long about the default font. Fonts are good. They are actually "Typefaces" but we call them fonts.'
+                        }
+                        overrideValue="Arial"
+                        overrideDescription="This is locked by Kyrgyzstan xmatter"
+                      ></ConfigrSelect>
+                    )}
 
-                  <ConfigrPage label={'Font Features'} pageKey={`${prefix}-fontFeatures`}>
-                    <ConfigrGroup
-                      label={'Font Features for ' + language.label}
-                      key={`x${index}`}
+                    {!language.isSignLanguage && (
+                      <ConfigrPage label="Script Settings" pageKey={`${prefix}-script`}>
+                        <ConfigrGroup label={language.label} key={`x${index}`}>
+                          <ConfigrBoolean
+                            overrideValue={true}
+                            overrideDescription="This is locked by Kyrgyzstan xmatter"
+                            label="This is a right to left script, like Arabic"
+                            path={`${prefix}.script.rtl`}
+                          />
+                          <ConfigrBoolean
+                            label="Do not use special Asian script word breaking"
+                            path={`${prefix}.script.avoidAsianScriptWordBreaking`}
+                            overrideValue={false}
+                            overrideDescription="This is locked by Kyrgyzstan xmatter"
+                          />
+                          <ConfigrBoolean
+                            label="This script requires taller lines (locked)"
+                            path={`${prefix}.script.tallerLines`}
+                            locked={true}
+                          />
+                          <ConfigrBoolean
+                            label="This script requires taller lines"
+                            path={`${prefix}.script.tallerLines`}
+                          />
+
+                          <ConfigrSelect
+                            enableWhen={`${prefix}.script.tallerLines`}
+                            indented={true}
+                            path={`${prefix}.script.tallerLines_defaultLineSpacing`}
+                            label="Line Spacing"
+                            options={[
+                              { label: 'Default line spacing', value: '0' }, // todo
+                              1.0,
+                              1.1,
+                              1.2,
+                              1.3,
+                              1.4,
+                              1.5,
+                              1.6,
+                              1.7,
+                              1.8,
+                              1.9,
+                              2.0,
+                              2.5,
+                              3.0,
+                            ]}
+                          ></ConfigrSelect>
+
+                          <ConfigrSelect
+                            path={`${prefix}.script.fontSizeInTools`}
+                            label="Font size when displayed in tools"
+                            options={[
+                              { label: 'Default size', value: '0' }, // todo
+                              9,
+                              10,
+                              11,
+                              12,
+                              14,
+                              16,
+                              18,
+                              20,
+                              22,
+                              24,
+                              26,
+                            ]}
+                          ></ConfigrSelect>
+                        </ConfigrGroup>
+                      </ConfigrPage>
+                    )}
+
+                    <ConfigrPage
+                      label={'Font Features'}
+                      pageKey={`${prefix}-fontFeatures`}
                     >
-                      <SILCharacterAlternates
-                        path={`${prefix}.fontFeatures.silCharacterAlternates`}
-                      />
-                    </ConfigrGroup>
-                  </ConfigrPage>
+                      <ConfigrGroup
+                        label={'Font Features for ' + language.label}
+                        key={`x${index}`}
+                      >
+                        <SILCharacterAlternates
+                          path={`${prefix}.fontFeatures.silCharacterAlternates`}
+                        />
+                      </ConfigrGroup>
+                    </ConfigrPage>
+                  </ConfigrGroup>
+                );
+              }}
+            ></ConfigrForEach>
+          </ConfigrPage>
+          <ConfigrPage label="Book Defaults" pageKey="book defaults">
+            <ConfigrGroup>
+              <ConfigrSelect
+                path={'pageNumberStyle'}
+                label="Page Numbering Style"
+                options={[
+                  { label: 'Decimal', value: 'Decimal' },
+                  { label: 'Devanagari', value: 'Devanagari' },
+                ]}
+              ></ConfigrSelect>
+              <ConfigrSelect
+                path={'xmatterPck'}
+                label="Front/Back Matter Pack"
+                options={[
+                  { label: 'Paper Saver', value: 'Paper Saver' },
+                  { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+                  { label: '--', value: '' },
+                  {
+                    label: 'Traditional',
+                    value: 'Traditional',
+                    description: 'Credits on the back of the title page.',
+                  },
+                ]}
+              ></ConfigrSelect>
+            </ConfigrGroup>
+          </ConfigrPage>
+          <ConfigrPage
+            label="Enterprise"
+            pageKey="enterprise"
+            // description={
+            //   <span>
+            //     Bloom Enterprise adds features and services that are important for
+            //     publishers, governments, and international organizations. This paid
+            //     subscription meets their unique needs while supporting the development and
+            //     user support of Bloom for the community at large.&nbsp;
+            //     <Link href="google.com">Learn More</Link>
+            //   </span>
+            // }
+          >
+            <ConfigrGroup label="">
+              <ConfigrRadioGroup path="enterprise-mode" label="Status">
+                <ConfigrRadio label="Subscribed" value="subscribed" />
+                <ConfigrRadio label="Funded by the local community only" value="local" />
+                <ConfigrRadio label="None" value="none" />
+              </ConfigrRadioGroup>
+            </ConfigrGroup>
+
+            <ConfigrGroup label="">
+              <ConfigrRadioGroup
+                path="enterprise-mode"
+                label="An override locked one"
+                overrideValue="subscribed"
+                overrideDescription="This is locked by Kyrgyzstan xmatter"
+              >
+                <ConfigrRadio label="Subscribed" value="subscribed" />
+                <ConfigrRadio label="Funded by the local community only" value="local" />
+                <ConfigrRadio label="None" value="none" />
+              </ConfigrRadioGroup>
+            </ConfigrGroup>
+
+            <ConfigrGroup label="">
+              <ConfigrSelect
+                label="BloomLibrary.org Bookshelf"
+                path={'bookshelf'}
+                description={
+                  'Projects that have [Bloom Enterprise subscriptions](https://sites.google.com/sil.org/bloom-program/bloom-enterprise) can arrange for one or more bookshelves on the [Bloom Library](https://bloomlibrary.org). All books uploaded from this collection will go into the selected bookshelf.'
+                }
+                options={[{ label: 'TODO', value: 'TODO' }]}
+              ></ConfigrSelect>
+            </ConfigrGroup>
+          </ConfigrPage>
+          <ConfigrPage label="Location" pageKey="location">
+            <ConfigrGroup>
+              <ConfigrInput path={`country`} label="Country" />
+              <ConfigrInput path={`province`} label="Province" />
+              <ConfigrInput path={`district`} label="District" />
+            </ConfigrGroup>
+          </ConfigrPage>
+
+          <ConfigrPage label="Advanced" pageKey="advanced">
+            <ConfigrGroup>
+              <ConfigrInput path="collectionName" label="Bloom Collection Name" />
+              <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
+            </ConfigrGroup>
+            <ConfigrGroup label="Experimental Features">
+              <ConfigrBoolean
+                label="Show Experimental Book Sources"
+                path="feature.experimentalBookSources"
+                immediateEffect={true}
+              />
+              <ConfigrBoolean
+                label="Show Experimental Book Sources (disabled)"
+                path="feature.experimentalBookSources"
+                immediateEffect={true}
+                disabled={true}
+              />
+              <ConfigrBoolean
+                label="Show Experimental Book Sources (locked)"
+                path="feature.experimentalBookSources"
+                immediateEffect={true}
+                locked={true}
+              />
+              <ConfigrBoolean
+                label="Team Collections"
+                path="feature.teamCollections"
+                description="Enabling this will show the settings for creating a Team Collection, which lets your team automatically synchronize your work with each other."
+              />
+              <ConfigrBoolean
+                label="Spreadsheet Import/Export"
+                path="feature.spreadsheet"
+                disabled={true}
+              />
+              <ConfigrPage label="Super Advanced" pageKey="superadvanced">
+                <ConfigrGroup label="Super Advanced">
+                  <ConfigrBoolean label="Make it all harder" path="feature.harder" />
                 </ConfigrGroup>
-              );
-            }}
-          ></ConfigrForEach>
-        </ConfigrPage>
-        <ConfigrPage label="Book Defaults" pageKey="book defaults">
-          <ConfigrGroup>
-            <ConfigrSelect
-              path={'pageNumberStyle'}
-              label="Page Numbering Style"
-              options={[
-                { label: 'Decimal', value: 'Decimal' },
-                { label: 'Devanagari', value: 'Devanagari' },
-              ]}
-            ></ConfigrSelect>
-            <ConfigrSelect
-              path={'xmatterPck'}
-              label="Front/Back Matter Pack"
-              options={[
-                { label: 'Paper Saver', value: 'Paper Saver' },
-                { label: 'Super Paper Saver', value: 'Super Paper Saver' },
-                { label: '--', value: '' },
-                {
-                  label: 'Traditional',
-                  value: 'Traditional',
-                  description: 'Credits on the back of the title page.',
-                },
-              ]}
-            ></ConfigrSelect>
-          </ConfigrGroup>
-        </ConfigrPage>
-        <ConfigrPage
-          label="Enterprise"
-          pageKey="enterprise"
-          // description={
-          //   <span>
-          //     Bloom Enterprise adds features and services that are important for
-          //     publishers, governments, and international organizations. This paid
-          //     subscription meets their unique needs while supporting the development and
-          //     user support of Bloom for the community at large.&nbsp;
-          //     <Link href="google.com">Learn More</Link>
-          //   </span>
-          // }
-        >
-          <ConfigrGroup label="">
-            <ConfigrRadioGroup path="enterprise-mode" label="Status">
-              <ConfigrRadio label="Subscribed" value="subscribed" />
-              <ConfigrRadio label="Funded by the local community only" value="local" />
-              <ConfigrRadio label="None" value="none" />
-            </ConfigrRadioGroup>
-          </ConfigrGroup>
-
-          <ConfigrGroup label="">
-            <ConfigrRadioGroup
-              path="enterprise-mode"
-              label="An override locked one"
-              overrideValue="subscribed"
-              overrideDescription="This is locked by Kyrgyzstan xmatter"
-            >
-              <ConfigrRadio label="Subscribed" value="subscribed" />
-              <ConfigrRadio label="Funded by the local community only" value="local" />
-              <ConfigrRadio label="None" value="none" />
-            </ConfigrRadioGroup>
-          </ConfigrGroup>
-
-          <ConfigrGroup label="">
-            <ConfigrSelect
-              label="BloomLibrary.org Bookshelf"
-              path={'bookshelf'}
-              description={
-                'Projects that have [Bloom Enterprise subscriptions](https://sites.google.com/sil.org/bloom-program/bloom-enterprise) can arrange for one or more bookshelves on the [Bloom Library](https://bloomlibrary.org). All books uploaded from this collection will go into the selected bookshelf.'
-              }
-              options={[{ label: 'TODO', value: 'TODO' }]}
-            ></ConfigrSelect>
-          </ConfigrGroup>
-        </ConfigrPage>
-        <ConfigrPage label="Location" pageKey="location">
-          <ConfigrGroup>
-            <ConfigrInput path={`country`} label="Country" />
-            <ConfigrInput path={`province`} label="Province" />
-            <ConfigrInput path={`district`} label="District" />
-          </ConfigrGroup>
-        </ConfigrPage>
-
-        <ConfigrPage label="Advanced" pageKey="advanced">
-          <ConfigrGroup>
-            <ConfigrInput path="collectionName" label="Bloom Collection Name" />
-            <ConfigrBoolean label="Automatically Update Bloom" path="autoUpdate" />
-          </ConfigrGroup>
-          <ConfigrGroup label="Experimental Features">
-            <ConfigrBoolean
-              label="Show Experimental Book Sources"
-              path="feature.experimentalBookSources"
-              immediateEffect={true}
-            />
-            <ConfigrBoolean
-              label="Show Experimental Book Sources (disabled)"
-              path="feature.experimentalBookSources"
-              immediateEffect={true}
-              disabled={true}
-            />
-            <ConfigrBoolean
-              label="Show Experimental Book Sources (locked)"
-              path="feature.experimentalBookSources"
-              immediateEffect={true}
-              locked={true}
-            />
-            <ConfigrBoolean
-              label="Team Collections"
-              path="feature.teamCollections"
-              description="Enabling this will show the settings for creating a Team Collection, which lets your team automatically synchronize your work with each other."
-            />
-            <ConfigrBoolean
-              label="Spreadsheet Import/Export"
-              path="feature.spreadsheet"
-              disabled={true}
-            />
-            <ConfigrPage label="Super Advanced" pageKey="superadvanced">
-              <ConfigrGroup label="Super Advanced">
-                <ConfigrBoolean label="Make it all harder" path="feature.harder" />
-              </ConfigrGroup>
-            </ConfigrPage>
-          </ConfigrGroup>
-        </ConfigrPage>
+              </ConfigrPage>
+            </ConfigrGroup>
+          </ConfigrPage>
+        </ConfigrArea>
+        <ConfigrArea label="Book">
+          <ConfigrPage label="Cover" pageKey="book-cover">
+            <ConfigrStatic />
+          </ConfigrPage>
+          <ConfigrPage label="Fonts" pageKey="book-fonts">
+            <ConfigrStatic />
+          </ConfigrPage>
+        </ConfigrArea>
+        <ConfigrArea label="Page">
+          <ConfigrPage label="Colors" pageKey="page-colors">
+            <ConfigrGroup label="Palette">
+              <ConfigrCustomStringInput
+                path="page.colors.accent"
+                label="Accent Color"
+                control={ConfigrColorPicker}
+              />
+              <ConfigrSelect
+                path="page.colors.theme"
+                label="Theme"
+                options={[
+                  { label: 'Classic', value: 'classic' },
+                  { label: 'Vibrant', value: 'vibrant' },
+                  { label: 'Muted', value: 'muted' },
+                ]}
+              />
+              <ConfigrBoolean
+                label="Use high-contrast text"
+                path="page.colors.highContrast"
+              />
+            </ConfigrGroup>
+          </ConfigrPage>
+          <ConfigrPage label="Layout" pageKey="page-layout">
+            <ConfigrStatic />
+          </ConfigrPage>
+        </ConfigrArea>
       </ConfigrPane>
     </div>
   );
@@ -475,7 +519,7 @@ const propsForMmField = {
 // This doesn't yet have Configr elements for all the options above. I wanted to focus on things that might be a problem.
 // One I don't know how to do at all with the current components is the list of checkboxes for which languages to include.
 const BloomBookInner: React.FunctionComponent<{
-  onChange?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: ConfigrValues) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
     palette: {
@@ -697,7 +741,7 @@ export const BloomBookV1: React.FunctionComponent = (props) => {
 };
 
 const BloomBookInnerV1: React.FunctionComponent<{
-  onChange?: (currentValues: any) => void; // just used to see the realtime value
+  onChange?: (currentValues: ConfigrValues) => void; // just used to see the realtime value
 }> = (props) => {
   const bloomThemeOverrides = {
     palette: {
