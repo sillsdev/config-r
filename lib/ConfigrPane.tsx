@@ -14,10 +14,11 @@ export const ConfigrPane: React.FunctionComponent<
     label: string;
     initialValues: ConfigrValues;
     children:
-      | React.ReactElement<typeof ConfigrPage>
-      | React.ReactElement<typeof ConfigrArea>
+      | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>
+      | React.ReactElement<React.ComponentProps<typeof ConfigrArea>>
       | Array<
-          React.ReactElement<typeof ConfigrPage> | React.ReactElement<typeof ConfigrArea>
+          | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>
+          | React.ReactElement<React.ComponentProps<typeof ConfigrArea>>
         >;
     /** Called with the latest values as a plain object (not a JSON string). */
     onChange?: (currentValues: ConfigrValues) => void;
@@ -366,8 +367,8 @@ const AreaChooser: React.FunctionComponent<
 };
 
 type ConfigrPaneChild =
-  | React.ReactElement<typeof ConfigrPage>
-  | React.ReactElement<typeof ConfigrArea>
+  | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>
+  | React.ReactElement<React.ComponentProps<typeof ConfigrArea>>
   | false
   | undefined
   | null;
@@ -375,7 +376,7 @@ type ConfigrPaneChild =
 type ConfigrPaneChildren = ConfigrPaneChild | ConfigrPaneChild[];
 
 type AreaPage = {
-  element: React.ReactElement<typeof ConfigrPage>;
+  element: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>;
   disabled?: boolean;
 };
 
@@ -386,7 +387,10 @@ type AreaGroup = {
   pages: AreaPage[];
 };
 
-function normalizePaneChildren(children: ConfigrPaneChildren) {
+function normalizePaneChildren(children: ConfigrPaneChildren): {
+  topLevelPages: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[];
+  areas: AreaGroup[];
+} {
   const childArray = React.Children.toArray(children).filter((c) => c);
   if (childArray.length === 0) return { topLevelPages: [], areas: [] };
 
@@ -396,16 +400,17 @@ function normalizePaneChildren(children: ConfigrPaneChildren) {
     if (invalidChild) {
       throw Error('<ConfigrPane> children must be ConfigrPage or ConfigrArea elements.');
     }
-    const pages = (childArray as React.ReactElement<typeof ConfigrPage>[]).map(
-      (page) => ({ element: page, disabled: page.props.disabled }),
-    );
+    const pages = (
+      childArray as React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[]
+    ).map((page) => ({ element: page, disabled: page.props.disabled }));
     return {
       topLevelPages: pages.map((page) => page.element),
       areas: [{ label: undefined, pages }],
     };
   }
 
-  const topLevelPages: React.ReactElement<typeof ConfigrPage>[] = [];
+  const topLevelPages: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[] =
+    [];
   const areas: AreaGroup[] = [];
 
   childArray.forEach((child) => {
@@ -417,9 +422,9 @@ function normalizePaneChildren(children: ConfigrPaneChildren) {
           `<ConfigrArea label="${child.props.label}"> children must be ConfigrPage elements.`,
         );
       }
-      const pages = (areaChildren as React.ReactElement<typeof ConfigrPage>[]).map(
-        (page) => ({ element: page, disabled: page.props.disabled }),
-      );
+      const pages = (
+        areaChildren as React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[]
+      ).map((page) => ({ element: page, disabled: page.props.disabled }));
       if (pages.length > 0) {
         areas.push({
           label: child.props.label,

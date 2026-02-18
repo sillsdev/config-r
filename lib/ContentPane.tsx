@@ -72,8 +72,8 @@ export const ContentPane: React.FunctionComponent<
     initialValues: ConfigrValues;
     currentTopLevelPageIndex?: number;
     children:
-      | React.ReactElement<typeof ConfigrPage>
-      | React.ReactElement<typeof ConfigrPage>[];
+      | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>
+      | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[];
     setValueGetter?: (vg: valueGetter) => void;
     /** Called with the latest values as a plain object (not a JSON string). */
     onChange?: (currentValues: ConfigrValues) => void;
