@@ -2,7 +2,7 @@
 
 A React library for a settings UI similar to that of Chrome.
 
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
 > :warning: We ship this as part of our [product](https://github.com/BloomBooks/BloomDesktop), but search has not made it to production yet. In addition, we may make visual changes over time. For now, the only documentation is the code and the storybook stories.
 
