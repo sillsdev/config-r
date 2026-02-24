@@ -2,14 +2,12 @@
   "name": "@sillsdev/config-r",
   "version": "0.0.3",
   "license": "MIT",
-  "packageManager": "yarn@1.22.19",
   "keywords": [
     "react",
     "settings"
   ],
   "repository": {
-    "type": "git",
-    "url": "https://github.com/sillsdev/config-r"
+    "url": "git+https://github.com/sillsdev/config-r.git"
   },
   "scripts": {
     "dev": "start http://localhost:5173 && vite",
@@ -104,7 +102,7 @@
     "access": "public"
   },
   "volta": {
-    "node": "20.17.0",
+    "node": "24.14.0",
     "yarn": "1.22.19"
   },
   "type": "module"
