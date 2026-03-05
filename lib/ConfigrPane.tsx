@@ -283,6 +283,7 @@ const AreaChooser: React.FunctionComponent<
                       centered={false}
                       orientation="vertical"
                       css={css`
+                        min-height: 0;
                         .MuiTabs-indicator {
                           display: none;
                         }
@@ -292,6 +293,7 @@ const AreaChooser: React.FunctionComponent<
                         button {
                           min-height: 0;
                           padding-top: 0;
+                          padding-bottom: 0;
                           padding-left: 0;
                         }
                       `}
@@ -320,6 +322,7 @@ const AreaChooser: React.FunctionComponent<
                     centered={false}
                     orientation="vertical"
                     css={css`
+                      min-height: 0;
                       .MuiTabs-indicator {
                         display: none;
                       }
@@ -329,6 +332,7 @@ const AreaChooser: React.FunctionComponent<
                       button {
                         min-height: 0;
                         padding-top: 0;
+                        padding-bottom: 0;
                       }
                     `}
                   >
