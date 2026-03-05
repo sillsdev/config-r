@@ -222,6 +222,13 @@ export const ConfigrPane: React.FunctionComponent<
   );
 };
 
+// Centralized spacing controls for the left navigation (areas + pages).
+const areaChooserSpacing = {
+  betweenAreas: '1rem',
+  betweenAreaLabelAndPages: '.5rem',
+  betweenPageTabs: '.5rem',
+} as const;
+
 const AreaChooser: React.FunctionComponent<
   React.PropsWithChildren<{
     currentPageIndex: number | undefined;
@@ -257,7 +264,7 @@ const AreaChooser: React.FunctionComponent<
               min-width: 150px;
               display: flex;
               flex-direction: column;
-              gap: 8px;
+              gap: ${areaChooserSpacing.betweenAreas};
             `}
           >
             {props.areas.map((area, areaIndex) => {
@@ -284,6 +291,7 @@ const AreaChooser: React.FunctionComponent<
                       orientation="vertical"
                       css={css`
                         min-height: 0;
+                        margin-bottom: ${areaChooserSpacing.betweenAreaLabelAndPages};
                         .MuiTabs-indicator {
                           display: none;
                         }
@@ -323,6 +331,9 @@ const AreaChooser: React.FunctionComponent<
                     orientation="vertical"
                     css={css`
                       min-height: 0;
+                      .MuiTabs-flexContainerVertical {
+                        row-gap: ${areaChooserSpacing.betweenPageTabs};
+                      }
                       .MuiTabs-indicator {
                         display: none;
                       }
