@@ -50,7 +50,7 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
         showSearch={true}
         showJson={true}
         // setValueGetter={(fn) => (getCurrentValues = fn)}
-        initiallySelectedTopLevelPageIndex={0}
+        initiallySelectedTopLevelPageKey="dog"
       >
         <ConfigrPage label="Dog" pageKey="dog">
           <ConfigrGroup key={'dog'}>

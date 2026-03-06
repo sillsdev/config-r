@@ -40,4 +40,4 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - `ConfigrSelect` options accept numbers or `{ label, value, description }` objects; descriptions become tooltips.
 - Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
 - Custom inputs use `ConfigrCustomStringInput`, `ConfigrCustomNumberInput`, or `ConfigrCustomObjectInput` with a `control` component that receives `value`, `onChange`, and `disabled`.
-- `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, and `initiallySelectedTopLevelPageIndex`.
+- `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, and `initiallySelectedTopLevelPageKey`.

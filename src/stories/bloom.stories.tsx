@@ -108,7 +108,7 @@ const BloomCollectionInner: React.FunctionComponent<{
         showSearch={true}
         showAppBar={true}
         showJson={true}
-        initiallySelectedTopLevelPageIndex={0}
+        initiallySelectedTopLevelPageKey="languages"
         css={css`
           background-color: #cfa7e7;
           padding: 20px;
@@ -539,7 +539,7 @@ const BloomBookInner: React.FunctionComponent<{
     >
       <ConfigrPane
         label="Book Settings"
-        initiallySelectedTopLevelPageIndex={0}
+        initiallySelectedTopLevelPageKey="appearance"
         initialValues={initialBloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showAppBar={true}
@@ -760,7 +760,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
     >
       <ConfigrPane
         label="Book Settings"
-        initiallySelectedTopLevelPageIndex={0}
+        initiallySelectedTopLevelPageKey="bbv1"
         initialValues={initialV1BloomBookValues}
         themeOverrides={bloomThemeOverrides}
         showSearch={false}

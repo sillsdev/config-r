@@ -27,14 +27,9 @@ export const ConfigrPane: React.FunctionComponent<
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
-    initiallySelectedTopLevelPageIndex?: number;
+    initiallySelectedTopLevelPageKey?: string;
   }>
 > = (props) => {
-  const [currentTopLevelPageIndex, setCurrentTopLevelPageIndex] = useState<
-    number | undefined
-  >(props.initiallySelectedTopLevelPageIndex ?? 0);
-  const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
-
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
   // does the opposite of that, and I haven't figured out a way around it, other
@@ -50,6 +45,12 @@ export const ConfigrPane: React.FunctionComponent<
     () => normalizePaneChildren(props.children),
     [props.children],
   );
+  const [currentTopLevelPageIndex, setCurrentTopLevelPageIndex] = useState<
+    number | undefined
+  >(() =>
+    getInitialTopLevelPageIndex(topLevelPages, props.initiallySelectedTopLevelPageKey),
+  );
+  const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
 
   const wantAreaChooser = topLevelPages.length > 1;
   const firstEnabledIndex = useMemo(() => findFirstEnabledIndex(areas), [areas]);
@@ -488,6 +489,18 @@ function findFirstEnabledIndex(areas: AreaGroup[]): number | undefined {
     }
   }
   return undefined;
+}
+
+function getInitialTopLevelPageIndex(
+  topLevelPages: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[],
+  initiallySelectedTopLevelPageKey?: string,
+): number {
+  if (!initiallySelectedTopLevelPageKey) return 0;
+
+  const pageIndex = topLevelPages.findIndex(
+    (page) => page.props.pageKey === initiallySelectedTopLevelPageKey,
+  );
+  return pageIndex >= 0 ? pageIndex : -1;
 }
 
 function isIndexDisabled(areas: AreaGroup[], index: number) {
