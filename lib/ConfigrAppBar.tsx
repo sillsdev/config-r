@@ -1,9 +1,10 @@
 import * as React from 'react';
 
 import { alpha, styled } from '@mui/material/styles';
-import { AppBar, Toolbar, Typography, InputBase, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, InputBase, Box, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { ConfigrLocalizationContext } from './ConfigrLocalizations';
+import CloseIcon from '@mui/icons-material/Close';
 import { SearchContext } from './SearchContextProvider';
 
 /* this is mostly copy/pasted from the example at https://material-ui.com/components/app-bar/#app-bar */
@@ -34,10 +35,21 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
+const ClearSearchButton = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 1),
+  height: '100%',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
+    padding: theme.spacing(1, 4, 1, 0),
     // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
@@ -85,6 +97,18 @@ export const ConfigrAppBar: React.FunctionComponent<
                     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
                   ) => props.setSearchString(event.target.value)}
                 />
+                {props.searchValue && (
+                  <ClearSearchButton>
+                    <IconButton
+                      aria-label="clear search"
+                      color="inherit"
+                      size="small"
+                      onClick={() => props.setSearchString('')}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </ClearSearchButton>
+                )}
               </Search>
             )
           }

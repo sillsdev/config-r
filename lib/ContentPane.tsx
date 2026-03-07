@@ -1,6 +1,6 @@
 import { css, SerializedStyles } from '@emotion/react';
 import * as React from 'react';
-import { useState, ReactElement, ReactNode, useEffect } from 'react';
+import { useState, ReactElement, ReactNode, useEffect, useContext } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -60,6 +60,103 @@ const FocusPageContext = React.createContext({
 const AlreadyFilteringContext = React.createContext({
   alreadyFiltering: false,
 });
+
+type SearchableSelectOption = ConfigrSelectOption<string | number>;
+
+function getNodeText(node: React.ReactNode): string {
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) {
+    return node.map((child) => getNodeText(child)).join(' ');
+  }
+  if (React.isValidElement(node)) {
+    return getNodeText(node.props.children);
+  }
+  return '';
+}
+
+function matchesSearchableText(
+  searchRegEx: RegExp | null,
+  ...values: Array<React.ReactNode | string | undefined>
+): boolean {
+  if (!searchRegEx) return true;
+
+  return values.some((value) => {
+    const text = getNodeText(value);
+    return !!text && searchRegEx.test(text);
+  });
+}
+
+function getSearchableValuesFromProps(props: {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  searchTerms?: string;
+  overrideDescription?: string;
+  options?: SearchableSelectOption[];
+}) {
+  const values: Array<React.ReactNode | string | undefined> = [
+    props.label,
+    props.description,
+    props.searchTerms,
+    props.overrideDescription,
+  ];
+
+  // Match what the select shows: an option's label, or its value when it has no label, and
+  // the description in its tooltip. A label starting with "--" is a divider.
+  props.options?.forEach((option) => {
+    const shownText = option.label ?? String(option.value);
+    if (shownText.startsWith('--')) return;
+    values.push(shownText, option.description);
+  });
+
+  return values;
+}
+
+function hasSearchMatch(
+  searchRegEx: RegExp | null,
+  node: React.ReactNode,
+  currentValues?: object,
+): boolean {
+  if (!searchRegEx) return true;
+  if (node === null || node === undefined || typeof node === 'boolean') return false;
+  if (typeof node === 'string' || typeof node === 'number') {
+    return searchRegEx.test(String(node));
+  }
+  if (Array.isArray(node)) {
+    return node.some((child) => hasSearchMatch(searchRegEx, child, currentValues));
+  }
+  if (!React.isValidElement(node)) return false;
+
+  const props = (node.props ?? {}) as {
+    label?: React.ReactNode;
+    description?: React.ReactNode;
+    searchTerms?: string;
+    overrideDescription?: string;
+    options?: SearchableSelectOption[];
+    children?: React.ReactNode;
+    path?: string;
+    render?: (pathPrefix: string, index: number) => React.ReactNode;
+  };
+
+  if (node.type === ConfigrForEach && currentValues && props.path && props.render) {
+    const items = getFormValueFromPath(currentValues, props.path, [] as unknown[]);
+    const renderedItems = (Array.isArray(items) ? items : []).map((_item, index) =>
+      props.render!(`${props.path}[${index}]`, index),
+    );
+
+    return (
+      matchesSearchableText(searchRegEx, ...getSearchableValuesFromProps(props)) ||
+      renderedItems.some((item) => hasSearchMatch(searchRegEx, item, currentValues))
+    );
+  }
+
+  return (
+    matchesSearchableText(searchRegEx, ...getSearchableValuesFromProps(props)) ||
+    React.Children.toArray(props.children).some((child) =>
+      hasSearchMatch(searchRegEx, child, currentValues),
+    )
+  );
+}
 
 export const ConfigrArea: React.FunctionComponent<
   React.PropsWithChildren<{
@@ -263,15 +360,16 @@ const BoxOfRows: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
     inFocussedPage?: boolean;
+    ancestorGroupLabel?: string;
   }>
 > = (props) => {
+  const visibleChildren = React.Children.toArray(props.children).filter((c) => c);
+
   if (props.inFocussedPage) {
     console.log(
       'RowCluster infocus' + 'children:' + React.Children.count(props.children),
     );
 
-    // count the number that we will actually show
-    const count = React.Children.toArray(props.children).filter((c) => c).length;
     return (
       <Paper
         // className="indentIfInSubPage"
@@ -286,21 +384,29 @@ const BoxOfRows: React.FunctionComponent<
         <List
           component="nav"
           css={css`
-            width: calc(100% - 20px);
+            box-sizing: border-box;
+            width: 100%;
+            padding-inline: 10px;
+
+            > .MuiTypography-root {
+              box-sizing: border-box;
+              padding-inline: 16px;
+            }
           `}
         >
-          {/* return clones of our children with our props.inFocussedPage */}
-          {React.Children.map(props.children, (child: any, index: number) => {
-            if (!child) return null;
+          {visibleChildren.map((child: any, index: number) => {
             return (
-              <>
-                {React.cloneElement(child, { inFocussedPage: true })}
-                {index < count - 1 && (
+              <React.Fragment key={child.key ?? index}>
+                {React.cloneElement(child, {
+                  inFocussedPage: true,
+                  ancestorGroupLabel: props.label ?? props.ancestorGroupLabel,
+                })}
+                {index < visibleChildren.length - 1 && (
                   <Divider component="li" key={'divider' + index.toString()} />
                 )}
-              </>
+              </React.Fragment>
             );
-          })?.filter((c: any) => c)}
+          })}
         </List>
       </Paper>
     );
@@ -512,114 +618,119 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   }>
 > = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
-  const inner = (
-    <SearchContext.Consumer>
-      {({ searchRegEx }) => {
-        const description = descriptionToReact(props.description);
-        const hasSupportingText = description || props.validationMessage;
-        const row = (
-          <div
-            css={css`
-              display: flex;
-              flex-direction: column;
-              width: 100%;
-              gap: ${hasSupportingText ? '8px' : '0'};
-            `}
-          >
-            <div
-              css={css`
-                display: flex;
-                align-items: flex-start;
-                gap: 16px;
-                width: 100%;
-              `}
-            >
-              {/* Left side */}
-              <ListItemText
-                primaryTypographyProps={{ variant: 'h4' }}
-                title={props.path}
-                css={css`
-                  margin: 0;
-                  flex: 1 1 auto;
-                  min-width: 0;
-                  color: ${props.disabled ? disabledGrey : 'unset'};
-                  ${props.height ? 'height:' + props.height : ''}
-                  ${props.indented && 'margin-left: 30px;'}
-                  user-select: none;
-                  * {
-                    ${props.labelCss}
-                  }
-                `}
-                primary={renderFieldLabel(props.label)}
-              />
-              <div
-                css={css`
-                  flex: 0 0 auto;
-                  display: flex;
-                  align-items: flex-start;
-                `}
-              >
-                {props.control}
-                {renderRequiredIndicator(
-                  props.required,
-                  localizations.fieldRequiredMessage,
-                )}
-              </div>
-            </div>
-            {description && (
-              <Typography
-                variant="caption"
-                css={css`
-                  width: 100%;
-                  color: ${props.disabled ? disabledGrey : 'unset'};
-                `}
-              >
-                {description}
-              </Typography>
-            )}
-            {props.validationMessage && (
-              <Typography
-                variant="caption"
-                color="error"
-                css={css`
-                  width: 100%;
-                `}
-              >
-                {props.validationMessage}
-              </Typography>
-            )}
-          </div>
-        );
-        if (searchRegEx) {
-          const count = React.Children.toArray(props.children).filter(
-            (c) => c && searchRegEx.exec((c as any).props.label as string),
-          ).length;
-          if (count) {
-            return (
-              // I haven't managed to get this work yet
-              // <Tooltip open={true} title="hello">
-              //   {row}
-              // </Tooltip>
-              <div>
-                {row}
-                <span
-                  css={css`
-                    background-color: yellow;
-                  `}
-                >
-                  {localizations.matchesLabel(count)}
-                </span>
-              </div>
-            );
-          }
-        }
-        return row;
-      }}
-    </SearchContext.Consumer>
+  const { searchRegEx } = useContext(SearchContext);
+  const ownMatch = matchesSearchableText(
+    searchRegEx,
+    ...getSearchableValuesFromProps(
+      props as {
+        label?: React.ReactNode;
+        description?: React.ReactNode;
+        searchTerms?: string;
+        overrideDescription?: string;
+        options?: SearchableSelectOption[];
+      },
+    ),
   );
+  const matchingChildCount = searchRegEx
+    ? React.Children.toArray(props.children).filter((child) =>
+        hasSearchMatch(searchRegEx, child),
+      ).length
+    : 0;
+
+  if (searchRegEx && !ownMatch && matchingChildCount === 0) return null;
+
+  const description = descriptionToReact(props.description);
+  const hasSupportingText = description || props.validationMessage;
+  const inner = (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: ${hasSupportingText ? '8px' : '0'};
+      `}
+    >
+      <div
+        css={css`
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          width: 100%;
+        `}
+      >
+        {/* Left side */}
+        <ListItemText
+          primaryTypographyProps={{ variant: 'h4' }}
+          title={props.path}
+          css={css`
+            margin: 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            color: ${props.disabled ? disabledGrey : 'unset'};
+            ${props.height ? 'height:' + props.height : ''}
+            ${props.indented && 'margin-left: 30px;'}
+            user-select: none;
+            * {
+              ${props.labelCss}
+            }
+          `}
+          primary={renderFieldLabel(props.label)}
+        />
+        <div
+          css={css`
+            flex: 0 0 auto;
+            display: flex;
+            align-items: flex-start;
+          `}
+        >
+          {props.control}
+          {renderRequiredIndicator(props.required, localizations.fieldRequiredMessage)}
+        </div>
+      </div>
+      {description && (
+        <Typography
+          variant="caption"
+          css={css`
+            width: 100%;
+            color: ${props.disabled ? disabledGrey : 'unset'};
+          `}
+        >
+          {description}
+        </Typography>
+      )}
+      {props.validationMessage && (
+        <Typography
+          variant="caption"
+          color="error"
+          css={css`
+            width: 100%;
+          `}
+        >
+          {props.validationMessage}
+        </Typography>
+      )}
+    </div>
+  );
+
+  const content =
+    searchRegEx && matchingChildCount > 0 ? (
+      <div>
+        {inner}
+        <span
+          css={css`
+            background-color: yellow;
+          `}
+        >
+          {localizations.matchesLabel(matchingChildCount)}
+        </span>
+      </div>
+    ) : (
+      inner
+    );
+
   return props.onClick ? (
     <ListItemButton onClick={props.onClick} disabled={props.disabled}>
-      {inner}
+      {content}
     </ListItemButton>
   ) : (
     <ListItem
@@ -627,7 +738,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
         height: ${props.height};
       `}
     >
-      {inner}
+      {content}
     </ListItem>
   );
 };
@@ -1042,8 +1153,11 @@ export const ConfigrGroup: React.FunctionComponent<
     // like MUI CardHeader's action. It shows only when the heading does. To change a value,
     // it can use useConfigrValue().
     headerAction?: React.ReactNode;
+    parentPageLabel?: string;
+    ancestorGroupLabel?: string;
   }>
 > = (props) => {
+  const { values } = useFormikContext<object>();
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
 
   // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
@@ -1053,36 +1167,76 @@ export const ConfigrGroup: React.FunctionComponent<
   // the box of rows, in the style of a row's description.
   const description = descriptionToReact(props.description);
   return (
-    <>
-      {props.inFocussedPage &&
-        props.label &&
-        (props.headerAction ? (
-          <div
-            css={css`
-              display: flex;
-              justify-content: space-between;
-              align-items: baseline;
-            `}
-          >
-            <Typography variant="h3">{props.label}</Typography>
-            {props.headerAction}
-          </div>
-        ) : (
-          <Typography variant="h3">{props.label}</Typography>
-        ))}
-      {props.inFocussedPage && description && (
-        <Typography
-          variant="caption"
-          component="div"
-          css={css`
-            margin-bottom: 8px;
-          `}
-        >
-          {description}
-        </Typography>
-      )}
-      <BoxOfRows {...props}>{props.children}</BoxOfRows>
-    </>
+    <SearchContext.Consumer>
+      {({ searchRegEx }) => {
+        const inSearchResults = !!searchRegEx;
+        const matchingChildren = searchRegEx
+          ? React.Children.toArray(props.children).filter((child) =>
+              hasSearchMatch(searchRegEx, child, values),
+            )
+          : React.Children.toArray(props.children).filter((child) => child);
+        const hideRepeatedLabel =
+          props.label === props.parentPageLabel ||
+          props.label === props.ancestorGroupLabel ||
+          (!!props.label &&
+            matchingChildren.length === 1 &&
+            React.isValidElement(matchingChildren[0]) &&
+            matchingChildren[0].type === ConfigrPage &&
+            matchingChildren[0].props.label === props.label);
+
+        if (
+          searchRegEx &&
+          !matchesSearchableText(
+            searchRegEx,
+            props.label,
+            props.description,
+            props.searchTerms,
+          ) &&
+          matchingChildren.length === 0
+        ) {
+          return null;
+        }
+
+        const showHeading =
+          (props.inFocussedPage || inSearchResults) && props.label && !hideRepeatedLabel;
+        return (
+          <>
+            {showHeading &&
+              (props.headerAction ? (
+                <div
+                  css={css`
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                  `}
+                >
+                  <Typography variant="h3">{props.label}</Typography>
+                  {props.headerAction}
+                </div>
+              ) : (
+                <Typography variant="h3">{props.label}</Typography>
+              ))}
+            {(props.inFocussedPage || inSearchResults) && description && (
+              <Typography
+                variant="caption"
+                component="div"
+                css={css`
+                  margin-bottom: 8px;
+                `}
+              >
+                {description}
+              </Typography>
+            )}
+            <BoxOfRows
+              {...props}
+              inFocussedPage={props.inFocussedPage || inSearchResults}
+            >
+              {matchingChildren}
+            </BoxOfRows>
+          </>
+        );
+      }}
+    </SearchContext.Consumer>
   );
 
   // <FilterForSearchText {...props} kids={props.children}>
@@ -1130,10 +1284,13 @@ export const ConfigrPage: React.FunctionComponent<
     getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
     disabled?: boolean;
+    ancestorGroupLabel?: string;
     children: PageChild | PageChild[];
   }>
 > = (props) => {
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
+  const { searchRegEx } = useContext(SearchContext);
+  const { values } = useFormikContext<object>();
 
   const childOfWrongType = React.Children.toArray(props.children).find(
     (child: any) =>
@@ -1155,6 +1312,54 @@ export const ConfigrPage: React.FunctionComponent<
         console.log(
           `<ConfigrPage pageKey='${key}' inFocussedPage=${props.inFocussedPage} focussedPageKey='${focussedPageKey}'>`,
         );
+        if (searchRegEx) {
+          const ownMatch = matchesSearchableText(
+            searchRegEx,
+            props.label,
+            props.searchTerms,
+          );
+          const childMatches = React.Children.toArray(props.children).some((child) =>
+            hasSearchMatch(searchRegEx, child, values),
+          );
+
+          if (!ownMatch && !childMatches) return null;
+
+          const headingVariant = props.topLevel ? 'h2' : 'h3';
+          const matchingChildren = React.Children.toArray(props.children).filter(
+            (child) => hasSearchMatch(searchRegEx, child, values),
+          );
+
+          return (
+            <>
+              {props.label && (
+                <Typography
+                  variant={headingVariant}
+                  css={css`
+                    margin-bottom: 0.5em;
+                  `}
+                >
+                  {props.label}
+                </Typography>
+              )}
+              <div
+                css={css`
+                  display: flex;
+                  flex-direction: column;
+                  gap: 0.5em;
+                `}
+              >
+                {matchingChildren.map((child) => {
+                  if (!child) return null;
+                  return React.cloneElement(child as any, {
+                    inFocussedPage: true,
+                    parentPageLabel: props.label,
+                    ancestorGroupLabel: props.ancestorGroupLabel,
+                  });
+                })}
+              </div>
+            </>
+          );
+        }
         if (props.inFocussedPage) {
           // We are in the focussed page, so the button that would activate us can be visible.
           // Show a row with a button that would make us the current page.
@@ -1214,6 +1419,8 @@ export const ConfigrPage: React.FunctionComponent<
                     // we have to do this prop drilling because React Contexts can't be created recursively
                     return React.cloneElement(child as any, {
                       inFocussedPage: true,
+                      parentPageLabel: props.label,
+                      ancestorGroupLabel: props.ancestorGroupLabel,
                     });
                   } else return null;
                 })?.filter((c) => c)}

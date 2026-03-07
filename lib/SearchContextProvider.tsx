@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useState } from 'react';
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export const SearchContext = React.createContext({
   searchString: '' as string | null,
   searchRegEx: null as RegExp | null,
@@ -25,9 +29,7 @@ export const SearchContextProvider: React.FunctionComponent<
     <SearchContext.Provider
       value={{
         searchString: searchString,
-        searchRegEx: searchString
-          ? new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
-          : null,
+        searchRegEx: searchString ? new RegExp(escapeRegExp(searchString), 'i') : null,
         setSearchString: handleSet,
       }}
     >
