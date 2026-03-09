@@ -334,6 +334,7 @@ const ConfigrRowOneColumn: React.FunctionComponent<
     control: React.ReactNode;
   }>
 > = (props) => {
+  const description = descriptionToReact(props.description);
   return (
     <ListItem
       //className={'MuiListItem-alignItemsFlexStart'}
@@ -343,12 +344,19 @@ const ConfigrRowOneColumn: React.FunctionComponent<
         align-items: flex-start;
       `}
     >
-      <ListItemText
-        primaryTypographyProps={{ variant: 'h4' }}
-        primary={props.label}
-        secondary={descriptionToReact(props.description)}
-      />
+      <ListItemText primaryTypographyProps={{ variant: 'h4' }} primary={props.label} />
       {props.control}
+      {description && (
+        <Typography
+          variant="caption"
+          css={css`
+            width: 100%;
+            margin-top: 8px;
+          `}
+        >
+          {description}
+        </Typography>
+      )}
     </ListItem>
   );
 };
@@ -421,7 +429,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     label: string;
     labelCss?: SerializedStyles;
     path: string; //TODO: change this to "key"? It's not used as a path.
-    description?: string;
+    description?: string | React.ReactNode;
     control: React.ReactElement;
     disabled?: boolean;
     height?: string;
@@ -432,59 +440,63 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   const inner = (
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
+        const description = descriptionToReact(props.description);
         const row = (
           <div
             css={css`
               display: flex;
               flex-direction: column;
               width: 100%;
+              gap: ${description ? '8px' : '0'};
             `}
           >
-            {/* Left side */}
-            <ListItemText
-              primaryTypographyProps={{ variant: 'h4' }}
-              title={props.path}
+            <div
               css={css`
-                /* no: doing this ends up double-fading the label
-                    color: ${props.disabled ? disabledGrey : 'unset'}; */
-                ${props.height ? 'height:' + props.height : ''}
-                ${props.indented && 'margin-left: 30px;'}
-                user-select: none;
-                * {
-                  ${props.labelCss}
-                }
-              `}
-              primary={props.label}
-            />
-            {/* Right side */}
-            <ListItemSecondaryAction
-              css={css`
-                // OK, this feels like a hack. But the MUI default puts it at
-                // top:50% which is fine until you have a secondary label, in
-                // which case the whole thing gets very tall but really the
-                // button should be top-aligned.
-                /// Months later.. but it messed up toggleGroups and I'm not seeing the problem it was solving, at the moment.
-                //top: 22px;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                width: 100%;
               `}
             >
-              {props.control}
-            </ListItemSecondaryAction>
-            <Typography
-              variant="caption"
-              // enhance: the default component, span, ignores the line-height of our caption
-              // but if we use p, we get a console error because the parent is already a p.body2
-              //component={'p'}
-              css={css`
-                &,
-                * {
-                  // this is a hack... we need to figured out how to have this MUI List stuff allow a text along the bottom
-                  max-width: calc(100% - 200px);
+              {/* Left side */}
+              <ListItemText
+                primaryTypographyProps={{ variant: 'h4' }}
+                title={props.path}
+                css={css`
+                  margin: 0;
+                  flex: 1 1 auto;
+                  min-width: 0;
                   color: ${props.disabled ? disabledGrey : 'unset'};
-                }
-              `}
-            >
-              {descriptionToReact(props.description)}
-            </Typography>
+                  ${props.height ? 'height:' + props.height : ''}
+                  ${props.indented && 'margin-left: 30px;'}
+                  user-select: none;
+                  * {
+                    ${props.labelCss}
+                  }
+                `}
+                primary={props.label}
+              />
+              <div
+                css={css`
+                  flex: 0 0 auto;
+                  display: flex;
+                  align-items: flex-start;
+                `}
+              >
+                {props.control}
+              </div>
+            </div>
+            {description && (
+              <Typography
+                variant="caption"
+                css={css`
+                  width: 100%;
+                  color: ${props.disabled ? disabledGrey : 'unset'};
+                `}
+              >
+                {description}
+              </Typography>
+            )}
           </div>
         );
         if (searchRegEx) {
