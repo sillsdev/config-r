@@ -638,6 +638,16 @@ export const ConfigrInput: React.FunctionComponent<
   >
 > = (props) => {
   props = useModifyForOverride(props);
+  // Text inputs wrap visually by default. A future multi-paragraph option may
+  // allow explicit newline editing with a separate prop.
+  const wrapText = !props.type || props.type === 'text';
+  const preventTypedNewlines = (
+    event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => {
+    if (wrapText && event.key === 'Enter' && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+    }
+  };
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -646,7 +656,10 @@ export const ConfigrInput: React.FunctionComponent<
           component={TextField}
           variant="standard"
           name={props.path}
-          type={props.type ?? 'text'} // type "number" gives you a spinner control
+          disabled={props.disabled}
+          type={wrapText ? undefined : (props.type ?? 'text')} // type "number" gives you a spinner control
+          multiline={wrapText}
+          onKeyDown={preventTypedNewlines}
           InputProps={
             props.units
               ? {
@@ -657,9 +670,13 @@ export const ConfigrInput: React.FunctionComponent<
               : undefined
           }
           css={css`
-            input {
-              text-align: end;
-            }
+            ${!wrapText
+              ? `
+                input {
+                  text-align: end;
+                }
+              `
+              : ''}
           `}
           //className={props.className}
         />

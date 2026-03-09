@@ -39,5 +39,5 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - `ConfigrForEach` now uses a render signature of `(pathPrefix, index) => ReactNode`; build full Formik paths from the prefix (see the languages loop in the story).
 - `ConfigrSelect` options accept numbers or `{ label, value, description }` objects; descriptions become tooltips.
 - Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
-- Custom inputs use `ConfigrCustomStringInput`, `ConfigrCustomNumberInput`, or `ConfigrCustomObjectInput` with a `control` component that receives `value`, `onChange`, and `disabled`.
+- `ConfigrInput` covers standard text, number, and email fields. Text inputs wrap visually by default; use the custom input variants only for genuinely custom editors whose UI is not just a styled text field.
 - `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, and `initiallySelectedTopLevelPageKey`.

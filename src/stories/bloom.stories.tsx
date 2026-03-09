@@ -7,6 +7,7 @@ import { ConfigrPane } from '../../lib/ConfigrPane';
 import {
   ConfigrInput,
   ConfigrBoolean,
+  ConfigrConditional,
   ConfigrRadioGroup,
   ConfigrRadio,
   ConfigrArea,
@@ -27,6 +28,12 @@ import { useField } from 'formik';
 
 const initialBloomCollectionValues = {
   pageNumberStyle: 'Decimal',
+  book: {
+    cover: {
+      includeCover: true,
+      title: '',
+    },
+  },
   languages: [
     {
       label: 'Local Language',
@@ -377,7 +384,14 @@ const BloomCollectionInner: React.FunctionComponent<{
         </ConfigrArea>
         <ConfigrArea label="Book">
           <ConfigrPage label="Cover" pageKey="book-cover">
-            <ConfigrStatic />
+            <ConfigrGroup label="Cover">
+              <ConfigrBoolean path="book.cover.includeCover" label="Include cover" />
+              <ConfigrConditional
+                enableWhen={(values: any) => values.book.cover.includeCover}
+              >
+                <ConfigrInput path="book.cover.title" label="title" />
+              </ConfigrConditional>
+            </ConfigrGroup>
           </ConfigrPage>
           <ConfigrPage label="Fonts" pageKey="book-fonts">
             <ConfigrStatic />
@@ -693,6 +707,8 @@ const BloomBookInner: React.FunctionComponent<{
 const initialV1BloomBookValues = {
   appearance: {
     cover: {
+      includeCover: true,
+      title: '',
       coverColor: '#ffcc00',
     },
     margins: {
@@ -779,6 +795,15 @@ const BloomBookInnerV1: React.FunctionComponent<{
           // While there is not, it just takes up space and confuses things.
         >
           <ConfigrGroup label="Cover">
+            <ConfigrBoolean
+              path={`appearance.cover.includeCover`}
+              label="Include cover"
+            />
+            <ConfigrConditional
+              enableWhen={(values: any) => values.appearance.cover.includeCover}
+            >
+              <ConfigrInput path={`appearance.cover.title`} label="title" />
+            </ConfigrConditional>
             <ConfigrCustomStringInput
               path={`appearance.cover.coverColor`}
               label="Cover Color"
