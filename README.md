@@ -39,5 +39,29 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - `ConfigrForEach` now uses a render signature of `(pathPrefix, index) => ReactNode`; build full Formik paths from the prefix (see the languages loop in the story).
 - `ConfigrSelect` options accept numbers or `{ label, value, description }` objects; descriptions become tooltips.
 - Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
-- `ConfigrInput` covers standard text, number, and email fields. Text inputs wrap visually by default; use the custom input variants only for genuinely custom editors whose UI is not just a styled text field.
-- `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, and `initiallySelectedTopLevelPageKey`.
+- Leaf controls support `required` and `validation`. `validation` receives the current field value and may return `true`, `false`, or a string. `false` renders a generic `Invalid value` message, while a string is shown inline in red.
+- Required fields show a `*` beside the control. The fallback `Required` message for empty required fields is controlled at the pane level with `showRequiredMessage` and defaults to `true`.
+- `ConfigrInput` covers standard text, number, and email fields. It also supports `charactersWide`, `allowNewLines`, and `maxLines` for compact multiline text entry.
+- `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, `initiallySelectedTopLevelPageKey`, and `localizations`.
+
+## Localization
+
+To provide languages other than English for the small set of built-in strings, pass `localizations` to `ConfigrPane`:
+
+```tsx
+<ConfigrPane
+  label="Configuracion"
+  initialValues={initialValues}
+  showSearch={true}
+  localizations={{
+    fieldRequiredMessage: 'Requiere un valor',
+    invalidValueMessage: 'Valor no valido',
+    searchLabel: 'Buscar',
+    matchesLabel: (count) => `${count} coincidencias`,
+  }}
+>
+  {/* pages */}
+</ConfigrPane>
+```
+
+`searchLabel` is used for both the visible search placeholder and the input accessibility label.

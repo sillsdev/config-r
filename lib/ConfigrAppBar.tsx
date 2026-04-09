@@ -3,6 +3,7 @@ import * as React from 'react';
 import { alpha, styled } from '@mui/material/styles';
 import { AppBar, Toolbar, Typography, InputBase, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { ConfigrLocalizationContext } from './ConfigrLocalizations';
 import { SearchContext } from './SearchContextProvider';
 
 /* this is mostly copy/pasted from the example at https://material-ui.com/components/app-bar/#app-bar */
@@ -55,6 +56,7 @@ export const ConfigrAppBar: React.FunctionComponent<
   }>
 > = (props) => {
   console.log('Rendering appbar. searchValue=' + props.searchValue);
+  const localizations = React.useContext(ConfigrLocalizationContext);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -77,8 +79,8 @@ export const ConfigrAppBar: React.FunctionComponent<
                 </SearchIconWrapper>
                 <StyledInputBase
                   value={props.searchValue ?? ''}
-                  placeholder="Search…"
-                  inputProps={{ 'aria-label': 'search' }}
+                  placeholder={localizations.searchLabel}
+                  inputProps={{ 'aria-label': localizations.searchLabel }}
                   onChange={(
                     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
                   ) => props.setSearchString(event.target.value)}

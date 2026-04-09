@@ -77,8 +77,10 @@ export const Pets: React.FunctionComponent<{}> = (props) => {
             <ConfigrInput
               path="bird.name"
               label="Name"
-              getErrorMessage={(d: IPetSettings) =>
-                d.bird.name.indexOf('!') > -1 ? 'No punctuation allowed' : undefined
+              getErrorMessage={(data) =>
+                (data as unknown as IPetSettings).bird.name.indexOf('!') > -1
+                  ? 'No punctuation allowed'
+                  : undefined
               }
             />
             <ConfigrRadioGroup path="bird.kind" label="Kind">
@@ -128,6 +130,47 @@ export const Lameta: React.FunctionComponent<{}> = (props) => {
                 }}
               ></ConfigrChooserButton>
             </ConfigrConditional>
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>
+    </div>
+  );
+};
+
+const initialLocalizedValues = {
+  profile: { displayName: '', region: '' },
+};
+
+export const LocalizedStrings: React.FunctionComponent<{}> = () => {
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 320px;
+      `}
+    >
+      <ConfigrPane
+        label="Configuracion"
+        initialValues={initialLocalizedValues}
+        showSearch={true}
+        initiallySelectedTopLevelPageKey="profile"
+        localizations={{
+          fieldRequiredMessage: 'Requiere un valor',
+          invalidValueMessage: 'Valor no valido',
+          searchLabel: 'Buscar',
+          matchesLabel: (count) => `${count} coincidencias`,
+        }}
+      >
+        <ConfigrPage label="Perfil" pageKey="profile">
+          <ConfigrGroup>
+            <ConfigrInput path="profile.displayName" label="Nombre" required={true} />
+            <ConfigrInput
+              path="profile.region"
+              label="Region"
+              required={true}
+              validation={(value) => String(value ?? '').trim().length >= 3}
+            />
           </ConfigrGroup>
         </ConfigrPage>
       </ConfigrPane>

@@ -3,6 +3,11 @@ import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
+import {
+  ConfigrLocalizationContext,
+  ConfigrLocalizationOverrides,
+  defaultConfigrLocalizations,
+} from './ConfigrLocalizations';
 import { ConfigrArea, ConfigrPage, ConfigrValues, ContentPane } from './ContentPane';
 import { SearchContext, SearchContextProvider } from './SearchContextProvider';
 import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
@@ -26,6 +31,8 @@ export const ConfigrPane: React.FunctionComponent<
     showSearch?: boolean;
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
+    showRequiredMessage?: boolean;
+    localizations?: ConfigrLocalizationOverrides;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
     initiallySelectedTopLevelPageKey?: string;
   }>
@@ -38,6 +45,10 @@ export const ConfigrPane: React.FunctionComponent<
   // set of properties, and I don't see how to know which ones are just defaults
   // and which the client actually cares about.
   //const mergedTheme = createTheme({ ...defaultConfigrTheme, ...props.themeOverrides });
+  const localizations = useMemo(
+    () => ({ ...defaultConfigrLocalizations, ...props.localizations }),
+    [props.localizations],
+  );
   const mergedTheme = props.themeOverrides
     ? createTheme(defaultConfigrTheme, props.themeOverrides!)
     : createTheme(defaultConfigrTheme);
@@ -119,86 +130,88 @@ export const ConfigrPane: React.FunctionComponent<
           `}
         >
           <ThemeProvider theme={mergedTheme}>
-            <SearchContextProvider>
-              <SearchContext.Consumer>
-                {({ searchString, setSearchString }) => {
-                  return (
-                    <React.Fragment>
-                      {props.showAppBar && (
-                        <ConfigrAppBar
-                          label={props.label}
-                          showSearch={props.showSearch}
-                          searchValue={searchString}
-                          setSearchString={(s: string) => {
-                            if (searchString !== s) {
-                              setSearchString(s);
-                              // There should be no selected group if we
-                              // have a search term. If the user clears the search,
-                              // then we set the selected group to be the 1st one (0).
-                              setCurrentAreaIndex(undefined);
-                              setCurrentTopLevelPageIndex(
-                                s ? undefined : (firstEnabledIndex ?? 0),
-                              );
-                            }
-                          }}
-                        />
-                      )}
-                      <div
-                        id="configr-pane"
-                        css={css`
-                          // no. Make client set the background color: background-color: #f8f9fa;
-                          height: 100%;
-                          display: flex;
-                          //padding-left: ${wantAreaChooser ? undefined : '20px'};
-                          .MuiTab-wrapper {
-                            text-align: left;
-                            align-items: start;
-                          }
-                        `}
-                        className={props.className} // allow client to set things like background color
-                      >
-                        {wantAreaChooser && (
-                          <AreaChooser
-                            currentPageIndex={currentTopLevelPageIndex}
-                            setCurrentPageIndex={setCurrentTopLevelPageIndex}
-                            currentAreaIndex={currentAreaIndex}
-                            setCurrentAreaIndex={setCurrentAreaIndex}
-                            areas={areas}
+            <ConfigrLocalizationContext.Provider value={localizations}>
+              <SearchContextProvider>
+                <SearchContext.Consumer>
+                  {({ searchString, setSearchString }) => {
+                    return (
+                      <React.Fragment>
+                        {props.showAppBar && (
+                          <ConfigrAppBar
+                            label={props.label}
+                            showSearch={props.showSearch}
+                            searchValue={searchString}
+                            setSearchString={(s: string) => {
+                              if (searchString !== s) {
+                                setSearchString(s);
+                                // There should be no selected group if we
+                                // have a search term. If the user clears the search,
+                                // then we set the selected group to be the 1st one (0).
+                                setCurrentAreaIndex(undefined);
+                                setCurrentTopLevelPageIndex(
+                                  s ? undefined : (firstEnabledIndex ?? 0),
+                                );
+                              }
+                            }}
                           />
                         )}
                         <div
+                          id="configr-pane"
                           css={css`
-                            flex: 1;
-                            min-width: 0;
+                            // no. Make client set the background color: background-color: #f8f9fa;
+                            height: 100%;
                             display: flex;
-                            flex-direction: column;
+                            //padding-left: ${wantAreaChooser ? undefined : '20px'};
+                            .MuiTab-wrapper {
+                              text-align: left;
+                              align-items: start;
+                            }
                           `}
+                          className={props.className} // allow client to set things like background color
                         >
-                          {activeArea?.content && (
-                            <div
-                              css={css`
-                                padding: 8px 16px 0 16px;
-                              `}
-                            >
-                              {activeArea.content}
-                            </div>
+                          {wantAreaChooser && (
+                            <AreaChooser
+                              currentPageIndex={currentTopLevelPageIndex}
+                              setCurrentPageIndex={setCurrentTopLevelPageIndex}
+                              currentAreaIndex={currentAreaIndex}
+                              setCurrentAreaIndex={setCurrentAreaIndex}
+                              areas={areas}
+                            />
                           )}
-                          {currentAreaIndex === undefined && (
-                            <ContentPane
-                              currentTopLevelPageIndex={currentTopLevelPageIndex}
-                              {...propsToPass}
-                              onChange={onChangeWrapper}
-                            >
-                              {topLevelPages}
-                            </ContentPane>
-                          )}
+                          <div
+                            css={css`
+                              flex: 1;
+                              min-width: 0;
+                              display: flex;
+                              flex-direction: column;
+                            `}
+                          >
+                            {activeArea?.content && (
+                              <div
+                                css={css`
+                                  padding: 8px 16px 0 16px;
+                                `}
+                              >
+                                {activeArea.content}
+                              </div>
+                            )}
+                            {currentAreaIndex === undefined && (
+                              <ContentPane
+                                currentTopLevelPageIndex={currentTopLevelPageIndex}
+                                {...propsToPass}
+                                onChange={onChangeWrapper}
+                              >
+                                {topLevelPages}
+                              </ContentPane>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </React.Fragment>
-                  );
-                }}
-              </SearchContext.Consumer>
-            </SearchContextProvider>
+                      </React.Fragment>
+                    );
+                  }}
+                </SearchContext.Consumer>
+              </SearchContextProvider>
+            </ConfigrLocalizationContext.Provider>
           </ThemeProvider>
         </div>
         {props.showJson && (

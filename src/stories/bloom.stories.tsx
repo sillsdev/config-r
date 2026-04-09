@@ -335,9 +335,29 @@ const BloomCollectionInner: React.FunctionComponent<{
           </ConfigrPage>
           <ConfigrPage label="Location" pageKey="location">
             <ConfigrGroup>
-              <ConfigrInput path={`country`} label="Country" />
-              <ConfigrInput path={`province`} label="Province" />
-              <ConfigrInput path={`district`} label="District" />
+              <ConfigrInput
+                path={`country`}
+                label="Country"
+                required={true}
+                validation={(value) =>
+                  String(value ?? '').trim().length >= 3 || 'Enter at least 3 characters.'
+                }
+              />
+              <ConfigrInput
+                path={`province`}
+                label="Province"
+                required={true}
+                validation={(value) => String(value ?? '').trim().length >= 2}
+              />
+              <ConfigrInput
+                path={`district`}
+                label="District"
+                required={true}
+                validation={(value) =>
+                  /^[A-Za-z][A-Za-z '-]*$/.test(String(value ?? '').trim()) ||
+                  'Use letters, spaces, apostrophes, or hyphens.'
+                }
+              />
             </ConfigrGroup>
           </ConfigrPage>
 
@@ -389,7 +409,13 @@ const BloomCollectionInner: React.FunctionComponent<{
               <ConfigrConditional
                 enableWhen={(values: any) => values.book.cover.includeCover}
               >
-                <ConfigrInput path="book.cover.title" label="title" />
+                <ConfigrInput
+                  path="book.cover.title"
+                  label="title"
+                  charactersWide={30}
+                  allowNewLines={true}
+                  maxLines={2}
+                />
               </ConfigrConditional>
             </ConfigrGroup>
           </ConfigrPage>

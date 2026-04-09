@@ -35,9 +35,18 @@ import {
   Select as FormikMuiSelect,
   ToggleButtonGroup,
 } from 'formik-mui';
+import { ConfigrLocalizationContext } from './ConfigrLocalizations';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
+import {
+  ActiveFieldPathContext,
+  ConfigrErrorMessageGetter,
+  ConfigrValidation,
+  RequiredMessageContext,
+  getFieldPathFromEventTarget,
+  useValidationMessageForValue,
+} from './validation';
 
 export type ConfigrValues = Record<string, unknown>;
 
@@ -71,6 +80,7 @@ export const ContentPane: React.FunctionComponent<
     // this is the whole settings object that we are editing
     initialValues: ConfigrValues;
     currentTopLevelPageIndex?: number;
+    showRequiredMessage?: boolean;
     children:
       | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>
       | React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[];
@@ -80,6 +90,7 @@ export const ContentPane: React.FunctionComponent<
   }>
 > = (props) => {
   const [focussedPageKey, setFocussedPageKey] = useState('');
+  const [activeFieldPath, setActiveFieldPath] = useState<string | undefined>(undefined);
   React.useEffect(() => {
     const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[
       props.currentTopLevelPageIndex || 0
@@ -143,59 +154,69 @@ export const ContentPane: React.FunctionComponent<
   };
 
   return (
-    <FocusPageContext.Provider
-      value={{
-        focussedPageKey,
-        goToPage,
-        goBack,
-      }}
-    >
-      <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          isSubmitting,
-        }) => {
-          if (props.setValueGetter)
-            props.setValueGetter(() => {
-              return values;
-            });
+    <RequiredMessageContext.Provider value={props.showRequiredMessage ?? true}>
+      <ActiveFieldPathContext.Provider value={activeFieldPath}>
+        <FocusPageContext.Provider
+          value={{
+            focussedPageKey,
+            goToPage,
+            goBack,
+          }}
+        >
+          <Formik initialValues={props.initialValues} onSubmit={(values) => {}}>
+            {({
+              values,
+              errors,
+              touched,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              isSubmitting,
+            }) => {
+              if (props.setValueGetter)
+                props.setValueGetter(() => {
+                  return values;
+                });
 
-          onChangeWrapper(values);
+              onChangeWrapper(values);
 
-          return (
-            <form
-              onSubmit={handleSubmit}
-              css={css`
-                flex-grow: 1;
-              `}
-            >
-              <SearchContext.Consumer>
-                {({ searchString }) => {
-                  if (searchString) {
-                    return (
-                      // This doesn't do any filtering, it just highlights matching things that something else is choosing to show.
-                      <HighlightSearchTerms
-                        searchString={searchString}
-                        focussedPageKey={focussedPageKey}
-                      >
-                        {getTopLevelPages()}
-                      </HighlightSearchTerms>
-                    );
-                  } else {
-                    return getTopLevelPages();
-                  }
-                }}
-              </SearchContext.Consumer>
-            </form>
-          );
-        }}
-      </Formik>
-    </FocusPageContext.Provider>
+              return (
+                <form
+                  onSubmit={handleSubmit}
+                  onFocusCapture={(event) => {
+                    setActiveFieldPath(getFieldPathFromEventTarget(event.target));
+                  }}
+                  onBlurCapture={(event) => {
+                    setActiveFieldPath(getFieldPathFromEventTarget(event.relatedTarget));
+                  }}
+                  css={css`
+                    flex-grow: 1;
+                  `}
+                >
+                  <SearchContext.Consumer>
+                    {({ searchString }) => {
+                      if (searchString) {
+                        return (
+                          // This doesn't do any filtering, it just highlights matching things that something else is choosing to show.
+                          <HighlightSearchTerms
+                            searchString={searchString}
+                            focussedPageKey={focussedPageKey}
+                          >
+                            {getTopLevelPages()}
+                          </HighlightSearchTerms>
+                        );
+                      } else {
+                        return getTopLevelPages();
+                      }
+                    }}
+                  </SearchContext.Consumer>
+                </form>
+              );
+            }}
+          </Formik>
+        </FocusPageContext.Provider>
+      </ActiveFieldPathContext.Provider>
+    </RequiredMessageContext.Provider>
   );
 };
 
@@ -299,6 +320,32 @@ const BoxOfRows: React.FunctionComponent<
   }
 };
 
+function renderFieldLabel(label: string) {
+  return label;
+}
+
+function renderRequiredIndicator(required: boolean | undefined, tooltipTitle: string) {
+  if (!required) return null;
+
+  return (
+    <Tooltip title={tooltipTitle}>
+      <span
+        css={css`
+          display: inline-flex;
+          align-items: center;
+          color: #d32f2f;
+          font-weight: 700;
+          line-height: 1;
+          margin-left: 8px;
+          padding-top: 6px;
+        `}
+      >
+        *
+      </span>
+    </Tooltip>
+  );
+}
+
 // For each child element, determine if we want it to be visible right now,
 // and if we want to stick a horizontal divider beneath it.
 // const FilterAndJoinWithDividers: React.FunctionComponent<
@@ -332,8 +379,11 @@ const ConfigrRowOneColumn: React.FunctionComponent<
     label: string;
     description?: string | React.ReactNode;
     control: React.ReactNode;
+    required?: boolean;
+    validationMessage?: string;
   }>
 > = (props) => {
+  const localizations = React.useContext(ConfigrLocalizationContext);
   const description = descriptionToReact(props.description);
   return (
     <ListItem
@@ -344,8 +394,19 @@ const ConfigrRowOneColumn: React.FunctionComponent<
         align-items: flex-start;
       `}
     >
-      <ListItemText primaryTypographyProps={{ variant: 'h4' }} primary={props.label} />
-      {props.control}
+      <ListItemText
+        primaryTypographyProps={{ variant: 'h4' }}
+        primary={renderFieldLabel(props.label)}
+      />
+      <div
+        css={css`
+          display: flex;
+          align-items: flex-start;
+        `}
+      >
+        {props.control}
+        {renderRequiredIndicator(props.required, localizations.fieldRequiredMessage)}
+      </div>
       {description && (
         <Typography
           variant="caption"
@@ -355,6 +416,18 @@ const ConfigrRowOneColumn: React.FunctionComponent<
           `}
         >
           {description}
+        </Typography>
+      )}
+      {props.validationMessage && (
+        <Typography
+          variant="caption"
+          color="error"
+          css={css`
+            width: 100%;
+            margin-top: 8px;
+          `}
+        >
+          {props.validationMessage}
         </Typography>
       )}
     </ListItem>
@@ -435,19 +508,23 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     height?: string;
     indented?: boolean;
     onClick?: () => void;
+    required?: boolean;
+    validationMessage?: string;
   }>
 > = (props) => {
+  const localizations = React.useContext(ConfigrLocalizationContext);
   const inner = (
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
         const description = descriptionToReact(props.description);
+        const hasSupportingText = description || props.validationMessage;
         const row = (
           <div
             css={css`
               display: flex;
               flex-direction: column;
               width: 100%;
-              gap: ${description ? '8px' : '0'};
+              gap: ${hasSupportingText ? '8px' : '0'};
             `}
           >
             <div
@@ -474,7 +551,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                     ${props.labelCss}
                   }
                 `}
-                primary={props.label}
+                primary={renderFieldLabel(props.label)}
               />
               <div
                 css={css`
@@ -484,6 +561,10 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                 `}
               >
                 {props.control}
+                {renderRequiredIndicator(
+                  props.required,
+                  localizations.fieldRequiredMessage,
+                )}
               </div>
             </div>
             {description && (
@@ -495,6 +576,17 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                 `}
               >
                 {description}
+              </Typography>
+            )}
+            {props.validationMessage && (
+              <Typography
+                variant="caption"
+                color="error"
+                css={css`
+                  width: 100%;
+                `}
+              >
+                {props.validationMessage}
               </Typography>
             )}
           </div>
@@ -516,7 +608,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                     background-color: yellow;
                   `}
                 >
-                  {`${count} matches`}
+                  {localizations.matchesLabel(count)}
                 </span>
               </div>
             );
@@ -550,6 +642,9 @@ interface IConfigrProps<T> {
   label: string;
   description?: string;
   disabled?: boolean;
+  required?: boolean;
+  validation?: ConfigrValidation<T>;
+  getErrorMessage?: ConfigrErrorMessageGetter;
   // If overrideValue is set, then the control is disabled, and the value shown
   // is based on overrideValue rather then the value indicated by the path.
   // The value in the main settings object is not affected and may be different from
@@ -633,33 +728,38 @@ export const ConfigrInput: React.FunctionComponent<
       className?: string;
       type?: 'text' | 'number' | 'email'; // I don't really know what all the options are in formik
       units?: string;
-      getErrorMessage?: (data: any) => string | undefined;
+      charactersWide?: number;
+      allowNewLines?: boolean;
+      maxLines?: number;
+      getErrorMessage?: ConfigrErrorMessageGetter;
     }
   >
 > = (props) => {
   props = useModifyForOverride(props);
-  // Text inputs wrap visually by default. A future multi-paragraph option may
-  // allow explicit newline editing with a separate prop.
-  const wrapText = !props.type || props.type === 'text';
-  const preventTypedNewlines = (
-    event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ) => {
-    if (wrapText && event.key === 'Enter' && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-    }
-  };
+  const [field] = useField<string | number>(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value);
+  const allowNewLines = !!props.allowNewLines && (!props.type || props.type === 'text');
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={
         <Field
           component={TextField}
           variant="standard"
           name={props.path}
           disabled={props.disabled}
-          type={wrapText ? undefined : (props.type ?? 'text')} // type "number" gives you a spinner control
-          multiline={wrapText}
-          onKeyDown={preventTypedNewlines}
+          type={allowNewLines ? undefined : (props.type ?? 'text')} // type "number" gives you a spinner control
+          multiline={allowNewLines}
+          minRows={allowNewLines ? 1 : undefined}
+          maxRows={allowNewLines ? (props.maxLines ?? 1) : undefined}
+          inputProps={
+            allowNewLines && props.charactersWide
+              ? {
+                  cols: props.charactersWide,
+                }
+              : undefined
+          }
           InputProps={
             props.units
               ? {
@@ -669,8 +769,15 @@ export const ConfigrInput: React.FunctionComponent<
                 }
               : undefined
           }
+          sx={
+            props.charactersWide
+              ? {
+                  width: `${props.charactersWide}ch`,
+                }
+              : undefined
+          }
           css={css`
-            ${!wrapText
+            ${!allowNewLines
               ? `
                 input {
                   text-align: end;
@@ -691,7 +798,7 @@ interface ICustomStringInputProps extends IConfigrProps<string> {
     disabled?: boolean;
     onChange: (value: string) => void;
   }>;
-  getErrorMessage?: (data: any) => string | undefined;
+  getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
 // Clients can use this to create their own custom inputs based on string data.
@@ -703,10 +810,12 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
+  const validationMessage = useValidationMessageForValue(props, value);
 
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={
         <props.control disabled={props.disabled} value={value} onChange={setValue} />
       }
@@ -716,7 +825,7 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
 
 interface ICustomBooleanInputProps extends IConfigrProps<boolean> {
   control: BooleanEditorComponent;
-  getErrorMessage?: (data: any) => string | undefined;
+  getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
 // Clients can use this to create their own custom inputs based on boolean data.
@@ -728,10 +837,12 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
+  const validationMessage = useValidationMessageForValue(props, value);
 
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={
         <props.control disabled={props.disabled} value={value} onChange={setValue} />
       }
@@ -747,7 +858,7 @@ interface ICustomNumberInputProps extends IConfigrProps<number> {
       onChange: (value: number) => void;
     }>
   >;
-  getErrorMessage?: (data: any) => string | undefined;
+  getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
 // Clients can use this to create their own custom inputs based on number data.
@@ -759,10 +870,12 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
+  const validationMessage = useValidationMessageForValue(props, value);
 
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={
         <props.control disabled={props.disabled} value={value} onChange={setValue} />
       }
@@ -778,7 +891,7 @@ interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
       onChange: (value: T) => void;
     }>
   >;
-  getErrorMessage?: (data: any) => string | undefined;
+  getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
 // Clients can use this to create their own custom inputs based on object data.
@@ -790,10 +903,12 @@ export function ConfigrCustomObjectInput<T>(
   const [field, meta, helpers] = useField(props.path);
   const { value } = meta;
   const { setValue } = helpers;
+  const validationMessage = useValidationMessageForValue(props, value);
 
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={
         <props.control value={value} disabled={props.disabled} onChange={setValue} />
       }
@@ -805,7 +920,7 @@ interface ISelectProps extends IConfigrProps<string> {
   indented?: boolean;
   options: Array<{ value: string; label?: string; description?: string } | number>;
   enableWhen?: string | ((currentValues: object) => boolean);
-  getErrorMessage?: (data: any) => string | undefined;
+  getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
 export const ConfigrSelect: React.FunctionComponent<
@@ -813,10 +928,13 @@ export const ConfigrSelect: React.FunctionComponent<
 > = (props) => {
   props = useModifyForOverride(props) as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
+  const [field] = useField<string>(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value, disabled);
   return (
     <ConfigrRowTwoColumns
       {...props}
       disabled={disabled}
+      validationMessage={validationMessage}
       control={
         <Field
           name={props.path}
@@ -894,7 +1012,7 @@ export const ConfigrGroup: React.FunctionComponent<
     label?: string;
     searchTerms?: string;
     description?: string | React.ReactNode;
-    getErrorMessage?: (data: any) => string | undefined;
+    getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
   }>
 > = (props) => {
@@ -954,7 +1072,7 @@ export const ConfigrPage: React.FunctionComponent<
     pageKey: string; // making this mandatory because it's not clear what you're doing wrong when you omit it and see multiple pages at once
     searchTerms?: string;
     topLevel?: boolean; // NB: not a for public API.
-    getErrorMessage?: (data: any) => string | undefined;
+    getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
     disabled?: boolean;
     children: PageChild | PageChild[];
@@ -1081,7 +1199,7 @@ export const ConfigrForEach: React.FunctionComponent<
     searchTerms: string;
     inFocussedPage?: boolean; // is unknown initially but the actual instance that gets rendered has a value that is prop-drilled down from the parent ConfigrPage
     render: (pathPrefix: string, index: number) => React.ReactNode;
-    getErrorMessage?: (data: any) => string | undefined;
+    getErrorMessage?: ConfigrErrorMessageGetter;
   }>
 > = (props) => {
   const { values } = useFormikContext();
@@ -1115,6 +1233,7 @@ export const ConfigrBoolean: React.FunctionComponent<
 > = (props) => {
   props = useModifyForOverride(props);
   const [field, meta, helpers] = useField(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value);
 
   // we're not supporting indeterminate state here (yet), so treat an undefined value as false
   if (field.value === undefined || field.value === null) {
@@ -1150,6 +1269,7 @@ export const ConfigrBoolean: React.FunctionComponent<
       }}
       control={control}
       {...props}
+      validationMessage={validationMessage}
       // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
       // the control above, and will LOOK disabled for either disabled or locked or both).
       // Note that the label will still BE disabled since we ignore clicks (above) if locked.
@@ -1170,6 +1290,8 @@ export const ConfigrRadioGroup: React.FunctionComponent<
   React.PropsWithChildren<IRadioGroupProps>
 > = (props) => {
   props = useModifyForOverride(props) as IRadioGroupProps;
+  const [field] = useField<string>(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value);
   return (
     // I could imagine wanting the radio buttons in the right column. There aren't any examples of this in chrome:settings.
     // Note that normally in chrome:settings, radios are the sole child of an entire group (e.g. "on startup", "cookie settings",
@@ -1178,6 +1300,7 @@ export const ConfigrRadioGroup: React.FunctionComponent<
     // on its left edge.)
     <ConfigrRowOneColumn
       {...props}
+      validationMessage={validationMessage}
       control={<ConfigrRadioGroupRaw {...props} />}
     ></ConfigrRowOneColumn>
   );
@@ -1227,9 +1350,12 @@ export const ConfigrToggleGroup: React.FunctionComponent<
   React.PropsWithChildren<IToggleGroupProps>
 > = (props) => {
   props = useModifyForOverride(props) as IToggleGroupProps;
+  const [field] = useField<string>(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value);
   return (
     <ConfigrRowTwoColumns
       {...props}
+      validationMessage={validationMessage}
       control={<ConfigrToggleGroupRaw {...props} />}
     ></ConfigrRowTwoColumns>
   );
@@ -1275,11 +1401,13 @@ export const ConfigrChooserButton: React.FunctionComponent<
   props = useModifyForOverride(props) as IChooserButtonProps;
   const { setFieldValue } = useFormikContext();
   const [field] = useField(props.path);
+  const validationMessage = useValidationMessageForValue(props, field.value);
 
   return (
     <ConfigrRowTwoColumns
       {...props}
       height="50px"
+      validationMessage={validationMessage}
       control={
         <div
           css={css`
