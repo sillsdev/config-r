@@ -730,7 +730,8 @@ export const ConfigrInput: React.FunctionComponent<
       units?: string;
       charactersWide?: number;
       allowNewLines?: boolean;
-      maxLines?: number;
+      minLinesToShow?: number;
+      maxLinesToShowBeforeScrolling?: number;
       getErrorMessage?: ConfigrErrorMessageGetter;
     }
   >
@@ -751,8 +752,8 @@ export const ConfigrInput: React.FunctionComponent<
           disabled={props.disabled}
           type={allowNewLines ? undefined : (props.type ?? 'text')} // type "number" gives you a spinner control
           multiline={allowNewLines}
-          minRows={allowNewLines ? 1 : undefined}
-          maxRows={allowNewLines ? (props.maxLines ?? 1) : undefined}
+          minRows={allowNewLines ? (props.minLinesToShow ?? 1) : undefined}
+          maxRows={allowNewLines ? (props.maxLinesToShowBeforeScrolling ?? 1) : undefined}
           inputProps={
             allowNewLines && props.charactersWide
               ? {

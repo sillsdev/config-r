@@ -414,7 +414,8 @@ const BloomCollectionInner: React.FunctionComponent<{
                   label="title"
                   charactersWide={30}
                   allowNewLines={true}
-                  maxLines={2}
+                  minLinesToShow={1}
+                  maxLinesToShowBeforeScrolling={2}
                 />
               </ConfigrConditional>
             </ConfigrGroup>

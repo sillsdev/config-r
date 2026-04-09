@@ -41,7 +41,7 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
 - Leaf controls support `required` and `validation`. `validation` receives the current field value and may return `true`, `false`, or a string. `false` renders a generic `Invalid value` message, while a string is shown inline in red.
 - Required fields show a `*` beside the control. The fallback `Required` message for empty required fields is controlled at the pane level with `showRequiredMessage` and defaults to `true`.
-- `ConfigrInput` covers standard text, number, and email fields. It also supports `charactersWide`, `allowNewLines`, and `maxLines` for compact multiline text entry.
+- `ConfigrInput` covers standard text, number, and email fields. It also supports `charactersWide`, `allowNewLines`, `minLinesToShow`, and `maxLinesToShowBeforeScrolling` for compact multiline text entry.
 - `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, `initiallySelectedTopLevelPageKey`, and `localizations`.
 
 ## Localization
