@@ -122,6 +122,7 @@ export const ConfigrPane: React.FunctionComponent<
           display: flex;
           flex-direction: row;
           flex: 1;
+          height: 100%; // retain height of parent for possibly scrollable content (BL-16149)
         `}
       >
         <div
