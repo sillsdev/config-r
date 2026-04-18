@@ -19,9 +19,11 @@ You can play around with [the disorganized stories](https://sillsdev.github.io/c
 ## Running
 
 ```
-yarn install
-yarn dev
+pnpm install
+pnpm dev
 ```
+
+Installing dependencies also installs the local `pre-commit` hook via `simple-git-hooks`, but CI remains the source of truth for enforcement.
 
 ## Installing
 

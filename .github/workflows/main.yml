@@ -15,20 +15,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Install Node.js, NPM and Yarn as specified in package.json
+      - name: Install Node.js and pnpm as specified in package.json
         uses: volta-cli/action@v4
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile --network-timeout 1000000
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Note that semantic-release reads release.config.js
-        run: npx semantic-release
+        run: pnpm exec semantic-release
