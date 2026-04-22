@@ -1,0 +1,18 @@
+# Delay adoption of newly published versions by 7 days (10080 minutes).
+minimumReleaseAge: 10080
+
+# Reject non-registry transitive dependency sources such as git/file/url deps.
+blockExoticSubdeps: true
+
+# Fail install when a dependency wants to run lifecycle/build scripts unless allowed below.
+strictDepBuilds: true
+
+# Narrow allowlist for packages whose install-time scripts are required in this repo.
+allowBuilds:
+  # esbuild downloads the platform-specific binary used by Vite and related tooling.
+  esbuild@0.21.5: true
+  # simple-git-hooks installs the local Git hook scripts from package.json config.
+  simple-git-hooks@2.13.1: true
+
+# Save exact versions in package.json instead of adding ^ or ~ prefixes.
+savePrefix: ''
