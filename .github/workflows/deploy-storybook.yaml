@@ -5,6 +5,8 @@ on:
 
 jobs:
   build-and-deploy:
+    env:
+      VOLTA_FEATURE_PNPM: 1
     permissions:
       contents: read
       pages: write
@@ -14,16 +16,17 @@ jobs:
       url: ${{ steps.build-publish.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install Node.js and pnpm as specified in package.json
         uses: volta-cli/action@v4
-
-      - name: Install pinned pnpm with Volta
-        run: volta install pnpm
 
       - name: Deploy Storybook to GitHub Pages
         id: build-publish
         uses: bitovi/github-actions-storybook-to-github-pages@v1.0.3
         with:
+          checkout: false
           path: storybook-static
           install_command: pnpm install --frozen-lockfile
           build_command: pnpm build-storybook
