@@ -17,6 +17,9 @@ jobs:
       - name: Install Node.js and pnpm as specified in package.json
         uses: volta-cli/action@v4
 
+      - name: Install pinned pnpm with Volta
+        run: volta install pnpm
+
       - name: Deploy Storybook to GitHub Pages
         id: build-publish
         uses: bitovi/github-actions-storybook-to-github-pages@v1.0.3

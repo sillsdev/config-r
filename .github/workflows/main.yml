@@ -18,6 +18,9 @@ jobs:
       - name: Install Node.js and pnpm as specified in package.json
         uses: volta-cli/action@v4
 
+      - name: Install pinned pnpm with Volta
+        run: volta install pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
