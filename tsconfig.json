@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "types": [/*"@emotion/core",*/ "@emotion/react/types/css-prop", "vite/client"],
+    "types": [/*"@emotion/core",*/ "@emotion/react/types/css-prop", "vite-plus/client"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,

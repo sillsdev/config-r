@@ -13,7 +13,7 @@ import {
   ConfigrArea,
   ConfigrGroup,
   ConfigrForEach,
-  ConfigrPage as ConfigrPage,
+  ConfigrPage,
   ConfigrSelect,
   ConfigrCustomStringInput,
   ConfigrCustomNumberInput,
