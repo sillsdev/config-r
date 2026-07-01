@@ -16,12 +16,48 @@ A React library for a settings UI similar to that of Chrome.
 
 You can play around with [the disorganized stories](https://sillsdev.github.io/config-r).
 
-## Running
+## Developing
+
+This project uses [Vite+](https://viteplus.dev) (`vp`) as its unified toolchain.
+Vite+ manages the Node.js runtime, the package manager, and the dev/build/lint/format/test
+commands in one place, replacing the previous split of Volta + Vite + ESLint + Prettier.
+
+### Prerequisites
+
+- **Node.js** — pinned in [`.node-version`](.node-version). If you have the Vite+
+  CLI installed, `vp env install` will fetch and use exactly that version; otherwise
+  any Node matching the `devEngines.runtime` range in `package.json` works.
+- **pnpm** — the version is pinned via the `packageManager` field in `package.json`.
+  `corepack enable` (or the Vite+ CLI) will provide it.
+
+The `vp` commands below use the global Vite+ CLI on your `PATH` — install it from the
+[Vite+ install guide](https://viteplus.dev/guide/install) (it also provides `vp env` for
+runtime management). A project-local `vp` is installed with the dependencies too, so the
+equivalent `pnpm` scripts (`pnpm dev`, `pnpm build`, …) work without a global install.
+
+### Common commands
+
+Vite+ (`vp`) is the primary interface:
 
 ```
-pnpm install
-pnpm dev
+vp install    # install dependencies
+vp dev        # start the dev playground
+vp check      # format + lint + type-check (add --fix to auto-fix)
+vp test       # run tests
+vp build      # build the library to dist/
 ```
+
+Storybook (the demo site) has no native `vp` command, so run it through its script:
+
+```
+vp run storybook        # run Storybook locally
+vp run build-storybook  # build the static Storybook site
+```
+
+Each command above also has a matching `package.json` script (`pnpm dev`, `pnpm build`,
+`pnpm check`, …) for tools that expect npm scripts. `pnpm build` runs `tsc` before
+`vp build` for a stricter type-check pass. The dev server opens the browser itself
+(`server.open` in `vite.config.mts`), so `pnpm dev` and `vp dev` behave identically.
 
 ## Installing
 

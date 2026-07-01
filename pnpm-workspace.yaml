@@ -1,6 +1,26 @@
 # Delay adoption of newly published versions by 7 days (10080 minutes).
 minimumReleaseAge: 10080
 
+# Route every `vite` dependency (app, library, plugins, Storybook) to the Vite
+# core that Vite+ ships and manages. Vite+ owns the Vite/rolldown version, so we
+# resolve a single, Vite+-vetted build of Vite instead of installing vite@8
+# directly. Its dependency tree is already past the maturity gate below.
+minimumReleaseAgeExclude:
+  - vite
+  - vite-plus
+  - '@voidzero-dev/*'
+  - oxlint
+  - '@oxlint/*'
+  - oxlint-tsgolint
+  - '@oxlint-tsgolint/*'
+  - oxfmt
+  - '@oxfmt/*'
+  - vitest
+  - '@vitest/*'
+overrides:
+  vite: 'catalog:'
+  vitest: 'catalog:'
+
 # Reject non-registry transitive dependency sources such as git/file/url deps.
 blockExoticSubdeps: true
 
@@ -11,8 +31,17 @@ strictDepBuilds: true
 allowBuilds:
   # esbuild downloads the platform-specific binary used by Vite and related tooling.
   esbuild@0.21.5: true
-  # simple-git-hooks installs the local Git hook scripts from package.json config.
-  simple-git-hooks@2.13.1: true
 
 # Save exact versions in package.json instead of adding ^ or ~ prefixes.
 savePrefix: ''
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@latest
+  vitest: 4.1.9
+  vite-plus: latest
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: '*'
+    vitest: '*'

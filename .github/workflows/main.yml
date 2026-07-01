@@ -6,8 +6,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    env:
-      VOLTA_FEATURE_PNPM: 1
     permissions:
       contents: write
       id-token: write
@@ -17,8 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Node.js and pnpm as specified in package.json
-        uses: volta-cli/action@v4
+      # pnpm version comes from the "packageManager" field in package.json.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      # Node version comes from .node-version (the same pin Vite+ `vp env` uses).
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
