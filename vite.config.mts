@@ -10,9 +10,10 @@ const __dirname = dirname(__filename);
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
   // `command` is 'build' when packaging the library (`vp build`) and 'serve'
-  // for the dev playground (`vp dev`). The MUI `.js` alias / externalization
-  // workarounds below are only needed for the library build; applying them to
-  // the dev server breaks MUI dependency optimization under rolldown.
+  // for the dev playground (`vp dev`). The two need different MUI handling under
+  // rolldown: the library externalizes all of MUI, while the dev server serves
+  // it as native ESM. Keeping them separate avoids each one's workarounds
+  // breaking the other.
   const isLibraryBuild = command === 'build';
 
   return {
@@ -68,51 +69,34 @@ export default defineConfig(({ command }) => {
           build: {
             lib: {
               entry: resolve(__dirname, 'lib/index.ts'),
-              name: 'configr',
               formats: ['es', 'cjs'],
-              fileName: (format) => `configr.${format === 'cjs' ? 'cjs' : 'es'}.js`,
+              // Under "type": "module", the CommonJS output must use a `.cjs`
+              // extension or Node/bundlers treat it as ESM (its `exports.*` then
+              // read as "no exports" for `require()` consumers).
+              fileName: (format) => (format === 'cjs' ? 'configr.cjs' : 'configr.es.js'),
             },
             sourcemap: true,
             emptyOutDir: true,
             rollupOptions: {
-              // don't bundle these with the library
-              external: [
-                'react',
-                'react/jsx-runtime.js', // Add .js extension
-                'react-dom',
-                'react-dom/client',
-                /^@mui\/material\/[^/]+\.js$/, // Match MUI imports with .js extension
-                /^@emotion\/.*$/,
-              ],
+              // React, MUI, and Emotion are peer dependencies — never bundle any
+              // of them (or their submodules) into the library. Bundling MUI's
+              // internals produced broken output under rolldown; keeping the whole
+              // @mui/@emotion/react trees external lets the consumer provide them.
+              external: [/^react($|\/)/, /^react-dom($|\/)/, /^@mui\//, /^@emotion\//],
               output: {
                 exports: 'named',
-                // Provide global variables to use in the UMD build
-                // for externalized deps
-                globals: {
-                  react: 'React',
-                  'react-dom': 'ReactDom',
-                  '@emotion/react': 'emotion-react',
-                  '@emotion/react/jsx-runtime': 'emotion-react-jsx-runtime',
-                  '@mui/material': 'mui-material',
-                  '@mui/material/styles': 'mui-material/styles',
-                  '@mui/material/utils?commonjs-external': 'mui-matierial-utils',
-                  'react/jsx-runtime.js': 'react-jsx-runtime', // Update path
-                  '@mui/material/FormControl': 'mui-material-formcontrol',
-                  '@mui/material/FormHelperText': 'mui-material-form-helper-text',
-                  '@mui/material/InputLabel': 'mui-material-input-label',
-                  '@mui/material/Select': 'mui-material-select',
+                // `@mui/material/styles` is a directory import. Rewrite the
+                // externalized specifier to the explicit index file so the
+                // output resolves under strict ESM (e.g. Node) as well as via
+                // bundlers. (alias doesn't apply to external specifiers.)
+                paths: {
+                  '@mui/material/styles': '@mui/material/styles/index.js',
                 },
               },
             },
           },
           resolve: {
             extensions: ['.js', '.jsx', '.ts', '.tsx'],
-            alias: {
-              '@mui/material/': '@mui/material/*.js',
-              '@mui/material/styles': '@mui/material/styles/index.js',
-              '@mui/material/utils': '@mui/material/utils/index.js',
-              //'react/jsx-runtime': 'react/jsx-runtime.js',
-            },
           },
         }
       : {

@@ -10,7 +10,7 @@
     "url": "git+https://github.com/sillsdev/config-r.git"
   },
   "scripts": {
-    "dev": "start http://localhost:5173 && vp dev",
+    "dev": "vp dev",
     "// run tsc first so the emitted .d.ts typings are accurate; see https://github.com/vitejs/vite/issues/3461": "",
     "build": "tsc && vp build",
     "build:dev": "tsc && vp build --mode development --minify false --sourcemap true --watch",
@@ -77,12 +77,12 @@
     "dist"
   ],
   "module": "./dist/configr.es.js",
-  "main": "./dist/configr.cjs.js",
+  "main": "./dist/configr.cjs",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/configr.es.js",
-      "require": "./dist/configr.cjs.js",
+      "require": "./dist/configr.cjs",
       "default": "./dist/configr.es.js"
     }
   },

@@ -55,9 +55,9 @@ vp run build-storybook  # build the static Storybook site
 ```
 
 Each command above also has a matching `package.json` script (`pnpm dev`, `pnpm build`,
-`pnpm check`, …) for tools that expect npm scripts. A few scripts add a step: `pnpm dev`
-opens the browser first, and `pnpm build` runs `tsc` before `vp build` for a stricter
-type-check pass.
+`pnpm check`, …) for tools that expect npm scripts. `pnpm build` runs `tsc` before
+`vp build` for a stricter type-check pass. The dev server opens the browser itself
+(`server.open` in `vite.config.mts`), so `pnpm dev` and `vp dev` behave identically.
 
 ## Installing
 
