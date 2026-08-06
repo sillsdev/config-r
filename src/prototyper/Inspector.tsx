@@ -13,7 +13,7 @@ import {
 import * as React from 'react';
 import { useState } from 'react';
 
-import { customControlNames } from './customControls';
+import { customControlNames, customControlPropSpecs } from './customControls';
 import { approximateStoredKB } from './images';
 import { NodeType, ProtoNode, SelectOption, typeLabels, valueLeafTypes } from './model';
 import { ProtoActions } from './store';
@@ -84,12 +84,8 @@ const fieldsByType: Record<NodeType, FieldSpec[]> = {
       emptyChoiceLabel: '(none chosen)',
       help: 'Registered in src/prototyper/customControls.tsx',
     },
-    {
-      key: 'customProps',
-      label: 'Control props (JSON)',
-      kind: 'json',
-      help: 'Extra props handed to the control, e.g. { "caption": "Example: ..." }',
-    },
+    // The control's own props render as real fields below, driven by its
+    // customControlPropSpecs entry; see CustomPropsFields.
   ],
 };
 
@@ -206,6 +202,70 @@ const JsonField: React.FunctionComponent<{
         }
       }}
     />
+  );
+};
+
+/**
+ * Real fields for a custom control's props, driven by its customControlPropSpecs entry.
+ * A control without one (or no control chosen yet) gets the JSON editor instead, so
+ * hand-written controls still work before anyone writes specs for them.
+ */
+const CustomPropsFields: React.FunctionComponent<{
+  node: ProtoNode;
+  setProps: (props: Record<string, unknown>) => void;
+}> = ({ node, setProps }) => {
+  const specs = node.controlName ? customControlPropSpecs[node.controlName] : undefined;
+  const current = (node.customProps ?? {}) as Record<string, unknown>;
+  if (!specs) {
+    return (
+      <JsonField
+        value={node.customProps}
+        label="Control props (JSON)"
+        help="This control has no prop specs in customControls.tsx yet, so edit its props as JSON."
+        commit={setProps}
+      />
+    );
+  }
+  const setProp = (propKey: string, value: unknown) => {
+    const next = { ...current };
+    if (value === '' || value === undefined || value === false) delete next[propKey];
+    else next[propKey] = value;
+    setProps(next);
+  };
+  return (
+    <>
+      {specs.map((spec) => {
+        const key = `${node.id}-${node.controlName}-${spec.key}`;
+        const value = current[spec.key];
+        if (spec.kind === 'checkbox') {
+          return (
+            <FormControlLabel
+              key={key}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={!!value}
+                  onChange={(e) => setProp(spec.key, e.target.checked)}
+                />
+              }
+              label={<Typography variant="body2">{spec.label}</Typography>}
+            />
+          );
+        }
+        return (
+          <TextField
+            key={key}
+            size="small"
+            label={spec.label}
+            multiline={spec.kind === 'multiline'}
+            minRows={spec.kind === 'multiline' ? 2 : undefined}
+            value={typeof value === 'string' ? value : ''}
+            helperText={spec.help}
+            onChange={(e) => setProp(spec.key, e.target.value)}
+          />
+        );
+      })}
+    </>
   );
 };
 
@@ -374,6 +434,13 @@ export const Inspector: React.FunctionComponent<{
             );
         }
       })}
+
+      {node.type === 'custom' && (
+        <CustomPropsFields
+          node={node}
+          setProps={(props) => setField('customProps', props)}
+        />
+      )}
 
       {node.type === 'image' && (
         <ImageControls node={node} replaceFromClipboard={replaceImageFromClipboard} />

@@ -163,3 +163,43 @@ export const customControls: Record<
 };
 
 export const customControlNames = Object.keys(customControls);
+
+/**
+ * What each control's props look like, so the inspector can offer real fields instead of a
+ * JSON textarea. A control with no entry here falls back to the JSON editor. `label` and
+ * `description` come from the node itself and do not belong in these lists.
+ */
+export type CustomPropSpec = {
+  key: string;
+  label: string;
+  kind: 'text' | 'multiline' | 'checkbox';
+  help?: string;
+};
+
+export const customControlPropSpecs: Record<string, CustomPropSpec[]> = {
+  LanguageNameHeader: [
+    {
+      key: 'caption',
+      label: 'Caption',
+      kind: 'text',
+      help: 'Small text under the name.',
+    },
+  ],
+  SectionHeader: [
+    {
+      key: 'caption',
+      label: 'Caption',
+      kind: 'text',
+      help: 'Grey text under the heading, e.g. "Example: National Language".',
+    },
+    { key: 'showRemove', label: 'Show Remove link', kind: 'checkbox' },
+  ],
+  WarningCallout: [
+    {
+      key: 'text',
+      label: 'Text',
+      kind: 'multiline',
+      help: 'Wrap words in **stars** to make them bold.',
+    },
+  ],
+};
