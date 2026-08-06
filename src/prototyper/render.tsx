@@ -326,6 +326,10 @@ export interface PaneRenderProps {
   onChange: (values: ConfigrValues) => void;
   /** pageKey of the top-level page to show, so a remount does not jump to page one. */
   initiallySelectedTopLevelPageKey?: string;
+  /** pageKey of the (possibly nested) page to focus, so a remount does not leave a subpage. */
+  initiallyFocussedPageKey?: string;
+  /** Must only write to a ref, like onChange: this fires from an effect on every focus move. */
+  onFocussedPageKeyChanged?: (pageKey: string) => void;
   previewMode: boolean;
 }
 
@@ -368,6 +372,8 @@ export const PaneRenderer: React.FunctionComponent<PaneRenderProps> = (props) =>
       showSearch={props.previewMode ? root.showSearch : false}
       showJson={props.previewMode ? root.showJson : false}
       initiallySelectedTopLevelPageKey={props.initiallySelectedTopLevelPageKey}
+      initiallyFocussedPageKey={props.initiallyFocussedPageKey}
+      onFocussedPageKeyChanged={props.onFocussedPageKeyChanged}
     >
       {children}
     </ConfigrPane>

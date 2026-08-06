@@ -87,21 +87,43 @@ export const ContentPane: React.FunctionComponent<
     setValueGetter?: (vg: valueGetter) => void;
     /** Called with the latest values as a plain object (not a JSON string). */
     onChange?: (currentValues: ConfigrValues) => void;
+    /** Start out focussed on this page (it may be a nested one), e.g. after a remount. */
+    initiallyFocussedPageKey?: string;
+    /** Reports every focus move between pages, including into and out of nested ones. */
+    onFocussedPageKeyChanged?: (pageKey: string) => void;
   }>
 > = (props) => {
-  const [focussedPageKey, setFocussedPageKey] = useState('');
+  const [focussedPageKey, setFocussedPageKey] = useState(
+    props.initiallyFocussedPageKey ?? '',
+  );
   const [activeFieldPath, setActiveFieldPath] = useState<string | undefined>(undefined);
+  // Seeded with the mount-time index so the effect below can tell a real page switch from
+  // the children merely being rebuilt by a client re-render.
+  const previousTopLevelPageIndexRef = React.useRef(props.currentTopLevelPageIndex || 0);
   React.useEffect(() => {
-    const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[
-      props.currentTopLevelPageIndex || 0
-    ];
+    const index = props.currentTopLevelPageIndex || 0;
+    const indexChanged = previousTopLevelPageIndexRef.current !== index;
+    previousTopLevelPageIndexRef.current = index;
+
+    const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[index];
 
     const pageKey = React.isValidElement(pageToFocus)
       ? pageToFocus.props?.pageKey
       : undefined;
 
-    setFocussedPageKey(pageKey);
+    // A client that rebuilds its children on every render used to yank the user out of
+    // whatever nested page they were on. Keep the current page as long as it still exists
+    // and the user has not actually switched top-level pages.
+    setFocussedPageKey((current) =>
+      !indexChanged && current && pageExistsIn(props.children, current)
+        ? current
+        : pageKey,
+    );
   }, [props.children, props.currentTopLevelPageIndex]);
+
+  React.useEffect(() => {
+    props.onFocussedPageKeyChanged?.(focussedPageKey);
+  }, [focussedPageKey]);
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
@@ -140,7 +162,18 @@ export const ContentPane: React.FunctionComponent<
     setPageHistoryStack(pageHistoryStack.slice(0, -1));
     setFocussedPageKey(pageHistoryStack[pageHistoryStack.length - 1]);
   };
-  const [pageHistoryStack, setPageHistoryStack] = useState<string[]>([]);
+  // When we mount already focussed on a nested page, back should land on its top-level
+  // page rather than doing nothing (the stack would otherwise start empty).
+  const [pageHistoryStack, setPageHistoryStack] = useState<string[]>(() => {
+    if (!props.initiallyFocussedPageKey) return [];
+    const top = React.Children.toArray(props.children).filter((c) => c)[
+      props.currentTopLevelPageIndex || 0
+    ];
+    const topKey = React.isValidElement(top)
+      ? (top.props as { pageKey?: string }).pageKey
+      : undefined;
+    return topKey && topKey !== props.initiallyFocussedPageKey ? [topKey] : [];
+  });
   const getTopLevelPages = () => {
     return React.Children.map(props.children, (child: any) => {
       if (child && child.type === ConfigrPage)
@@ -259,6 +292,24 @@ export const ContentPane: React.FunctionComponent<
 //     </SearchContext.Consumer>
 //   );
 // };
+
+/** True if a ConfigrPage with this pageKey exists anywhere in the element tree. */
+function pageExistsIn(children: React.ReactNode, pageKey: string): boolean {
+  let found = false;
+  const walk = (nodes: React.ReactNode) => {
+    React.Children.forEach(nodes, (child) => {
+      if (found || !React.isValidElement(child)) return;
+      const childProps = child.props as { pageKey?: string; children?: React.ReactNode };
+      if (child.type === ConfigrPage && childProps.pageKey === pageKey) {
+        found = true;
+        return;
+      }
+      walk(childProps.children);
+    });
+  };
+  walk(children);
+  return found;
+}
 
 const BoxOfRows: React.FunctionComponent<
   React.PropsWithChildren<{

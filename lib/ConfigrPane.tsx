@@ -35,6 +35,10 @@ export const ConfigrPane: React.FunctionComponent<
     localizations?: ConfigrLocalizationOverrides;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
     initiallySelectedTopLevelPageKey?: string;
+    /** Start out focussed on this page (it may be a nested one), e.g. after a remount. */
+    initiallyFocussedPageKey?: string;
+    /** Reports every focus move between pages, including into and out of nested ones. */
+    onFocussedPageKeyChanged?: (pageKey: string) => void;
   }>
 > = (props) => {
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then

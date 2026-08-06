@@ -158,6 +158,7 @@ const Editor: React.FunctionComponent<{
   const switchToDoc = (next: ProtoDocument) => {
     saveDocDebounced.flush();
     liveValuesRef.current = deriveInitialValues(next.root);
+    focussedPageKeyRef.current = undefined;
     actions.loadDoc(next);
   };
 
@@ -185,6 +186,11 @@ const Editor: React.FunctionComponent<{
   const lastPageIdRef = useRef<string | undefined>(undefined);
   const pageId = topLevelPageIdFor(root, selectedId);
   if (pageId) lastPageIdRef.current = pageId;
+
+  // Which page (possibly a nested one) the pane is showing right now, reported by the
+  // library. Handing it back on remount is what keeps an edit made while inside a subpage
+  // from dumping the user out to the top-level page.
+  const focussedPageKeyRef = useRef<string | undefined>(undefined);
 
   const selectionContext = useMemo(
     () => ({ selectedId, select: actions.select, previewMode, showNotes }),
@@ -462,6 +468,10 @@ const Editor: React.FunctionComponent<{
               initialValues={initialValues}
               onChange={(values) => (liveValuesRef.current = values)}
               initiallySelectedTopLevelPageKey={lastPageIdRef.current}
+              initiallyFocussedPageKey={focussedPageKeyRef.current}
+              onFocussedPageKeyChanged={(pageKey) =>
+                (focussedPageKeyRef.current = pageKey)
+              }
               previewMode={previewMode}
             />
           </SelectionContext.Provider>
