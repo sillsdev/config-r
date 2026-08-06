@@ -1,0 +1,445 @@
+{
+  "formatVersion": 1,
+  "id": "bloom-collection-settings-seed",
+  "name": "Bloom Collection Settings",
+  "modified": "2026-08-06T00:00:00.000Z",
+  "root": {
+    "id": "pane-collection-settings",
+    "type": "pane",
+    "label": "Collection Settings",
+    "showSearch": true,
+    "children": [
+      {
+        "id": "page-languages",
+        "type": "page",
+        "label": "Languages",
+        "children": [
+          {
+            "id": "lang1-section",
+            "type": "custom",
+            "label": "Language 1",
+            "controlName": "SectionHeader",
+            "customProps": {
+              "caption": "Example: Local Language"
+            }
+          },
+          {
+            "id": "lang1-card",
+            "type": "group",
+            "children": [
+              {
+                "id": "lang1-header",
+                "type": "custom",
+                "label": "Deutsche",
+                "controlName": "LanguageNameHeader",
+                "customProps": {}
+              },
+              {
+                "id": "lang1-name",
+                "type": "input",
+                "label": "The name of this language in English or other \"outside\" langauges",
+                "path": "languages[0].name",
+                "inputType": "text",
+                "defaultValue": "German"
+              },
+              {
+                "id": "lang1-font",
+                "type": "select",
+                "label": "Default Font",
+                "path": "languages[0].font",
+                "options": [
+                  {
+                    "value": "Andika",
+                    "label": "Andika"
+                  },
+                  {
+                    "value": "Andika New Basic",
+                    "label": "Andika New Basic"
+                  },
+                  {
+                    "value": "Arial",
+                    "label": "Arial"
+                  },
+                  {
+                    "value": "Charis SIL",
+                    "label": "Charis SIL"
+                  }
+                ],
+                "defaultValue": "Andika"
+              },
+              {
+                "id": "lang1-subpage",
+                "type": "subpage",
+                "label": "Script Settings",
+                "children": [
+                  {
+                    "id": "lang1-group",
+                    "type": "group",
+                    "label": "Language 1",
+                    "children": [
+                      {
+                        "id": "lang1-lang-static",
+                        "type": "static",
+                        "label": "Language name",
+                        "text": "German"
+                      },
+                      {
+                        "id": "lang1-asian",
+                        "type": "boolean",
+                        "label": "Do not use special Asian script word breaking",
+                        "path": "languages[0].script.avoidAsianScriptWordBreaking",
+                        "defaultValue": false
+                      },
+                      {
+                        "id": "lang1-spacing",
+                        "type": "select",
+                        "label": "Default line spacing",
+                        "path": "languages[0].script.defaultLineSpacing",
+                        "description": "Use this to increase the default line spacing if this language has tall characters that tend to run into other lines of text.",
+                        "options": [
+                          {
+                            "value": "Auto",
+                            "label": "Auto"
+                          },
+                          {
+                            "value": "1.0",
+                            "label": "1.0"
+                          },
+                          {
+                            "value": "1.5",
+                            "label": "1.5"
+                          },
+                          {
+                            "value": "2.0",
+                            "label": "2.0"
+                          }
+                        ],
+                        "defaultValue": "Auto"
+                      },
+                      {
+                        "id": "lang1-fontsize",
+                        "type": "select",
+                        "label": "Font size when displayed in tools",
+                        "path": "languages[0].script.fontSizeInTools",
+                        "description": "Use this to increase the font size when this language is shown in places like the Decodable Reader Tool.",
+                        "options": [
+                          {
+                            "value": "Auto",
+                            "label": "Auto"
+                          },
+                          {
+                            "value": "12",
+                            "label": "12"
+                          },
+                          {
+                            "value": "14",
+                            "label": "14"
+                          },
+                          {
+                            "value": "16",
+                            "label": "16"
+                          }
+                        ],
+                        "defaultValue": "Auto"
+                      },
+                      {
+                        "id": "lang1-punct",
+                        "type": "input",
+                        "label": "Sentence ending punctuation",
+                        "path": "languages[0].script.sentenceEndingPunctuation",
+                        "description": "Bloom already knows which characters in the world's languages always mark the end of sentences. To add others, enter the Unicode character escapes here. For example for Thai script languages, enter \\U0020 to tell Bloom that normal spaces are used to break sentences.",
+                        "inputType": "text",
+                        "defaultValue": "\\U0020 \\U0013"
+                      },
+                      {
+                        "id": "lang1-rtl",
+                        "type": "boolean",
+                        "label": "This is a right to left script",
+                        "path": "languages[0].script.rtl",
+                        "defaultValue": true
+                      },
+                      {
+                        "id": "lang1-warning",
+                        "type": "custom",
+                        "label": "RTL warning",
+                        "controlName": "WarningCallout",
+                        "customProps": {
+                          "text": "If you are not **SURE**, then do not turn this on. If your language is written starting on the right and moving left, you will **KNOW**."
+                        },
+                        "note": "Only show this warning when the setting is on"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lang2-section",
+            "type": "custom",
+            "label": "Language 2",
+            "controlName": "SectionHeader",
+            "customProps": {
+              "caption": "Example: National Language",
+              "showRemove": true
+            }
+          },
+          {
+            "id": "lang2-card",
+            "type": "group",
+            "children": [
+              {
+                "id": "lang2-header",
+                "type": "custom",
+                "label": "Deutsche",
+                "controlName": "LanguageNameHeader",
+                "customProps": {
+                  "caption": "The name as you would like to see it on books"
+                }
+              },
+              {
+                "id": "lang2-name",
+                "type": "input",
+                "label": "The name of this language in English or other \"outside\" langauges",
+                "path": "languages[1].name",
+                "inputType": "text",
+                "defaultValue": "German"
+              },
+              {
+                "id": "lang2-font",
+                "type": "select",
+                "label": "Default Font",
+                "path": "languages[1].font",
+                "options": [
+                  {
+                    "value": "Andika",
+                    "label": "Andika"
+                  },
+                  {
+                    "value": "Andika New Basic",
+                    "label": "Andika New Basic"
+                  },
+                  {
+                    "value": "Arial",
+                    "label": "Arial"
+                  },
+                  {
+                    "value": "Charis SIL",
+                    "label": "Charis SIL"
+                  }
+                ],
+                "defaultValue": "Andika"
+              },
+              {
+                "id": "lang2-subpage",
+                "type": "subpage",
+                "label": "Script Settings",
+                "children": [
+                  {
+                    "id": "lang2-group",
+                    "type": "group",
+                    "label": "Language 2",
+                    "children": [
+                      {
+                        "id": "lang2-lang-static",
+                        "type": "static",
+                        "label": "Language name",
+                        "text": "German"
+                      },
+                      {
+                        "id": "lang2-asian",
+                        "type": "boolean",
+                        "label": "Do not use special Asian script word breaking",
+                        "path": "languages[1].script.avoidAsianScriptWordBreaking",
+                        "defaultValue": false
+                      },
+                      {
+                        "id": "lang2-spacing",
+                        "type": "select",
+                        "label": "Default line spacing",
+                        "path": "languages[1].script.defaultLineSpacing",
+                        "description": "Use this to increase the default line spacing if this language has tall characters that tend to run into other lines of text.",
+                        "options": [
+                          {
+                            "value": "Auto",
+                            "label": "Auto"
+                          },
+                          {
+                            "value": "1.0",
+                            "label": "1.0"
+                          },
+                          {
+                            "value": "1.5",
+                            "label": "1.5"
+                          },
+                          {
+                            "value": "2.0",
+                            "label": "2.0"
+                          }
+                        ],
+                        "defaultValue": "Auto"
+                      },
+                      {
+                        "id": "lang2-fontsize",
+                        "type": "select",
+                        "label": "Font size when displayed in tools",
+                        "path": "languages[1].script.fontSizeInTools",
+                        "description": "Use this to increase the font size when this language is shown in places like the Decodable Reader Tool.",
+                        "options": [
+                          {
+                            "value": "Auto",
+                            "label": "Auto"
+                          },
+                          {
+                            "value": "12",
+                            "label": "12"
+                          },
+                          {
+                            "value": "14",
+                            "label": "14"
+                          },
+                          {
+                            "value": "16",
+                            "label": "16"
+                          }
+                        ],
+                        "defaultValue": "Auto"
+                      },
+                      {
+                        "id": "lang2-punct",
+                        "type": "input",
+                        "label": "Sentence ending punctuation",
+                        "path": "languages[1].script.sentenceEndingPunctuation",
+                        "description": "Bloom already knows which characters in the world's languages always mark the end of sentences. To add others, enter the Unicode character escapes here. For example for Thai script languages, enter \\U0020 to tell Bloom that normal spaces are used to break sentences.",
+                        "inputType": "text",
+                        "defaultValue": "\\U0020 \\U0013"
+                      },
+                      {
+                        "id": "lang2-rtl",
+                        "type": "boolean",
+                        "label": "This is a right to left script",
+                        "path": "languages[1].script.rtl",
+                        "defaultValue": true
+                      },
+                      {
+                        "id": "lang2-warning",
+                        "type": "custom",
+                        "label": "RTL warning",
+                        "controlName": "WarningCallout",
+                        "customProps": {
+                          "text": "If you are not **SURE**, then do not turn this on. If your language is written starting on the right and moving left, you will **KNOW**."
+                        },
+                        "note": "Only show this warning when the setting is on"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lang3-section",
+            "type": "custom",
+            "label": "Language 3",
+            "controlName": "SectionHeader",
+            "customProps": {
+              "caption": "Example: a Regional Language or other National Language"
+            }
+          },
+          {
+            "id": "lang3-card",
+            "type": "group",
+            "children": [
+              {
+                "id": "lang3-header",
+                "type": "custom",
+                "label": "(none)",
+                "controlName": "LanguageNameHeader",
+                "customProps": {}
+              },
+              {
+                "id": "lang3-name",
+                "type": "input",
+                "label": "The name of this language in English or other \"outside\" langauges",
+                "path": "languages[2].name",
+                "inputType": "text",
+                "defaultValue": "German"
+              }
+            ]
+          },
+          {
+            "id": "sign-section",
+            "type": "custom",
+            "label": "Sign Language",
+            "controlName": "SectionHeader",
+            "customProps": {
+              "showRemove": true
+            }
+          },
+          {
+            "id": "sign-card",
+            "type": "group",
+            "children": [
+              {
+                "id": "sign-header",
+                "type": "custom",
+                "label": "American Sign Language",
+                "controlName": "LanguageNameHeader",
+                "customProps": {}
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "page-appearance",
+        "type": "page",
+        "label": "Appearance",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-places",
+        "type": "page",
+        "label": "Places",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-enterprise",
+        "type": "page",
+        "label": "Enterprise",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-team-collection",
+        "type": "page",
+        "label": "Team Collection",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-bloom-library",
+        "type": "page",
+        "label": "Bloom Library",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-ai",
+        "type": "page",
+        "label": "AI",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      },
+      {
+        "id": "page-advanced",
+        "type": "page",
+        "label": "Advanced",
+        "children": [],
+        "note": "Stub page: contents not mocked up yet."
+      }
+    ]
+  }
+}
