@@ -954,8 +954,8 @@ export const ConfigrSelect: React.FunctionComponent<
           sx={{ minWidth: 180 }}
           css={css`
             .MuiSelect-select {
-              padding: 3px !important;
-              padding-left: 9px !important;
+              /* keep MUI's 32px on the right, so long choices stop before the dropdown arrow */
+              padding: 3px 32px 3px 9px !important;
               background-color: #f1f1f1;
             }
             * {
