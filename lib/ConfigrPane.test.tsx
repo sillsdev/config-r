@@ -166,7 +166,8 @@ describe('ConfigrPane top-level page control', () => {
         </ConfigrPage>
       </ConfigrPane>,
     );
-    expect(reported).not.toHaveBeenCalledWith('cat');
+    // Only the page it falls back to: not the disabled one, nor "no page" on the way.
+    expect(reported).toHaveBeenCalledTimes(1);
     expect(reported).toHaveBeenLastCalledWith('dog');
   });
 
