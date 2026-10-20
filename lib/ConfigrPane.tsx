@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -40,7 +40,8 @@ export const ConfigrPane: React.FunctionComponent<
      * the values being edited are kept. To control the page fully, keep this in step with
      * onTopLevelPageChange; then asking again for the page already showing does nothing, and
      * asking for it after the user has moved away selects it again. A key that names no
-     * page, or a disabled one, is ignored.
+     * page, or a disabled one, is ignored. Like clicking a page's tab, it ends any search, and
+     * it leaves a sub-page open when it names the page already selected.
      */
     selectedTopLevelPageKey?: string;
     /**
@@ -73,7 +74,10 @@ export const ConfigrPane: React.FunctionComponent<
   const [currentTopLevelPageIndex, setCurrentTopLevelPageIndex] = useState<
     number | undefined
   >(() =>
-    getInitialTopLevelPageIndex(topLevelPages, props.initiallySelectedTopLevelPageKey),
+    getInitialTopLevelPageIndex(
+      topLevelPages,
+      props.selectedTopLevelPageKey ?? props.initiallySelectedTopLevelPageKey,
+    ),
   );
   const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
 
@@ -82,6 +86,8 @@ export const ConfigrPane: React.FunctionComponent<
   const [requestedTopLevelPageKey, setRequestedTopLevelPageKey] = useState(
     props.selectedTopLevelPageKey,
   );
+  // Counts the requests followed, so EndSearchOnPageRequest can end any search.
+  const [followedPageRequestCount, setFollowedPageRequestCount] = useState(0);
   if (props.selectedTopLevelPageKey !== requestedTopLevelPageKey) {
     setRequestedTopLevelPageKey(props.selectedTopLevelPageKey);
     const requestedIndex = topLevelPages.findIndex(
@@ -90,6 +96,7 @@ export const ConfigrPane: React.FunctionComponent<
     if (requestedIndex >= 0 && !isIndexDisabled(areas, requestedIndex)) {
       setCurrentAreaIndex(undefined);
       setCurrentTopLevelPageIndex(requestedIndex);
+      setFollowedPageRequestCount(followedPageRequestCount + 1);
     }
   }
 
@@ -118,30 +125,14 @@ export const ConfigrPane: React.FunctionComponent<
     ...propsToPass
   } = props;
 
-  // The page showing, as the client knows it. While an index is out of range, or names a
-  // disabled page, the effect below is about to replace it, so it is not reported.
   const shownTopLevelPageKey =
-    currentAreaIndex === undefined &&
-    currentTopLevelPageIndex !== undefined &&
-    currentTopLevelPageIndex >= 0 &&
-    currentTopLevelPageIndex < topLevelPages.length &&
-    !isIndexDisabled(areas, currentTopLevelPageIndex)
-      ? topLevelPages[currentTopLevelPageIndex].props.pageKey
+    currentAreaIndex === undefined && currentTopLevelPageIndex !== undefined
+      ? topLevelPages[currentTopLevelPageIndex]?.props.pageKey
       : undefined;
-  const isSettlingOnAPage =
-    currentAreaIndex === undefined &&
-    currentTopLevelPageIndex !== undefined &&
-    shownTopLevelPageKey === undefined;
-  // Clients usually pass a new arrow function each render; keep the latest one in a ref so
-  // that alone does not count as a page change.
-  const onTopLevelPageChangeRef = useRef(onTopLevelPageChange);
-  onTopLevelPageChangeRef.current = onTopLevelPageChange;
-  // Telling the client is a side effect of the page changing, so it belongs in an effect,
-  // not in a render.
+  // Telling the client is a side effect of the page changing, so it belongs in an effect.
   useEffect(() => {
-    if (isSettlingOnAPage) return;
-    onTopLevelPageChangeRef.current?.(shownTopLevelPageKey);
-  }, [shownTopLevelPageKey, isSettlingOnAPage]);
+    onTopLevelPageChange?.(shownTopLevelPageKey);
+  }, [shownTopLevelPageKey]);
 
   useEffect(() => {
     if (!topLevelPages.length) return;
@@ -194,6 +185,9 @@ export const ConfigrPane: React.FunctionComponent<
           <ThemeProvider theme={mergedTheme}>
             <ConfigrLocalizationContext.Provider value={localizations}>
               <SearchContextProvider>
+                <EndSearchOnPageRequest
+                  followedPageRequestCount={followedPageRequestCount}
+                />
                 <SearchContext.Consumer>
                   {({ searchString, setSearchString }) => {
                     return (
@@ -296,6 +290,19 @@ export const ConfigrPane: React.FunctionComponent<
       </div>
     </div>
   );
+};
+
+// A page selected through selectedTopLevelPageKey ends any search, as clicking its tab does.
+// The search lives in SearchContextProvider, so this sits inside it.
+const EndSearchOnPageRequest: React.FunctionComponent<{
+  followedPageRequestCount: number;
+}> = (props) => {
+  const { setSearchString } = React.useContext(SearchContext);
+  // Another component's state changes in response, so this is an effect.
+  useEffect(() => {
+    if (props.followedPageRequestCount > 0) setSearchString('');
+  }, [props.followedPageRequestCount]);
+  return null;
 };
 
 // Centralized spacing controls for the left navigation (areas + pages).
