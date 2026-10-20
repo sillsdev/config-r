@@ -20,6 +20,7 @@
     "lint": "pnpm lint:format && pnpm lint:fix ",
     "prepare": "simple-git-hooks",
     "type-check": "tsc",
+    "test": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -55,6 +56,8 @@
     "@storybook/builder-vite": "8.2.8",
     "@storybook/react": "8.2.8",
     "@storybook/react-vite": "8.2.8",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/react": "16.1.0",
     "@types/lodash": "4.14.191",
     "@types/mark.js": "8.11.8",
     "@types/react": "18.0.28",
@@ -73,17 +76,19 @@
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eslint-plugin-storybook": "0.8.0",
+    "jsdom": "25.0.1",
     "prettier": "3.3.3",
     "react": "18.2.0",
     "react-color": "2.19.3",
     "react-dom": "18.2.0",
     "rollup-plugin-copy": "3.5.0",
-    "simple-git-hooks": "2.13.1",
     "semantic-release": "25.0.3",
+    "simple-git-hooks": "2.13.1",
     "storybook": "8.2.8",
     "typescript": "5.5.4",
     "vite": "5.4.11",
-    "vite-plugin-dts": "4.3.0"
+    "vite-plugin-dts": "4.3.0",
+    "vitest": "2.1.9"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint"

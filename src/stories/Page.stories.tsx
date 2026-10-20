@@ -76,6 +76,44 @@ export const Pages: React.FunctionComponent<{}> = (props) => {
   );
 };
 
+// The client knows which top-level page is showing, and can switch to another while the pane
+// stays open: type a name, press the button, and the name is still there.
+export const ControlledTopLevelPage: React.FunctionComponent<{}> = (props) => {
+  const [pageKey, setPageKey] = React.useState<string | undefined>('dog');
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 300px;
+        width: 500px;
+      `}
+    >
+      <div>
+        Showing: <span data-testid="shown-page">{pageKey ?? '(none)'}</span>{' '}
+        <button onClick={() => setPageKey('cat')}>Go to Cat</button>
+      </div>
+      <ConfigrPane
+        label="Controlled Page Test"
+        initialValues={{ dog: { name: 'Sanuk' }, cat: { name: 'Tom' } }}
+        selectedTopLevelPageKey={pageKey}
+        onTopLevelPageChange={setPageKey}
+      >
+        <ConfigrPage label="Dog" pageKey="dog">
+          <ConfigrGroup>
+            <ConfigrInput path="dog.name" label="Name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="Cat" pageKey="cat">
+          <ConfigrGroup>
+            <ConfigrInput path="cat.name" label="Name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>
+    </div>
+  );
+};
+
 export default {
   title: 'Pages',
   component: () => <Pages />,

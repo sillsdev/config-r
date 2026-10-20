@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -35,6 +35,20 @@ export const ConfigrPane: React.FunctionComponent<
     localizations?: ConfigrLocalizationOverrides;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
     initiallySelectedTopLevelPageKey?: string;
+    /**
+     * Shows this top-level page whenever the value changes, while the pane stays mounted, so
+     * the values being edited are kept. To control the page fully, keep this in step with
+     * onTopLevelPageChange; then asking again for the page already showing does nothing, and
+     * asking for it after the user has moved away selects it again. A key that names no
+     * page, or a disabled one, is ignored.
+     */
+    selectedTopLevelPageKey?: string;
+    /**
+     * Called with the pageKey of the top-level page now showing: once when the pane mounts,
+     * and again each time the page changes, by the user or by selectedTopLevelPageKey. It
+     * gets undefined while no top-level page is showing (an area's own content, or a search).
+     */
+    onTopLevelPageChange?: (pageKey: string | undefined) => void;
   }>
 > = (props) => {
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
@@ -63,6 +77,22 @@ export const ConfigrPane: React.FunctionComponent<
   );
   const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
 
+  // When the client asks for a different page, switch to it during this render (React's
+  // "adjust state when a prop changes" pattern), so the old page never shows for a frame.
+  const [requestedTopLevelPageKey, setRequestedTopLevelPageKey] = useState(
+    props.selectedTopLevelPageKey,
+  );
+  if (props.selectedTopLevelPageKey !== requestedTopLevelPageKey) {
+    setRequestedTopLevelPageKey(props.selectedTopLevelPageKey);
+    const requestedIndex = topLevelPages.findIndex(
+      (page) => page.props.pageKey === props.selectedTopLevelPageKey,
+    );
+    if (requestedIndex >= 0 && !isIndexDisabled(areas, requestedIndex)) {
+      setCurrentAreaIndex(undefined);
+      setCurrentTopLevelPageIndex(requestedIndex);
+    }
+  }
+
   const wantAreaChooser = topLevelPages.length > 1;
   const firstEnabledIndex = useMemo(() => findFirstEnabledIndex(areas), [areas]);
   const activeArea = useMemo(() => {
@@ -80,7 +110,38 @@ export const ConfigrPane: React.FunctionComponent<
     setCurrentValues(newValues);
   };
 
-  const { onChange, ...propsToPass } = props;
+  const {
+    onChange,
+    selectedTopLevelPageKey,
+    onTopLevelPageChange,
+    initiallySelectedTopLevelPageKey,
+    ...propsToPass
+  } = props;
+
+  // The page showing, as the client knows it. While an index is out of range, or names a
+  // disabled page, the effect below is about to replace it, so it is not reported.
+  const shownTopLevelPageKey =
+    currentAreaIndex === undefined &&
+    currentTopLevelPageIndex !== undefined &&
+    currentTopLevelPageIndex >= 0 &&
+    currentTopLevelPageIndex < topLevelPages.length &&
+    !isIndexDisabled(areas, currentTopLevelPageIndex)
+      ? topLevelPages[currentTopLevelPageIndex].props.pageKey
+      : undefined;
+  const isSettlingOnAPage =
+    currentAreaIndex === undefined &&
+    currentTopLevelPageIndex !== undefined &&
+    shownTopLevelPageKey === undefined;
+  // Clients usually pass a new arrow function each render; keep the latest one in a ref so
+  // that alone does not count as a page change.
+  const onTopLevelPageChangeRef = useRef(onTopLevelPageChange);
+  onTopLevelPageChangeRef.current = onTopLevelPageChange;
+  // Telling the client is a side effect of the page changing, so it belongs in an effect,
+  // not in a render.
+  useEffect(() => {
+    if (isSettlingOnAPage) return;
+    onTopLevelPageChangeRef.current?.(shownTopLevelPageKey);
+  }, [shownTopLevelPageKey, isSettlingOnAPage]);
 
   useEffect(() => {
     if (!topLevelPages.length) return;

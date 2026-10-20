@@ -43,6 +43,7 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - Required fields show a `*` beside the control. The fallback `Required` message for empty required fields is controlled at the pane level with `showRequiredMessage` and defaults to `true`.
 - `ConfigrInput` covers standard text, number, and email fields. It also supports `charactersWide`, `allowNewLines`, `minLinesToShow`, and `maxLinesToShowBeforeScrolling` for compact multiline text entry.
 - `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, `initiallySelectedTopLevelPageKey`, and `localizations`.
+- `ConfigrPane` can report and set the top-level page while it stays open: `onTopLevelPageChange` gets the showing page's key, and changing `selectedTopLevelPageKey` shows that page without losing the values being edited. Keep the two in step for a fully controlled page.
 
 ## Localization
 
