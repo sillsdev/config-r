@@ -128,6 +128,40 @@ describe('ConfigrPane top-level page control', () => {
     expect(screen.queryByDisplayValue(/Sanuk/)).toBeNull();
   });
 
+  it('gives a callback ref one handle, which follows changes to the pages', () => {
+    const handles: (ConfigrPaneHandle | null)[] = [];
+    const callbackRef = (handle: ConfigrPaneHandle | null) => handles.push(handle);
+    const pane = (catFirst: boolean) => {
+      const dog = (
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      );
+      const cat = (
+        <ConfigrPage key="cat" label="Cat" pageKey="cat">
+          <ConfigrGroup label="Cat details">
+            <ConfigrInput path="cat.name" label="Cat name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      );
+      return (
+        <ConfigrPane ref={callbackRef} label="Test" initialValues={initialValues}>
+          {catFirst ? [cat, dog] : [dog, cat]}
+        </ConfigrPane>
+      );
+    };
+    const { rerender } = render(pane(false));
+    rerender(pane(true));
+    expect(handles.length).toBe(1);
+
+    // The pages now run Cat, Dog; asking for Dog must still show Dog.
+    act(() => handles[0]!.selectTopLevelPage('dog'));
+    expect(dogNameInput()).toBeTruthy();
+    expect(screen.queryByDisplayValue('Tom')).toBeNull();
+  });
+
   it('never reports a disabled page, even when asked to open on one', () => {
     const reported = vi.fn();
     render(

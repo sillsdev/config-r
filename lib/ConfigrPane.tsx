@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -296,16 +296,25 @@ const TopLevelPageHandle = React.forwardRef<
   }
 >((props, ref) => {
   const { setSearchString } = React.useContext(SearchContext);
-  useImperativeHandle(ref, () => ({
-    selectTopLevelPage: (pageKey: string) => {
-      const index = props.topLevelPages.findIndex(
-        (page) => page.props.pageKey === pageKey,
-      );
-      if (index < 0 || isIndexDisabled(props.areas, index)) return;
-      setSearchString('');
-      props.showPage(index);
-    },
-  }));
+  // The handle is made once, so a callback ref is not called again on every render, and it
+  // reads the pages as they are when it is used, not as they were when it was made.
+  const latest = useRef({ props, setSearchString });
+  latest.current = { props, setSearchString };
+  useImperativeHandle(
+    ref,
+    () => ({
+      selectTopLevelPage: (pageKey: string) => {
+        const { props, setSearchString } = latest.current;
+        const index = props.topLevelPages.findIndex(
+          (page) => page.props.pageKey === pageKey,
+        );
+        if (index < 0 || isIndexDisabled(props.areas, index)) return;
+        setSearchString('');
+        props.showPage(index);
+      },
+    }),
+    [],
+  );
   return null;
 });
 TopLevelPageHandle.displayName = 'TopLevelPageHandle';

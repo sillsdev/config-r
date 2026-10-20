@@ -43,7 +43,6 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - Required fields show a `*` beside the control. The fallback `Required` message for empty required fields is controlled at the pane level with `showRequiredMessage` and defaults to `true`.
 - `ConfigrInput` covers standard text, number, and email fields. It also supports `charactersWide`, `allowNewLines`, `minLinesToShow`, and `maxLinesToShowBeforeScrolling` for compact multiline text entry.
 - `ConfigrPane` adds UI props like `showAppBar`, `showSearch`, `showJson`, `themeOverrides`, `initiallySelectedTopLevelPageKey`, and `localizations`.
-- `ConfigrPane` reports the top-level page showing through `onTopLevelPageChange`, and a ref on it (`ConfigrPaneHandle`) can show another with `selectTopLevelPage(pageKey)`, as clicking its tab does, without losing the values being edited.
 
 ## Localization
 
@@ -66,3 +65,22 @@ To provide languages other than English for the small set of built-in strings, p
 ```
 
 `searchLabel` is used for both the visible search placeholder and the input accessibility label.
+
+## Knowing and choosing the page
+
+`onTopLevelPageChange` is called with the `pageKey` of the top-level page showing, when the pane mounts and whenever the page changes. To show a page from outside the pane, put a ref on it and call `selectTopLevelPage`, which does what clicking that page's tab does and keeps the values being edited:
+
+```tsx
+const paneRef = React.useRef<ConfigrPaneHandle>(null);
+
+<ConfigrPane
+  ref={paneRef}
+  label="Settings"
+  initialValues={initialValues}
+  onTopLevelPageChange={(pageKey) => setShownPage(pageKey)}
+>
+  {/* pages */}
+</ConfigrPane>;
+
+paneRef.current?.selectTopLevelPage('subscription');
+```
