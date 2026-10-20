@@ -1,58 +1,49 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ConfigrPane } from './ConfigrPane';
+import { ConfigrPane, ConfigrPaneHandle } from './ConfigrPane';
 import { ConfigrGroup, ConfigrInput, ConfigrPage, ConfigrValues } from './ContentPane';
 
 const initialValues = { dog: { name: 'Sanuk' }, cat: { name: 'Tom' } };
 
-// A pane with a Dog and a Cat page, whose page a test can set from outside, keeping it in step
-// with what the pane reports, as a client would.
+// A pane with Dog, Cat and (disabled) Bird pages, whose page a test can select through its ref,
+// as a client would.
 function renderPane(
   onTopLevelPageChange: (pageKey: string | undefined) => void,
   onChange?: (values: ConfigrValues) => void,
-  pageKeyAtMount?: string,
   showSearch?: boolean,
 ) {
-  let setRequestedPage: (pageKey: string | undefined) => void = () => {
-    throw new Error('The harness has not rendered yet');
-  };
-  const Harness: React.FunctionComponent = () => {
-    const [pageKey, setPageKey] = React.useState<string | undefined>(pageKeyAtMount);
-    setRequestedPage = setPageKey;
-    return (
-      <ConfigrPane
-        label="Test"
-        initialValues={initialValues}
-        selectedTopLevelPageKey={pageKey}
-        onTopLevelPageChange={(key) => {
-          onTopLevelPageChange(key);
-          setPageKey(key);
-        }}
-        onChange={onChange}
-        showAppBar={showSearch}
-        showSearch={showSearch}
-      >
-        <ConfigrPage label="Dog" pageKey="dog">
-          <ConfigrGroup label="Dog details">
-            <ConfigrInput path="dog.name" label="Dog name" />
-          </ConfigrGroup>
-        </ConfigrPage>
-        <ConfigrPage label="Cat" pageKey="cat">
-          <ConfigrGroup label="Cat details">
-            <ConfigrInput path="cat.name" label="Cat name" />
-          </ConfigrGroup>
-        </ConfigrPage>
-        <ConfigrPage label="Bird" pageKey="bird" disabled={true}>
-          <ConfigrGroup label="Bird details">
-            <ConfigrInput path="bird.name" label="Bird name" />
-          </ConfigrGroup>
-        </ConfigrPage>
-      </ConfigrPane>
-    );
-  };
-  render(<Harness />);
-  return { requestPage: (key: string) => act(() => setRequestedPage(key)) };
+  const ref = React.createRef<ConfigrPaneHandle>();
+  render(
+    <ConfigrPane
+      ref={ref}
+      label="Test"
+      initialValues={initialValues}
+      onTopLevelPageChange={onTopLevelPageChange}
+      onChange={onChange}
+      showAppBar={showSearch}
+      showSearch={showSearch}
+    >
+      <ConfigrPage label="Dog" pageKey="dog">
+        <ConfigrGroup label="Dog details">
+          <ConfigrInput path="dog.name" label="Dog name" />
+        </ConfigrGroup>
+      </ConfigrPage>
+      <ConfigrPage label="Cat" pageKey="cat">
+        <ConfigrGroup label="Cat details">
+          <ConfigrInput path="cat.name" label="Cat name" />
+        </ConfigrGroup>
+      </ConfigrPage>
+      <ConfigrPage label="Bird" pageKey="bird" disabled={true}>
+        <ConfigrGroup label="Bird details">
+          <ConfigrInput path="bird.name" label="Bird name" />
+        </ConfigrGroup>
+      </ConfigrPage>
+    </ConfigrPane>,
+  );
+  if (!ref.current) throw new Error('The pane gave its ref no handle');
+  const handle = ref.current;
+  return { selectPage: (key: string) => act(() => handle.selectTopLevelPage(key)) };
 }
 
 function dogNameInput() {
@@ -77,14 +68,14 @@ describe('ConfigrPane top-level page control', () => {
     expect(screen.getByDisplayValue('Tom')).toBeTruthy();
   });
 
-  it('switches page while mounted and keeps the values being edited', () => {
+  it('selects a page while mounted and keeps the values being edited', () => {
     const reported = vi.fn();
     const changed = vi.fn();
-    const { requestPage } = renderPane(reported, changed);
+    const { selectPage } = renderPane(reported, changed);
     fireEvent.change(dogNameInput(), { target: { value: 'Sanuk the Brave' } });
     expect(dogNameInput().value).toBe('Sanuk the Brave');
 
-    requestPage('cat');
+    selectPage('cat');
     expect(reported).toHaveBeenLastCalledWith('cat');
     expect(screen.getByDisplayValue('Tom')).toBeTruthy();
     expect(screen.queryByDisplayValue(/Sanuk/)).toBeNull();
@@ -100,37 +91,29 @@ describe('ConfigrPane top-level page control', () => {
 
   it('selects the same page again after the user has moved away', () => {
     const reported = vi.fn();
-    const { requestPage } = renderPane(reported);
-    requestPage('cat');
+    const { selectPage } = renderPane(reported);
+    selectPage('cat');
     fireEvent.click(screen.getByRole('tab', { name: 'Dog' }));
     expect(reported).toHaveBeenLastCalledWith('dog');
 
-    requestPage('cat');
+    selectPage('cat');
     expect(reported).toHaveBeenLastCalledWith('cat');
     expect(screen.getByDisplayValue('Tom')).toBeTruthy();
   });
 
   it('ignores a key that names no page, or a disabled one', () => {
     const reported = vi.fn();
-    const { requestPage } = renderPane(reported);
-    requestPage('nonesuch');
-    requestPage('bird');
+    const { selectPage } = renderPane(reported);
+    selectPage('nonesuch');
+    selectPage('bird');
     expect(reported).toHaveBeenCalledTimes(1);
     expect(reported).toHaveBeenLastCalledWith('dog');
     expect(dogNameInput()).toBeTruthy();
   });
 
-  it('opens on the page the client controls from the start', () => {
-    const reported = vi.fn();
-    renderPane(reported, undefined, 'cat');
-    expect(reported).toHaveBeenCalledTimes(1);
-    expect(reported).toHaveBeenLastCalledWith('cat');
-    expect(screen.getByDisplayValue('Tom')).toBeTruthy();
-  });
-
   it('ends a search when it selects a page, as clicking a tab does', () => {
     const reported = vi.fn();
-    const { requestPage } = renderPane(reported, undefined, undefined, true);
+    const { selectPage } = renderPane(reported, undefined, true);
     const searchBox = screen.getByRole<HTMLInputElement>('textbox', {
       name: 'Search...',
     });
@@ -138,7 +121,7 @@ describe('ConfigrPane top-level page control', () => {
     expect(searchBox.value).toBe('name');
     expect(reported).toHaveBeenLastCalledWith(undefined);
 
-    requestPage('cat');
+    selectPage('cat');
     expect(searchBox.value).toBe('');
     expect(reported).toHaveBeenLastCalledWith('cat');
     expect(screen.getByDisplayValue('Tom')).toBeTruthy();

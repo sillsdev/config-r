@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -14,7 +14,18 @@ import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
 import { JsonViewer } from '@textea/json-viewer';
 
-export const ConfigrPane: React.FunctionComponent<
+/** What a ref on a ConfigrPane can do. */
+export interface ConfigrPaneHandle {
+  /**
+   * Shows the top-level page with this key, as clicking its tab does: it ends any search
+   * and keeps the values being edited. A key that names no page, or a disabled one, is
+   * ignored.
+   */
+  selectTopLevelPage: (pageKey: string) => void;
+}
+
+export const ConfigrPane = React.forwardRef<
+  ConfigrPaneHandle,
   React.PropsWithChildren<{
     label: string;
     initialValues: ConfigrValues;
@@ -36,22 +47,13 @@ export const ConfigrPane: React.FunctionComponent<
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
     initiallySelectedTopLevelPageKey?: string;
     /**
-     * Shows this top-level page whenever the value changes, while the pane stays mounted, so
-     * the values being edited are kept. To control the page fully, keep this in step with
-     * onTopLevelPageChange; then asking again for the page already showing does nothing, and
-     * asking for it after the user has moved away selects it again. A key that names no
-     * page, or a disabled one, is ignored. Like clicking a page's tab, it ends any search, and
-     * it leaves a sub-page open when it names the page already selected.
-     */
-    selectedTopLevelPageKey?: string;
-    /**
      * Called with the pageKey of the top-level page now showing: once when the pane mounts,
-     * and again each time the page changes, by the user or by selectedTopLevelPageKey. It
-     * gets undefined while no top-level page is showing (an area's own content, or a search).
+     * and again each time the page changes, by the user or by selectTopLevelPage. It gets
+     * undefined while no top-level page is showing (an area's own content, or a search).
      */
     onTopLevelPageChange?: (pageKey: string | undefined) => void;
   }>
-> = (props) => {
+>((props, ref) => {
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
   // does the opposite of that, and I haven't figured out a way around it, other
@@ -74,31 +76,9 @@ export const ConfigrPane: React.FunctionComponent<
   const [currentTopLevelPageIndex, setCurrentTopLevelPageIndex] = useState<
     number | undefined
   >(() =>
-    getInitialTopLevelPageIndex(
-      topLevelPages,
-      props.selectedTopLevelPageKey ?? props.initiallySelectedTopLevelPageKey,
-    ),
+    getInitialTopLevelPageIndex(topLevelPages, props.initiallySelectedTopLevelPageKey),
   );
   const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
-
-  // When the client asks for a different page, switch to it during this render (React's
-  // "adjust state when a prop changes" pattern), so the old page never shows for a frame.
-  const [requestedTopLevelPageKey, setRequestedTopLevelPageKey] = useState(
-    props.selectedTopLevelPageKey,
-  );
-  // Counts the requests followed, so EndSearchOnPageRequest can end any search.
-  const [followedPageRequestCount, setFollowedPageRequestCount] = useState(0);
-  if (props.selectedTopLevelPageKey !== requestedTopLevelPageKey) {
-    setRequestedTopLevelPageKey(props.selectedTopLevelPageKey);
-    const requestedIndex = topLevelPages.findIndex(
-      (page) => page.props.pageKey === props.selectedTopLevelPageKey,
-    );
-    if (requestedIndex >= 0 && !isIndexDisabled(areas, requestedIndex)) {
-      setCurrentAreaIndex(undefined);
-      setCurrentTopLevelPageIndex(requestedIndex);
-      setFollowedPageRequestCount(followedPageRequestCount + 1);
-    }
-  }
 
   const wantAreaChooser = topLevelPages.length > 1;
   const firstEnabledIndex = useMemo(() => findFirstEnabledIndex(areas), [areas]);
@@ -119,7 +99,6 @@ export const ConfigrPane: React.FunctionComponent<
 
   const {
     onChange,
-    selectedTopLevelPageKey,
     onTopLevelPageChange,
     initiallySelectedTopLevelPageKey,
     ...propsToPass
@@ -192,8 +171,14 @@ export const ConfigrPane: React.FunctionComponent<
           <ThemeProvider theme={mergedTheme}>
             <ConfigrLocalizationContext.Provider value={localizations}>
               <SearchContextProvider>
-                <EndSearchOnPageRequest
-                  followedPageRequestCount={followedPageRequestCount}
+                <TopLevelPageHandle
+                  ref={ref}
+                  topLevelPages={topLevelPages}
+                  areas={areas}
+                  showPage={(index) => {
+                    setCurrentAreaIndex(undefined);
+                    setCurrentTopLevelPageIndex(index);
+                  }}
                 />
                 <SearchContext.Consumer>
                   {({ searchString, setSearchString }) => {
@@ -297,20 +282,33 @@ export const ConfigrPane: React.FunctionComponent<
       </div>
     </div>
   );
-};
+});
+ConfigrPane.displayName = 'ConfigrPane';
 
-// A page selected through selectedTopLevelPageKey ends any search, as clicking its tab does.
-// The search lives in SearchContextProvider, so this sits inside it.
-const EndSearchOnPageRequest: React.FunctionComponent<{
-  followedPageRequestCount: number;
-}> = (props) => {
+// Gives the pane's ref its selectTopLevelPage. It sits inside SearchContextProvider because,
+// like a click on a page's tab, selecting a page ends any search, and the search lives there.
+const TopLevelPageHandle = React.forwardRef<
+  ConfigrPaneHandle,
+  {
+    topLevelPages: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[];
+    areas: AreaGroup[];
+    showPage: (index: number) => void;
+  }
+>((props, ref) => {
   const { setSearchString } = React.useContext(SearchContext);
-  // Another component's state changes in response, so this is an effect.
-  useEffect(() => {
-    if (props.followedPageRequestCount > 0) setSearchString('');
-  }, [props.followedPageRequestCount]);
+  useImperativeHandle(ref, () => ({
+    selectTopLevelPage: (pageKey: string) => {
+      const index = props.topLevelPages.findIndex(
+        (page) => page.props.pageKey === pageKey,
+      );
+      if (index < 0 || isIndexDisabled(props.areas, index)) return;
+      setSearchString('');
+      props.showPage(index);
+    },
+  }));
   return null;
-};
+});
+TopLevelPageHandle.displayName = 'TopLevelPageHandle';
 
 // Centralized spacing controls for the left navigation (areas + pages).
 const areaChooserSpacing = {
