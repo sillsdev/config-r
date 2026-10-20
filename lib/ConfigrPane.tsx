@@ -125,8 +125,11 @@ export const ConfigrPane: React.FunctionComponent<
     ...propsToPass
   } = props;
 
+  // A disabled page is never shown (an effect below moves off it), so it is never reported.
   const shownTopLevelPageKey =
-    currentAreaIndex === undefined && currentTopLevelPageIndex !== undefined
+    currentAreaIndex === undefined &&
+    currentTopLevelPageIndex !== undefined &&
+    !isIndexDisabled(areas, currentTopLevelPageIndex)
       ? topLevelPages[currentTopLevelPageIndex]?.props.pageKey
       : undefined;
   // Telling the client is a side effect of the page changing, so it belongs in an effect.

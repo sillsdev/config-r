@@ -145,6 +145,31 @@ describe('ConfigrPane top-level page control', () => {
     expect(screen.queryByDisplayValue(/Sanuk/)).toBeNull();
   });
 
+  it('never reports a disabled page, even when asked to open on one', () => {
+    const reported = vi.fn();
+    render(
+      <ConfigrPane
+        label="Test"
+        initialValues={initialValues}
+        initiallySelectedTopLevelPageKey="cat"
+        onTopLevelPageChange={reported}
+      >
+        <ConfigrPage label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage label="Cat" pageKey="cat" disabled={true}>
+          <ConfigrGroup label="Cat details">
+            <ConfigrInput path="cat.name" label="Cat name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    expect(reported).not.toHaveBeenCalledWith('cat');
+    expect(reported).toHaveBeenLastCalledWith('dog');
+  });
+
   it('reports no page for a pane that has none', () => {
     const reported = vi.fn();
     render(
