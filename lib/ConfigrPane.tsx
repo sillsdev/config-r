@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -17,9 +17,8 @@ import { JsonViewer } from '@textea/json-viewer';
 /** What a ref on a ConfigrPane can do. */
 export interface ConfigrPaneHandle {
   /**
-   * Shows the top-level page with this key, as clicking its tab does: it ends any search
-   * and keeps the values being edited. A key that names no page, or a disabled one, is
-   * ignored.
+   * Shows the top-level page with this key, keeping the values being edited. A key that
+   * names no page, or a disabled one, is ignored.
    */
   selectTopLevelPage: (pageKey: string) => void;
 }
@@ -104,21 +103,28 @@ export const ConfigrPane = React.forwardRef<
     ...propsToPass
   } = props;
 
-  // An index naming no enabled page is about to be replaced by the first enabled one (an
-  // effect below does that), so report that page rather than one that is never shown.
-  const shownTopLevelPageIndex =
-    currentTopLevelPageIndex !== undefined &&
-    isIndexDisabled(areas, currentTopLevelPageIndex)
-      ? firstEnabledIndex
-      : currentTopLevelPageIndex;
+  // An index naming a disabled page is reported briefly before the effect below moves off
+  // it. Not worth guarding: no client opens on a disabled page.
   const shownTopLevelPageKey =
-    currentAreaIndex === undefined && shownTopLevelPageIndex !== undefined
-      ? topLevelPages[shownTopLevelPageIndex].props.pageKey
+    currentAreaIndex === undefined && currentTopLevelPageIndex !== undefined
+      ? topLevelPages[currentTopLevelPageIndex]?.props.pageKey
       : undefined;
   // Telling the client is a side effect of the page changing, so it belongs in an effect.
   useEffect(() => {
     onTopLevelPageChange?.(shownTopLevelPageKey);
   }, [shownTopLevelPageKey]);
+
+  // This does not end a search (the search lives in SearchContextProvider, below), and the
+  // handle is remade each render. Neither is worth the extra code: no client selects a page
+  // while searching, nor holds a callback ref.
+  useImperativeHandle(ref, () => ({
+    selectTopLevelPage: (pageKey: string) => {
+      const index = topLevelPages.findIndex((page) => page.props.pageKey === pageKey);
+      if (index < 0 || isIndexDisabled(areas, index)) return;
+      setCurrentAreaIndex(undefined);
+      setCurrentTopLevelPageIndex(index);
+    },
+  }));
 
   useEffect(() => {
     if (!topLevelPages.length) return;
@@ -171,15 +177,6 @@ export const ConfigrPane = React.forwardRef<
           <ThemeProvider theme={mergedTheme}>
             <ConfigrLocalizationContext.Provider value={localizations}>
               <SearchContextProvider>
-                <TopLevelPageHandle
-                  ref={ref}
-                  topLevelPages={topLevelPages}
-                  areas={areas}
-                  showPage={(index) => {
-                    setCurrentAreaIndex(undefined);
-                    setCurrentTopLevelPageIndex(index);
-                  }}
-                />
                 <SearchContext.Consumer>
                   {({ searchString, setSearchString }) => {
                     return (
@@ -284,40 +281,6 @@ export const ConfigrPane = React.forwardRef<
   );
 });
 ConfigrPane.displayName = 'ConfigrPane';
-
-// Gives the pane's ref its selectTopLevelPage. It sits inside SearchContextProvider because,
-// like a click on a page's tab, selecting a page ends any search, and the search lives there.
-const TopLevelPageHandle = React.forwardRef<
-  ConfigrPaneHandle,
-  {
-    topLevelPages: React.ReactElement<React.ComponentProps<typeof ConfigrPage>>[];
-    areas: AreaGroup[];
-    showPage: (index: number) => void;
-  }
->((props, ref) => {
-  const { setSearchString } = React.useContext(SearchContext);
-  // The handle is made once, so a callback ref is not called again on every render, and it
-  // reads the pages as they are when it is used, not as they were when it was made.
-  const latest = useRef({ props, setSearchString });
-  latest.current = { props, setSearchString };
-  useImperativeHandle(
-    ref,
-    () => ({
-      selectTopLevelPage: (pageKey: string) => {
-        const { props, setSearchString } = latest.current;
-        const index = props.topLevelPages.findIndex(
-          (page) => page.props.pageKey === pageKey,
-        );
-        if (index < 0 || isIndexDisabled(props.areas, index)) return;
-        setSearchString('');
-        props.showPage(index);
-      },
-    }),
-    [],
-  );
-  return null;
-});
-TopLevelPageHandle.displayName = 'TopLevelPageHandle';
 
 // Centralized spacing controls for the left navigation (areas + pages).
 const areaChooserSpacing = {

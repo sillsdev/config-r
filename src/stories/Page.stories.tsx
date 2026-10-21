@@ -91,7 +91,7 @@ export const ControlledTopLevelPage: React.FunctionComponent<{}> = (props) => {
       `}
     >
       <div>
-        Showing: <span data-testid="shown-page">{pageKey ?? '(none)'}</span>{' '}
+        Showing: <span>{pageKey ?? '(none)'}</span>{' '}
         <button onClick={() => paneRef.current?.selectTopLevelPage('cat')}>
           Go to Cat
         </button>
