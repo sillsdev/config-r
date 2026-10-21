@@ -13,7 +13,7 @@ export default defineConfig({
     dts({
       //root: 'lib',
       // include: ['lib/**/*'],
-      exclude: ['src/**/*', '.storybook/**/*'],
+      exclude: ['src/**/*', '.storybook/**/*', 'lib/**/*.test.tsx'],
     }),
     react({}),
   ],
