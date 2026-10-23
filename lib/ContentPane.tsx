@@ -91,17 +91,18 @@ export const ContentPane: React.FunctionComponent<
 > = (props) => {
   const [focussedPageKey, setFocussedPageKey] = useState('');
   const [activeFieldPath, setActiveFieldPath] = useState<string | undefined>(undefined);
+  const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[
+    props.currentTopLevelPageIndex || 0
+  ];
+  const topLevelPageKey = React.isValidElement(pageToFocus)
+    ? pageToFocus.props?.pageKey
+    : undefined;
+  // Focus goes back to the top-level page only when that page changes. A client builds its pages
+  // afresh each time it renders, so depending on the children themselves would throw the user off
+  // a sub-page whenever the client re-rendered, which it typically does after every edit.
   React.useEffect(() => {
-    const pageToFocus = React.Children.toArray(props.children).filter((c) => c)[
-      props.currentTopLevelPageIndex || 0
-    ];
-
-    const pageKey = React.isValidElement(pageToFocus)
-      ? pageToFocus.props?.pageKey
-      : undefined;
-
-    setFocussedPageKey(pageKey);
-  }, [props.children, props.currentTopLevelPageIndex]);
+    setFocussedPageKey(topLevelPageKey);
+  }, [topLevelPageKey]);
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
