@@ -114,3 +114,80 @@ describe('ConfigrPane top-level page control', () => {
     expect(reported).toHaveBeenLastCalledWith(undefined);
   });
 });
+
+// A client like Bloom's dialogs: it builds its pages afresh on every render, and here re-renders
+// when the button outside the pane is clicked, as it does after each edit.
+function ClientWithSubPage() {
+  const [, setRenders] = React.useState(0);
+  return (
+    <>
+      <button onClick={() => setRenders((n) => n + 1)}>Re-render</button>
+      <ConfigrPane
+        label="Test"
+        initialValues={{ dog: { name: 'Sanuk', nickname: 'Sunny' } }}
+      >
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+            <ConfigrPage label="More" pageKey="dogMore">
+              <ConfigrGroup label="More dog details">
+                <ConfigrInput path="dog.nickname" label="Nickname" />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>
+    </>
+  );
+}
+
+describe('ConfigrPane sub-pages', () => {
+  afterEach(cleanup);
+
+  it('stays on a sub-page when the client re-renders', () => {
+    render(<ClientWithSubPage />);
+    expect(screen.queryByDisplayValue('Sunny')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'More' }));
+    expect(screen.getByDisplayValue('Sunny')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Re-render' }));
+
+    expect(screen.getByDisplayValue('Sunny')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+  });
+});
+
+describe('ConfigrPane sub-pages and search', () => {
+  afterEach(cleanup);
+
+  it('leaves a sub-page of the first page when a search starts, and stays off it when it is cleared', () => {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{ dog: { name: 'Sanuk', nickname: 'Sunny' } }}
+      >
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+            <ConfigrPage label="More" pageKey="dogMore">
+              <ConfigrGroup label="More dog details">
+                <ConfigrInput path="dog.nickname" label="Nickname" />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'More' }));
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    fireEvent.change(search, { target: { value: 'name' } });
+    fireEvent.change(search, { target: { value: '' } });
+
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sunny')).toBeNull();
+  });
+});
