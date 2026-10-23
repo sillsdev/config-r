@@ -156,3 +156,38 @@ describe('ConfigrPane sub-pages', () => {
     expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
   });
 });
+
+describe('ConfigrPane sub-pages and search', () => {
+  afterEach(cleanup);
+
+  it('leaves a sub-page of the first page when a search starts, and stays off it when it is cleared', () => {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{ dog: { name: 'Sanuk', nickname: 'Sunny' } }}
+      >
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+            <ConfigrPage label="More" pageKey="dogMore">
+              <ConfigrGroup label="More dog details">
+                <ConfigrInput path="dog.nickname" label="Nickname" />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'More' }));
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    fireEvent.change(search, { target: { value: 'name' } });
+    fireEvent.change(search, { target: { value: '' } });
+
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sunny')).toBeNull();
+  });
+});

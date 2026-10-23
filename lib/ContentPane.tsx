@@ -97,12 +97,14 @@ export const ContentPane: React.FunctionComponent<
   const topLevelPageKey = React.isValidElement(pageToFocus)
     ? pageToFocus.props?.pageKey
     : undefined;
-  // Focus goes back to the top-level page only when that page changes. A client builds its pages
-  // afresh each time it renders, so depending on the children themselves would throw the user off
-  // a sub-page whenever the client re-rendered, which it typically does after every edit.
+  // Focus goes back to the top-level page only when the pane selects a page (or starts or ends a
+  // search, which sets the index to undefined and back, though the first page's key stays the
+  // same). A client builds its pages afresh each time it renders, so depending on the children
+  // themselves would throw the user off a sub-page whenever the client re-rendered, which it
+  // typically does after every edit.
   React.useEffect(() => {
     setFocussedPageKey(topLevelPageKey);
-  }, [topLevelPageKey]);
+  }, [topLevelPageKey, props.currentTopLevelPageIndex]);
 
   const valuesToReportRef = React.useRef(props.initialValues);
 
