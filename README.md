@@ -65,3 +65,22 @@ To provide languages other than English for the small set of built-in strings, p
 ```
 
 `searchLabel` is used for both the visible search placeholder and the input accessibility label.
+
+## Knowing and choosing the page
+
+`onTopLevelPageChange` is called with the `pageKey` of the top-level page showing, when the pane mounts and whenever the page changes. To show a page from outside the pane, put a ref on it and call `selectTopLevelPage`, which shows that page and keeps the values being edited:
+
+```tsx
+const paneRef = React.useRef<ConfigrPaneHandle>(null);
+
+<ConfigrPane
+  ref={paneRef}
+  label="Settings"
+  initialValues={initialValues}
+  onTopLevelPageChange={(pageKey) => setShownPage(pageKey)}
+>
+  {/* pages */}
+</ConfigrPane>;
+
+paneRef.current?.selectTopLevelPage('subscription');
+```

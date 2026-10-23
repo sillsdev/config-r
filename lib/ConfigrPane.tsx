@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { ConfigrAppBar } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
@@ -14,7 +14,17 @@ import { createTheme, Theme, ThemeProvider } from '@mui/material/styles';
 import { defaultConfigrTheme } from './ConfigrTheme';
 import { JsonViewer } from '@textea/json-viewer';
 
-export const ConfigrPane: React.FunctionComponent<
+/** What a ref on a ConfigrPane can do. */
+export interface ConfigrPaneHandle {
+  /**
+   * Shows the top-level page with this key, keeping the values being edited. A key that
+   * names no page, or a disabled one, is ignored.
+   */
+  selectTopLevelPage: (pageKey: string) => void;
+}
+
+export const ConfigrPane = React.forwardRef<
+  ConfigrPaneHandle,
   React.PropsWithChildren<{
     label: string;
     initialValues: ConfigrValues;
@@ -35,8 +45,14 @@ export const ConfigrPane: React.FunctionComponent<
     localizations?: ConfigrLocalizationOverrides;
     className?: string; // allow client to set things like background color, using emotion or anything else that generates a className
     initiallySelectedTopLevelPageKey?: string;
+    /**
+     * Called with the pageKey of the top-level page now showing: once when the pane mounts,
+     * and again each time the page changes, by the user or by selectTopLevelPage. It gets
+     * undefined while no top-level page is showing (an area's own content, or a search).
+     */
+    onTopLevelPageChange?: (pageKey: string | undefined) => void;
   }>
-> = (props) => {
+>((props, ref) => {
   // Enhance: Ideally, we'd just say "if you have an outer themeprovider, then
   // we'll merge with our own themes such that the outer one wins. But MUI
   // does the opposite of that, and I haven't figured out a way around it, other
@@ -80,7 +96,35 @@ export const ConfigrPane: React.FunctionComponent<
     setCurrentValues(newValues);
   };
 
-  const { onChange, ...propsToPass } = props;
+  const {
+    onChange,
+    onTopLevelPageChange,
+    initiallySelectedTopLevelPageKey,
+    ...propsToPass
+  } = props;
+
+  // An index naming a disabled page is reported briefly before the effect below moves off
+  // it. Not worth guarding: no client opens on a disabled page.
+  const shownTopLevelPageKey =
+    currentAreaIndex === undefined && currentTopLevelPageIndex !== undefined
+      ? topLevelPages[currentTopLevelPageIndex]?.props.pageKey
+      : undefined;
+  // Telling the client is a side effect of the page changing, so it belongs in an effect.
+  useEffect(() => {
+    onTopLevelPageChange?.(shownTopLevelPageKey);
+  }, [shownTopLevelPageKey]);
+
+  // This does not end a search (the search lives in SearchContextProvider, below), and the
+  // handle is remade each render. Neither is worth the extra code: no client selects a page
+  // while searching, nor holds a callback ref.
+  useImperativeHandle(ref, () => ({
+    selectTopLevelPage: (pageKey: string) => {
+      const index = topLevelPages.findIndex((page) => page.props.pageKey === pageKey);
+      if (index < 0 || isIndexDisabled(areas, index)) return;
+      setCurrentAreaIndex(undefined);
+      setCurrentTopLevelPageIndex(index);
+    },
+  }));
 
   useEffect(() => {
     if (!topLevelPages.length) return;
@@ -235,7 +279,8 @@ export const ConfigrPane: React.FunctionComponent<
       </div>
     </div>
   );
-};
+});
+ConfigrPane.displayName = 'ConfigrPane';
 
 // Centralized spacing controls for the left navigation (areas + pages).
 const areaChooserSpacing = {
