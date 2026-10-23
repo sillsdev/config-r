@@ -781,13 +781,15 @@ export const ConfigrInput: React.FunctionComponent<
               : undefined
           }
           css={css`
-            ${!allowNewLines
-              ? `
+            ${
+              !allowNewLines
+                ? `
                 input {
                   text-align: end;
                 }
               `
-              : ''}
+                : ''
+            }
           `}
           //className={props.className}
         />
