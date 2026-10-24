@@ -191,3 +191,29 @@ describe('ConfigrPane sub-pages and search', () => {
     expect(screen.queryByDisplayValue('Sunny')).toBeNull();
   });
 });
+
+describe('ConfigrGroup description', () => {
+  afterEach(cleanup);
+
+  it('shows the description under the group heading, before the rows', () => {
+    render(
+      <ConfigrPane label="Test" initialValues={initialValues}>
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup
+            label="Dog details"
+            description="Only the name shows on the collar."
+          >
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+
+    const heading = screen.getByText('Dog details');
+    const description = screen.getByText('Only the name shows on the collar.');
+    const following = (a: Node, b: Node) =>
+      (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+    expect(following(heading, description)).toBe(true);
+    expect(following(description, dogNameInput())).toBe(true);
+  });
+});
