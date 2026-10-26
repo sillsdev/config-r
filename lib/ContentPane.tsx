@@ -1027,10 +1027,24 @@ export const ConfigrGroup: React.FunctionComponent<
   // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
   // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
 
+  // The description explains the whole group, so it goes under the group's heading, outside
+  // the box of rows, in the style of a row's description.
+  const description = descriptionToReact(props.description);
   return (
     <>
       {props.inFocussedPage && props.label && (
         <Typography variant="h3">{props.label}</Typography>
+      )}
+      {props.inFocussedPage && description && (
+        <Typography
+          variant="caption"
+          component="div"
+          css={css`
+            margin-bottom: 8px;
+          `}
+        >
+          {description}
+        </Typography>
       )}
       <BoxOfRows {...props}>{props.children}</BoxOfRows>
     </>

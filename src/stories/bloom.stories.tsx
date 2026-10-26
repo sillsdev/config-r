@@ -334,7 +334,10 @@ const BloomCollectionInner: React.FunctionComponent<{
             </ConfigrGroup>
           </ConfigrPage>
           <ConfigrPage label="Location" pageKey="location">
-            <ConfigrGroup>
+            <ConfigrGroup
+              label="Places"
+              description="Some front matter shows where the book was made."
+            >
               <ConfigrInput
                 path={`country`}
                 label="Country"
