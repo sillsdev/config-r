@@ -1028,7 +1028,7 @@ export const ConfigrGroup: React.FunctionComponent<
   // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
 
   // The description explains the whole group, so it goes under the group's heading, outside
-  // the box of rows, in the style of a row's description.
+  // the box of rows, the size of a row's description but grey, to set it apart from the rows.
   const description = descriptionToReact(props.description);
   return (
     <>
@@ -1039,6 +1039,7 @@ export const ConfigrGroup: React.FunctionComponent<
         <Typography
           variant="caption"
           component="div"
+          color="text.secondary"
           css={css`
             margin-bottom: 8px;
           `}
