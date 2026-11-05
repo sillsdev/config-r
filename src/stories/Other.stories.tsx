@@ -216,7 +216,7 @@ export const GroupHeaderActionAndBold: React.FunctionComponent<{}> = () => {
             <ConfigrBoolean
               path="languages.rightToLeft"
               label="Right to left"
-              description="If you are not **SURE**, then do not turn this on. If your language is written starting on the right and moving left, you will **KNOW**."
+              description="If you are not **SURE**, then do not turn this on. If your language is written starting on the right and moving left, you will **KNOW**. *Most* languages are left to right."
             />
           </ConfigrGroup>
         </ConfigrPage>

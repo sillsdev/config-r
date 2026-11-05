@@ -1553,8 +1553,11 @@ function descriptionToReact(description?: string | React.ReactNode) {
   if (!description) return null;
   if (typeof description !== 'string') return description; //nothing to do
 
-  // detect markdown links and make them clickable, and markdown **bold**
-  const re = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
+  // detect markdown links and make them clickable, and markdown **bold** and *italic*.
+  // An italic * must hug its text and not touch a letter outside it, so "2 * 3 * 4" and
+  // "2*3*4" stay as typed.
+  const re =
+    /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])/g;
   let m;
   let lastEnd = 0;
   const result = [];
@@ -1567,6 +1570,8 @@ function descriptionToReact(description?: string | React.ReactNode) {
     result.push(
       m[3] !== undefined ? (
         <strong key={m.index}>{m[3]}</strong>
+      ) : m[4] !== undefined ? (
+        <em key={m.index}>{m[4]}</em>
       ) : (
         <a key={m.index} href={m[2]} target="_blank" rel="noreferrer">
           {m[1]}

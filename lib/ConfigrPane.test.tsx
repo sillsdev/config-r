@@ -309,9 +309,26 @@ describe('description markdown', () => {
     );
   });
 
+  it('makes *text* italic, alongside bold', () => {
+    renderDescription('This is *really* important, and **this** too.');
+    const really = screen.getByText('really');
+    expect(really.tagName).toBe('EM');
+    expect(screen.getByText('this').tagName).toBe('STRONG');
+    expect(really.parentElement!.textContent).toBe(
+      'This is really important, and this too.',
+    );
+  });
+
+  it('does not take spaced or in-word asterisks for italic', () => {
+    renderDescription('Use 2 * 3 * 4 or 2*3*4');
+    expect(screen.getByText('Use 2 * 3 * 4 or 2*3*4')).toBeTruthy();
+    expect(document.querySelector('em')).toBeNull();
+  });
+
   it('leaves a lone or unmatched * as typed', () => {
     renderDescription('Use 2 * 3, or **this one');
     expect(screen.getByText('Use 2 * 3, or **this one')).toBeTruthy();
     expect(document.querySelector('strong')).toBeNull();
+    expect(document.querySelector('em')).toBeNull();
   });
 });
