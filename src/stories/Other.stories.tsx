@@ -21,7 +21,9 @@ import {
   ConfigrConditional,
   ConfigrGroup,
   ConfigrForEach,
+  useConfigrValue,
 } from '../../lib/ContentPane';
+import { Button } from '@mui/material';
 
 interface IPetSettings {
   dog: { name: string; friendly: boolean };
@@ -170,6 +172,51 @@ export const LocalizedStrings: React.FunctionComponent<{}> = () => {
               label="Region"
               required={true}
               validation={(value) => String(value ?? '').trim().length >= 3}
+            />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>
+    </div>
+  );
+};
+
+// A heading action that clears a value, as Bloom's Remove button does for a language.
+const RemoveSignLanguage: React.FunctionComponent = () => {
+  const [language, setLanguage] = useConfigrValue<object | null>(
+    'languages.signLanguage',
+  );
+  return (
+    <Button size="small" disabled={!language} onClick={() => setLanguage(null)}>
+      Remove
+    </Button>
+  );
+};
+
+export const GroupHeaderActionAndBold: React.FunctionComponent<{}> = () => {
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+      `}
+    >
+      <ConfigrPane
+        label="Languages"
+        initialValues={{
+          languages: { signLanguage: { name: 'ASL' }, rightToLeft: false },
+        }}
+        showJson={true}
+      >
+        <ConfigrPage label="Languages" pageKey="languages">
+          <ConfigrGroup label="Sign Language" headerAction={<RemoveSignLanguage />}>
+            <ConfigrInput path="languages.signLanguage.name" label="Name" />
+          </ConfigrGroup>
+          <ConfigrGroup label="Writing">
+            <ConfigrBoolean
+              path="languages.rightToLeft"
+              label="Right to left"
+              description="If you are not **SURE**, then do not turn this on. If your language is written starting on the right and moving left, you will **KNOW**."
             />
           </ConfigrGroup>
         </ConfigrPage>

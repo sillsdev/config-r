@@ -807,6 +807,14 @@ interface ICustomStringInputProps extends IConfigrProps<string> {
   getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
+// Lets a client component rendered inside the pane (e.g. a ConfigrGroup's headerAction, or a
+// custom control) read and change the value at a path. Changing it goes through the same path as
+// an edit in an input, so the pane reports it to onChange in the same way.
+export function useConfigrValue<T>(path: string): [T, (value: T) => void] {
+  const [field, , helpers] = useField<T>(path);
+  return [field.value, helpers.setValue];
+}
+
 // Clients can use this to create their own custom inputs based on string data.
 // For example, <DefaultColorPicker> or some other color picker.
 export const ConfigrCustomStringInput: React.FunctionComponent<
@@ -1020,6 +1028,10 @@ export const ConfigrGroup: React.FunctionComponent<
     description?: string | React.ReactNode;
     getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
+    // A control (e.g. a Remove button) shown at the right end of the group's heading line,
+    // like MUI CardHeader's action. It shows only when the heading does. To change a value,
+    // it can use useConfigrValue().
+    headerAction?: React.ReactNode;
   }>
 > = (props) => {
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
@@ -1032,9 +1044,22 @@ export const ConfigrGroup: React.FunctionComponent<
   const description = descriptionToReact(props.description);
   return (
     <>
-      {props.inFocussedPage && props.label && (
-        <Typography variant="h3">{props.label}</Typography>
-      )}
+      {props.inFocussedPage &&
+        props.label &&
+        (props.headerAction ? (
+          <div
+            css={css`
+              display: flex;
+              justify-content: space-between;
+              align-items: baseline;
+            `}
+          >
+            <Typography variant="h3">{props.label}</Typography>
+            {props.headerAction}
+          </div>
+        ) : (
+          <Typography variant="h3">{props.label}</Typography>
+        ))}
       {props.inFocussedPage && description && (
         <Typography
           variant="caption"
@@ -1528,8 +1553,8 @@ function descriptionToReact(description?: string | React.ReactNode) {
   if (!description) return null;
   if (typeof description !== 'string') return description; //nothing to do
 
-  // detect markdown links and make them clickable
-  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  // detect markdown links and make them clickable, and markdown **bold**
+  const re = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
   let m;
   let lastEnd = 0;
   const result = [];
@@ -1540,9 +1565,13 @@ function descriptionToReact(description?: string | React.ReactNode) {
     }
     result.push(description.substring(lastEnd, m.index));
     result.push(
-      <a href={m[2]} target="_blank" rel="noreferrer">
-        {m[1]}
-      </a>,
+      m[3] !== undefined ? (
+        <strong key={m.index}>{m[3]}</strong>
+      ) : (
+        <a key={m.index} href={m[2]} target="_blank" rel="noreferrer">
+          {m[1]}
+        </a>
+      ),
     );
     lastEnd = re.lastIndex;
   }

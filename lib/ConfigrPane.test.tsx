@@ -2,7 +2,13 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import * as React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfigrPane, ConfigrPaneHandle } from './ConfigrPane';
-import { ConfigrGroup, ConfigrInput, ConfigrPage, ConfigrValues } from './ContentPane';
+import {
+  ConfigrGroup,
+  ConfigrInput,
+  ConfigrPage,
+  ConfigrValues,
+  useConfigrValue,
+} from './ContentPane';
 
 const initialValues = { dog: { name: 'Sanuk' }, cat: { name: 'Tom' } };
 
@@ -215,5 +221,97 @@ describe('ConfigrGroup description', () => {
       (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
     expect(following(heading, description)).toBe(true);
     expect(following(description, dogNameInput())).toBe(true);
+  });
+});
+
+describe('ConfigrGroup headerAction', () => {
+  afterEach(cleanup);
+
+  // Like Bloom's Remove button on a language group: it clears the value its group edits.
+  function ClearDogName() {
+    const [name, setName] = useConfigrValue<string | null>('dog.name');
+    return (
+      <button type="button" disabled={name === null} onClick={() => setName(null)}>
+        Remove
+      </button>
+    );
+  }
+
+  it('shows the action on the heading line, and its change is reported like an edit', () => {
+    const changed = vi.fn();
+    render(
+      <ConfigrPane label="Test" initialValues={initialValues} onChange={changed}>
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details" headerAction={<ClearDogName />}>
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+
+    const heading = screen.getByText('Dog details');
+    const remove = screen.getByRole('button', { name: 'Remove' });
+    expect(heading.parentElement).toBe(remove.parentElement);
+    expect(
+      heading.compareDocumentPosition(dogNameInput()) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    fireEvent.click(remove);
+    expect(changed).toHaveBeenLastCalledWith({
+      dog: { name: null },
+      cat: { name: 'Tom' },
+    });
+    expect(remove.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('leaves the heading as it was when there is no action', () => {
+    render(
+      <ConfigrPane label="Test" initialValues={initialValues}>
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    expect(screen.getByText('Dog details').tagName).toBe('H3');
+    expect(screen.queryByRole('button', { name: 'Remove' })).toBeNull();
+  });
+});
+
+describe('description markdown', () => {
+  afterEach(cleanup);
+
+  function renderDescription(description: string) {
+    render(
+      <ConfigrPane label="Test" initialValues={initialValues}>
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" description={description} />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+  }
+
+  it('makes **text** bold, alongside links', () => {
+    renderDescription(
+      'If you are not **SURE**, then do not turn this on. You will **KNOW**. See [help](https://example.org).',
+    );
+    const sure = screen.getByText('SURE');
+    expect(sure.tagName).toBe('STRONG');
+    expect(screen.getByText('KNOW').tagName).toBe('STRONG');
+    expect(screen.getByRole('link', { name: 'help' }).getAttribute('href')).toBe(
+      'https://example.org',
+    );
+    expect(sure.parentElement!.textContent).toBe(
+      'If you are not SURE, then do not turn this on. You will KNOW. See help.',
+    );
+  });
+
+  it('leaves a lone or unmatched * as typed', () => {
+    renderDescription('Use 2 * 3, or **this one');
+    expect(screen.getByText('Use 2 * 3, or **this one')).toBeTruthy();
+    expect(document.querySelector('strong')).toBeNull();
   });
 });
