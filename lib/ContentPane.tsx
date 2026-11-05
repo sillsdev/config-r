@@ -6,6 +6,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import toPath from 'lodash/toPath';
+import Markdown, { MarkdownToJSX } from 'markdown-to-jsx/react';
 
 import { Field, Formik, useField, useFormikContext } from 'formik';
 import {
@@ -807,6 +808,17 @@ interface ICustomStringInputProps extends IConfigrProps<string> {
   getErrorMessage?: ConfigrErrorMessageGetter;
 }
 
+// Lets a client component rendered inside the pane (e.g. a ConfigrGroup's headerAction, or a
+// custom control) read and change the value at a path. Changing it goes through the same path as
+// an edit in an input, so the pane reports it to onChange in the same way.
+// It works on the stored value only: unlike a row bound to the same path, it does not apply that
+// row's overrideValue, its getErrorMessage validation, or the disabled state a ConfigrConditional
+// gives it. It must be used inside a ConfigrPane.
+export function useConfigrValue<T>(path: string): [T, (value: T) => void] {
+  const [field, , helpers] = useField<T>(path);
+  return [field.value, helpers.setValue];
+}
+
 // Clients can use this to create their own custom inputs based on string data.
 // For example, <DefaultColorPicker> or some other color picker.
 export const ConfigrCustomStringInput: React.FunctionComponent<
@@ -1020,6 +1032,10 @@ export const ConfigrGroup: React.FunctionComponent<
     description?: string | React.ReactNode;
     getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
+    // A control (e.g. a Remove button) shown at the right end of the group's heading line,
+    // like MUI CardHeader's action. It shows only when the heading does. To change a value,
+    // it can use useConfigrValue().
+    headerAction?: React.ReactNode;
   }>
 > = (props) => {
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
@@ -1032,9 +1048,22 @@ export const ConfigrGroup: React.FunctionComponent<
   const description = descriptionToReact(props.description);
   return (
     <>
-      {props.inFocussedPage && props.label && (
-        <Typography variant="h3">{props.label}</Typography>
-      )}
+      {props.inFocussedPage &&
+        props.label &&
+        (props.headerAction ? (
+          <div
+            css={css`
+              display: flex;
+              justify-content: space-between;
+              align-items: baseline;
+            `}
+          >
+            <Typography variant="h3">{props.label}</Typography>
+            {props.headerAction}
+          </div>
+        ) : (
+          <Typography variant="h3">{props.label}</Typography>
+        ))}
       {props.inFocussedPage && description && (
         <Typography
           variant="caption"
@@ -1524,28 +1553,20 @@ function isParent(parentPath: string, childPath: string): boolean {
   return childPath.startsWith(parentPath + '.');
 }
 
+// Inline markdown only: **bold**, *italic*, `code`, [text](link) and bare links. Raw HTML shows as
+// typed, as descriptions (often translated strings) always have, and an image shows only its alt
+// text, so a description can't make the dialog load an image from anywhere.
+const descriptionMarkdownOptions: MarkdownToJSX.Options = {
+  forceInline: true,
+  disableParsingRawHTML: true,
+  overrides: {
+    a: { props: { target: '_blank', rel: 'noreferrer' } },
+    img: ({ alt }: { alt?: string }) => <>{alt}</>,
+  },
+};
+
 function descriptionToReact(description?: string | React.ReactNode) {
   if (!description) return null;
   if (typeof description !== 'string') return description; //nothing to do
-
-  // detect markdown links and make them clickable
-  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let m;
-  let lastEnd = 0;
-  const result = [];
-  while ((m = re.exec(description)) !== null) {
-    // This is necessary to avoid infinite loops with zero-width matches
-    if (m.index === re.lastIndex) {
-      re.lastIndex++;
-    }
-    result.push(description.substring(lastEnd, m.index));
-    result.push(
-      <a href={m[2]} target="_blank" rel="noreferrer">
-        {m[1]}
-      </a>,
-    );
-    lastEnd = re.lastIndex;
-  }
-  result.push(description.substring(lastEnd));
-  return result;
+  return <Markdown options={descriptionMarkdownOptions}>{description}</Markdown>;
 }
