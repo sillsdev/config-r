@@ -1554,10 +1554,11 @@ function descriptionToReact(description?: string | React.ReactNode) {
   if (typeof description !== 'string') return description; //nothing to do
 
   // detect markdown links and make them clickable, and markdown **bold** and *italic*.
-  // An italic * must hug its text and not touch a letter outside it, so "2 * 3 * 4" and
-  // "2*3*4" stay as typed.
+  // A bold or italic marker must hug its text and not touch a letter outside it, so
+  // "2 * 3 * 4", "2*3*4" and "x**2 + y**2" stay as typed. Bold and italic text is parsed
+  // again, so a link inside it still works.
   const re =
-    /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])/g;
+    /\[([^\]]+)\]\(([^)]+)\)|(?<![\w*])\*\*(?![\s*])([^*]+?)(?<!\s)\*\*(?![\w*])|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])/g;
   let m;
   let lastEnd = 0;
   const result = [];
@@ -1569,9 +1570,9 @@ function descriptionToReact(description?: string | React.ReactNode) {
     result.push(description.substring(lastEnd, m.index));
     result.push(
       m[3] !== undefined ? (
-        <strong key={m.index}>{m[3]}</strong>
+        <strong key={m.index}>{descriptionToReact(m[3])}</strong>
       ) : m[4] !== undefined ? (
-        <em key={m.index}>{m[4]}</em>
+        <em key={m.index}>{descriptionToReact(m[4])}</em>
       ) : (
         <a key={m.index} href={m[2]} target="_blank" rel="noreferrer">
           {m[1]}

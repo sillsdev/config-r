@@ -319,10 +319,25 @@ describe('description markdown', () => {
     );
   });
 
-  it('does not take spaced or in-word asterisks for italic', () => {
-    renderDescription('Use 2 * 3 * 4 or 2*3*4');
-    expect(screen.getByText('Use 2 * 3 * 4 or 2*3*4')).toBeTruthy();
+  it('does not take spaced or in-word asterisks for italic or bold', () => {
+    renderDescription('Use 2 * 3 * 4 or 2*3*4 or x**2 + y**2 or 2 ** 3 ** 4');
+    expect(
+      screen.getByText('Use 2 * 3 * 4 or 2*3*4 or x**2 + y**2 or 2 ** 3 ** 4'),
+    ).toBeTruthy();
     expect(document.querySelector('em')).toBeNull();
+    expect(document.querySelector('strong')).toBeNull();
+  });
+
+  it('keeps a link inside bold or italic clickable', () => {
+    renderDescription(
+      '**See [help](https://example.org/a)** or *see [more](https://example.org/b)*',
+    );
+    const help = screen.getByRole('link', { name: 'help' });
+    expect(help.getAttribute('href')).toBe('https://example.org/a');
+    expect(help.closest('strong')).toBeTruthy();
+    const more = screen.getByRole('link', { name: 'more' });
+    expect(more.getAttribute('href')).toBe('https://example.org/b');
+    expect(more.closest('em')).toBeTruthy();
   });
 
   it('leaves a lone or unmatched * as typed', () => {
