@@ -328,6 +328,19 @@ describe('description markdown', () => {
     expect(document.querySelector('strong')).toBeNull();
   });
 
+  it('nests italic inside bold, and bold inside italic', () => {
+    renderDescription('**bold *italic* text** and *slanted **heavy** words*');
+    const italic = screen.getByText('italic');
+    expect(italic.tagName).toBe('EM');
+    expect(italic.parentElement!.tagName).toBe('STRONG');
+    expect(italic.parentElement!.textContent).toBe('bold italic text');
+    const heavy = screen.getByText('heavy');
+    expect(heavy.tagName).toBe('STRONG');
+    expect(heavy.parentElement!.tagName).toBe('EM');
+    expect(heavy.parentElement!.textContent).toBe('slanted heavy words');
+    expect(document.body.textContent).not.toContain('*');
+  });
+
   it('keeps a link inside bold or italic clickable', () => {
     renderDescription(
       '**See [help](https://example.org/a)** or *see [more](https://example.org/b)*',

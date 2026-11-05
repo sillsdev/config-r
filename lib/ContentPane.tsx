@@ -1556,9 +1556,9 @@ function descriptionToReact(description?: string | React.ReactNode) {
   // detect markdown links and make them clickable, and markdown **bold** and *italic*.
   // A bold or italic marker must hug its text and not touch a letter outside it, so
   // "2 * 3 * 4", "2*3*4" and "x**2 + y**2" stay as typed. Bold and italic text is parsed
-  // again, so a link inside it still works.
+  // again, so a link, or italic inside bold (or bold inside italic), still works.
   const re =
-    /\[([^\]]+)\]\(([^)]+)\)|(?<![\w*])\*\*(?![\s*])([^*]+?)(?<!\s)\*\*(?![\w*])|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])/g;
+    /\[([^\]]+)\]\(([^)]+)\)|(?<![\w*])\*\*(?![\s*])((?:[^*]|\*(?!\*))+?)(?<![\s*])\*\*(?![\w*])|(?<![\w*])\*(?![\s*])((?:[^*]|\*\*)+?)(?<![\s*])\*(?![\w*])/g;
   let m;
   let lastEnd = 0;
   const result = [];
