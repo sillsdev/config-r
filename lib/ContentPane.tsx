@@ -979,7 +979,6 @@ export function ConfigrSelect<O extends ConfigrSelectOption<string | number>>(
           // until the user picks something; picking a '' option stores ''.
           value={field.value ?? ''}
           onChange={(e) => helpers.setValue(e.target.value as T)}
-          onClose={() => helpers.setTouched(true)}
           displayEmpty={true}
           sx={{ minWidth: 180 }}
           css={css`
