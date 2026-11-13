@@ -938,21 +938,13 @@ export function ConfigrCustomObjectInput<T>(
 // number stores that number (not its string form) at the path, so a client can label numbers,
 // e.g. { value: 0, label: 'Auto' }.
 export type ConfigrSelectOption =
-  | { value: string; label?: string; description?: string }
-  | { value: number; label?: string; description?: string }
-  | number;
+  { value: string | number; label?: string; description?: string } | number;
 
-interface ISelectProps extends Omit<
-  IConfigrProps<string | number>,
-  'validation' | 'overrideValue'
-> {
+interface ISelectProps extends Omit<IConfigrProps<string | number>, 'validation'> {
   // A union rather than ConfigrValidation<string | number>, so a validation written for
-  // string options (or number options) still type-checks.
-  validation?:
-    | ConfigrValidation<string>
-    | ConfigrValidation<number>
-    | ConfigrValidation<string | number>;
-  overrideValue?: string | number;
+  // string options (or number options) still type-checks. (A validation taking
+  // string | number is assignable to either.)
+  validation?: ConfigrValidation<string> | ConfigrValidation<number>;
   indented?: boolean;
   options: ConfigrSelectOption[];
   enableWhen?: string | ((currentValues: object) => boolean);
@@ -962,11 +954,13 @@ interface ISelectProps extends Omit<
 export const ConfigrSelect: React.FunctionComponent<
   React.PropsWithChildren<ISelectProps>
 > = (props) => {
-  props = useModifyForOverride(props as IConfigrProps<string | number>) as ISelectProps;
+  // ISelectProps narrows validation's type, so it is not itself an IConfigrProps.
+  const baseProps = useModifyForOverride(props as IConfigrProps<string | number>);
+  props = baseProps as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   const [field] = useField<string | number>(props.path);
   const validationMessage = useValidationMessageForValue(
-    props as IConfigrProps<string | number>,
+    baseProps,
     field.value,
     disabled,
   );
@@ -977,32 +971,29 @@ export const ConfigrSelect: React.FunctionComponent<
   // stored as strings, as they always have been.)
   const path = props.path;
   const options = props.options;
-  const onClose = React.useCallback(
-    async (e: React.SyntheticEvent) => {
-      const dataValue = (e.target as HTMLElement | undefined)?.dataset?.value;
-      if (dataValue) {
-        const isStringOption = options.some(
-          (o) =>
-            typeof o === 'object' && typeof o.value === 'string' && o.value === dataValue,
-        );
-        const numberOption = isStringOption
-          ? undefined
-          : options.find(
-              (o) =>
-                typeof o === 'object' &&
-                typeof o.value === 'number' &&
-                String(o.value) === dataValue,
-            );
-        await setFieldValue(
-          path,
-          typeof numberOption === 'object' ? numberOption.value : dataValue,
-          false,
-        );
-      }
-      setFieldTouched(path, true, true);
-    },
-    [options, path, setFieldValue, setFieldTouched],
-  );
+  const onClose = async (e: React.SyntheticEvent) => {
+    const dataValue = (e.target as HTMLElement | undefined)?.dataset?.value;
+    if (dataValue) {
+      const isStringOption = options.some(
+        (o) =>
+          typeof o === 'object' && typeof o.value === 'string' && o.value === dataValue,
+      );
+      const numberOption = isStringOption
+        ? undefined
+        : options.find(
+            (o) =>
+              typeof o === 'object' &&
+              typeof o.value === 'number' &&
+              String(o.value) === dataValue,
+          );
+      await setFieldValue(
+        path,
+        typeof numberOption === 'object' ? numberOption.value : dataValue,
+        false,
+      );
+    }
+    setFieldTouched(path, true, true);
+  };
   return (
     <ConfigrRowTwoColumns
       {...props}
