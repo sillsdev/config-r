@@ -14,6 +14,7 @@ import {
   Paper,
   List,
   Divider,
+  Select,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
@@ -29,13 +30,7 @@ import {
   ToggleButton,
   InputAdornment,
 } from '@mui/material';
-import {
-  TextField,
-  Switch,
-  Checkbox,
-  Select as FormikMuiSelect,
-  ToggleButtonGroup,
-} from 'formik-mui';
+import { TextField, Switch, Checkbox, ToggleButtonGroup } from 'formik-mui';
 import { ConfigrLocalizationContext } from './ConfigrLocalizations';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
@@ -935,51 +930,43 @@ export function ConfigrCustomObjectInput<T>(
 }
 
 // An option of a ConfigrSelect. Choosing one stores its value exactly as given, so a number
-// option stores a number, e.g. { value: 0, label: 'Auto' }. A bare number is shown as itself.
-export type ConfigrSelectOption =
-  { value: string | number; label?: string; description?: string } | number;
-
-interface ISelectProps extends IConfigrProps<string | number> {
-  indented?: boolean;
-  options: ConfigrSelectOption[];
-  enableWhen?: string | ((currentValues: object) => boolean);
-  getErrorMessage?: ConfigrErrorMessageGetter;
+// option stores a number, e.g. { value: 0, label: 'Auto' }. An option whose label starts with
+// "--" is shown as a divider.
+export interface ConfigrSelectOption<T extends string | number> {
+  value: T;
+  label?: string;
+  description?: string;
 }
 
-export const ConfigrSelect: React.FunctionComponent<
-  React.PropsWithChildren<ISelectProps>
-> = (props) => {
-  props = useModifyForOverride(props) as ISelectProps;
+interface ISelectProps<T extends string | number> extends IConfigrProps<T> {
+  indented?: boolean;
+  options: ConfigrSelectOption<T>[];
+  enableWhen?: string | ((currentValues: object) => boolean);
+}
+
+export function ConfigrSelect<T extends string | number = string>(
+  originalProps: React.PropsWithChildren<ISelectProps<T>>,
+): React.ReactElement {
+  const props = useModifyForOverride(originalProps) as ISelectProps<T>;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
-  const [field] = useField<string | number>(props.path);
+  const [field, , helpers] = useField<T>(props.path);
   const validationMessage = useValidationMessageForValue(props, field.value, disabled);
-  const { setFieldTouched } = useFormikContext();
-  // MUI's Select stores the chosen MenuItem's own value (a number stays a number) through the
-  // field's onChange. formik-mui's default onClose would then set the field again from the item's
-  // data-value attribute, which is always a string, so replace it with one that only marks the
-  // field touched, as the default also does.
-  const path = props.path;
-  const onClose = () => setFieldTouched(path, true, true);
   return (
     <ConfigrRowTwoColumns
       {...props}
       disabled={disabled}
       validationMessage={validationMessage}
       control={
-        <Field
+        <Select<T | ''>
           name={props.path}
           disabled={disabled}
-          component={FormikMuiSelect}
-          onClose={onClose}
-          // defaultValue and displayEmpty together allow the props.options to contain a {`value:""`, label:"default"} option
-          // that will show if the value is undefined.
-          // Note that none of the options has this empty string value, that's ok, the control will just not show any selected item.
-          // This does not cause the resulting data to have an empty string, it will still be undefined. Ths is true even
-          // if an empty string option is provided. The only way it gets set to empty string is if the user selected a different
-          // option, and then moved back to the default. What we'd like to do at that point might be to set it back to undefined,
-          // but we don't have that capability yet. So at this point, if you can't handle a value of empty string in the output,
-          // don't provide an option that has empty string as a value. Or massage the data after it comes back.
-          defaultValue={''}
+          // A missing value shows as '' so the select stays controlled. With displayEmpty, an
+          // option whose value is '' (e.g. { value: '', label: 'default' }) then shows as
+          // selected, and with no such option nothing does. The stored value stays undefined
+          // until the user picks something; picking a '' option stores ''.
+          value={field.value ?? ''}
+          onChange={(e) => helpers.setValue(e.target.value as T)}
+          onClose={() => helpers.setTouched(true)}
           displayEmpty={true}
           sx={{ minWidth: 180 }}
           css={css`
@@ -993,24 +980,13 @@ export const ConfigrSelect: React.FunctionComponent<
             }
           `}
         >
-          {/* Allow a list of numbers (typically font sizes) instead of label/value objects */}
-          {props.options.map((o) => {
-            if (typeof o === 'number') {
-              return (
-                <MenuItem value={o} key={o}>
-                  <span>{o}</span>
-                </MenuItem>
-              );
-            }
-            // A number value is passed to MenuItem as a number, so MUI stores it as one and
-            // shows it as selected when the stored value is that number (including 0).
+          {props.options.map((o, index) => {
             const labelToUse = o.label ?? String(o.value);
-            const valueToUse = o.value ?? o.label;
             if (labelToUse.startsWith('--')) {
-              return <Divider key={labelToUse} />;
+              return <Divider key={`divider-${index}`} />;
             }
             return (
-              <MenuItem value={valueToUse} key={labelToUse}>
+              <MenuItem value={o.value} key={o.value}>
                 {o.description ? (
                   <Tooltip title={o.description}>
                     <span>{labelToUse}</span>
@@ -1021,11 +997,11 @@ export const ConfigrSelect: React.FunctionComponent<
               </MenuItem>
             );
           })}
-        </Field>
+        </Select>
       }
     ></ConfigrRowTwoColumns>
   );
-};
+}
 
 // this is typically used to an message, e.g. explaining something about hte page or why a group is disabled.
 export const ConfigrStatic: React.FunctionComponent<

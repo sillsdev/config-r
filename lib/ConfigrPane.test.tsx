@@ -485,20 +485,74 @@ describe('ConfigrSelect options', () => {
     expect(changed).toHaveBeenLastCalledWith({ choice: 'b' });
   });
 
-  it('shows bare number options, and stores the number of one picked', () => {
+  it('uses the number as the label of an unlabeled number option, and stores the number', () => {
     const changed = vi.fn();
-    const select = renderSelect([9, 10, 11], 10, changed);
+    const select = renderSelect(
+      [{ value: 9 }, { value: 10 }, { value: 11 }],
+      10,
+      changed,
+    );
     expect(select.textContent).toBe('10');
     choose(select, '11');
     expect(changed).toHaveBeenLastCalledWith({ choice: 11 });
     expect(select.textContent).toBe('11');
   });
 
-  it('stores a number for a bare number listed beside a labelled option of the same value', () => {
+  it('shows a "" option for a missing value, and stores nothing until the user picks', () => {
     const changed = vi.fn();
-    const select = renderSelect([12, { value: 12, label: 'Twelve' }, 13], 13, changed);
-    choose(select, '12');
-    expect(changed).toHaveBeenLastCalledWith({ choice: 12 });
+    const select = renderSelect(
+      [{ value: '', label: 'default' }, { value: '3mm' }],
+      undefined,
+      changed,
+    );
+    expect(select.textContent).toBe('default');
+    expect(changed).not.toHaveBeenCalled();
+    choose(select, '3mm');
+    expect(changed).toHaveBeenLastCalledWith({ choice: '3mm' });
+  });
+
+  it('shows an option labelled "--" as a divider, not a choice', () => {
+    const select = renderSelect(
+      [
+        { value: 'a', label: 'Apple' },
+        { value: '', label: '--' },
+        { value: 'b', label: 'Banana' },
+      ],
+      'a',
+    );
+    fireEvent.mouseDown(select);
+    expect(screen.queryByText('--')).toBeNull();
+    expect(document.querySelector('.MuiDivider-root')).not.toBeNull();
+  });
+
+  it("types validation by the options' values", () => {
+    const numberOptions = [{ value: 0, label: 'Auto' }];
+    // A validation that takes the select's value type, or a wider one, is accepted.
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={numberOptions}
+        validation={(v: number) => v > 0}
+      />
+    );
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={numberOptions}
+        validation={(v: string | number) => v !== ''}
+      />
+    );
+    void (
+      <ConfigrSelect<number>
+        path="p"
+        label="L"
+        options={numberOptions}
+        // @ts-expect-error a string-only validation cannot be given to a select of numbers
+        validation={(v: string) => !!v}
+      />
+    );
   });
 
   it('passes the number of a chosen numeric option to the validation', () => {

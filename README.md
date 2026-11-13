@@ -37,8 +37,8 @@ Use [src/stories/bloom.stories.tsx](src/stories/bloom.stories.tsx) as the canoni
 - `ConfigrPage` now requires `pageKey` and throws if it is missing. Keep these keys stable and unique within a pane.
 - `ConfigrPage` children are restricted to `ConfigrGroup`, `ConfigrForEach`, or `ConfigrStatic`. Move any custom layout into `ConfigrGroup` or wrap text/UI-only blocks in `ConfigrStatic`.
 - `ConfigrForEach` now uses a render signature of `(pathPrefix, index) => ReactNode`; build full Formik paths from the prefix (see the languages loop in the story).
-- `ConfigrSelect` options accept numbers or `{ label, value, description }` objects; descriptions become tooltips.
-- A `ConfigrSelect` option's `value` may be a number, e.g. `{ value: 0, label: 'Auto' }`. Choosing any option stores its value exactly as given, so a number option (labelled, or bare like `12`) stores the number, not its string form; a stored number shows its option as selected, and `0` works as an ordinary value. A select's `validation` therefore receives `string | number`.
+- `ConfigrSelect<T extends string | number>` takes `{ value: T, label?, description? }` options; descriptions become tooltips, a missing label shows the value, and a label starting with `--` draws a divider. Bare numbers are no longer accepted as options; write `{ value: 12 }`.
+- Choosing an option stores its `value` exactly as given, so `{ value: 0, label: 'Auto' }` stores the number `0`, not `'0'`; a stored number shows its option as selected. `T` is inferred from the options, and `validation` and `overrideValue` take a `T`.
 - Override/locking behavior is standardized: most controls accept `overrideValue` + `overrideDescription`; `ConfigrBoolean` adds `locked` and `immediateEffect`.
 - Leaf controls support `required` and `validation`. `validation` receives the current field value and may return `true`, `false`, or a string. `false` renders a generic `Invalid value` message, while a string is shown inline in red.
 - Required fields show a `*` beside the control. The fallback `Required` message for empty required fields is controlled at the pane level with `showRequiredMessage` and defaults to `true`.
