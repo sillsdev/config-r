@@ -414,12 +414,18 @@ describe('ConfigrSelect options', () => {
     options: React.ComponentProps<typeof ConfigrSelect>['options'],
     initial: unknown,
     onChange?: (values: ConfigrValues) => void,
+    validation?: React.ComponentProps<typeof ConfigrSelect>['validation'],
   ) {
     render(
       <ConfigrPane label="Test" initialValues={{ choice: initial }} onChange={onChange}>
         <ConfigrPage key="p" label="Page" pageKey="p">
           <ConfigrGroup label="Group">
-            <ConfigrSelect path="choice" label="Choice" options={options} />
+            <ConfigrSelect
+              path="choice"
+              label="Choice"
+              options={options}
+              validation={validation}
+            />
           </ConfigrGroup>
         </ConfigrPage>
       </ConfigrPane>,
@@ -479,15 +485,30 @@ describe('ConfigrSelect options', () => {
     expect(changed).toHaveBeenLastCalledWith({ choice: 'b' });
   });
 
-  // Unchanged behavior: a bare number option shows a stored number, but picking one stores its
-  // string form, because formik-mui sets the value from the item's data-value attribute.
-  it('still shows bare number options, and stores the string of one picked, as before', () => {
+  it('shows bare number options, and stores the number of one picked', () => {
     const changed = vi.fn();
     const select = renderSelect([9, 10, 11], 10, changed);
     expect(select.textContent).toBe('10');
     choose(select, '11');
-    expect(changed).toHaveBeenLastCalledWith({ choice: '11' });
+    expect(changed).toHaveBeenLastCalledWith({ choice: 11 });
     expect(select.textContent).toBe('11');
+  });
+
+  it('stores a number for a bare number listed beside a labelled option of the same value', () => {
+    const changed = vi.fn();
+    const select = renderSelect([12, { value: 12, label: 'Twelve' }, 13], 13, changed);
+    choose(select, '12');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 12 });
+  });
+
+  it('passes the number of a chosen numeric option to the validation', () => {
+    const validation = vi.fn((value: string | number) =>
+      value === 0 ? 'Auto is not allowed here' : true,
+    );
+    const select = renderSelect(lineSpacingOptions, 1.5, undefined, validation);
+    choose(select, 'Auto');
+    expect(validation).toHaveBeenLastCalledWith(0);
+    expect(screen.getByText('Auto is not allowed here')).toBeTruthy();
   });
 
   it('still uses the value as the label when a string option has none', () => {

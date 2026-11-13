@@ -934,17 +934,12 @@ export function ConfigrCustomObjectInput<T>(
   );
 }
 
-// An option of a ConfigrSelect. A bare number is shown as itself. An object whose value is a
-// number stores that number (not its string form) at the path, so a client can label numbers,
-// e.g. { value: 0, label: 'Auto' }.
+// An option of a ConfigrSelect. Choosing one stores its value exactly as given, so a number
+// option stores a number, e.g. { value: 0, label: 'Auto' }. A bare number is shown as itself.
 export type ConfigrSelectOption =
   { value: string | number; label?: string; description?: string } | number;
 
-interface ISelectProps extends Omit<IConfigrProps<string | number>, 'validation'> {
-  // A union rather than ConfigrValidation<string | number>, so a validation written for
-  // string options (or number options) still type-checks. (A validation taking
-  // string | number is assignable to either.)
-  validation?: ConfigrValidation<string> | ConfigrValidation<number>;
+interface ISelectProps extends IConfigrProps<string | number> {
   indented?: boolean;
   options: ConfigrSelectOption[];
   enableWhen?: string | ((currentValues: object) => boolean);
@@ -954,46 +949,17 @@ interface ISelectProps extends Omit<IConfigrProps<string | number>, 'validation'
 export const ConfigrSelect: React.FunctionComponent<
   React.PropsWithChildren<ISelectProps>
 > = (props) => {
-  // ISelectProps narrows validation's type, so it is not itself an IConfigrProps.
-  const baseProps = useModifyForOverride(props as IConfigrProps<string | number>);
-  props = baseProps as ISelectProps;
+  props = useModifyForOverride(props) as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   const [field] = useField<string | number>(props.path);
-  const validationMessage = useValidationMessageForValue(
-    baseProps,
-    field.value,
-    disabled,
-  );
-  const { setFieldValue, setFieldTouched } = useFormikContext();
-  // formik-mui's Select, on closing the menu after a click, sets the field again from the clicked
-  // item's data-value attribute, which is always a string. This does the same, except that an
-  // option written as { value: <number> } keeps its number. (Bare number options are still
-  // stored as strings, as they always have been.)
+  const validationMessage = useValidationMessageForValue(props, field.value, disabled);
+  const { setFieldTouched } = useFormikContext();
+  // MUI's Select stores the chosen MenuItem's own value (a number stays a number) through the
+  // field's onChange. formik-mui's default onClose would then set the field again from the item's
+  // data-value attribute, which is always a string, so replace it with one that only marks the
+  // field touched, as the default also does.
   const path = props.path;
-  const options = props.options;
-  const onClose = async (e: React.SyntheticEvent) => {
-    const dataValue = (e.target as HTMLElement | undefined)?.dataset?.value;
-    if (dataValue) {
-      const isStringOption = options.some(
-        (o) =>
-          typeof o === 'object' && typeof o.value === 'string' && o.value === dataValue,
-      );
-      const numberOption = isStringOption
-        ? undefined
-        : options.find(
-            (o) =>
-              typeof o === 'object' &&
-              typeof o.value === 'number' &&
-              String(o.value) === dataValue,
-          );
-      await setFieldValue(
-        path,
-        typeof numberOption === 'object' ? numberOption.value : dataValue,
-        false,
-      );
-    }
-    setFieldTouched(path, true, true);
-  };
+  const onClose = () => setFieldTouched(path, true, true);
   return (
     <ConfigrRowTwoColumns
       {...props}
