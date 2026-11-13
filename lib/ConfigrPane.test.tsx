@@ -545,12 +545,32 @@ describe('ConfigrSelect options', () => {
       />
     );
     void (
-      <ConfigrSelect<number>
+      <ConfigrSelect
         path="p"
         label="L"
         options={numberOptions}
         // @ts-expect-error a string-only validation cannot be given to a select of numbers
         validation={(v: string) => !!v}
+      />
+    );
+    // Values of mixed types (a '' default beside numbers) give string | number, and an
+    // overrideValue need not be one of the option values.
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={[{ value: '', label: 'default' }, { value: 12 }]}
+        validation={(v: string | number) => v !== 3}
+        overrideValue={7}
+      />
+    );
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={[{ value: '', label: 'default' }, { value: 12 }]}
+        // @ts-expect-error a number-only validation cannot be given when a value can be ''
+        validation={(v: number) => v > 0}
       />
     );
   });

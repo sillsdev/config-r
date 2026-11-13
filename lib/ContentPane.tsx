@@ -938,16 +938,29 @@ export interface ConfigrSelectOption<T extends string | number> {
   description?: string;
 }
 
-interface ISelectProps<T extends string | number> extends IConfigrProps<T> {
+// The type a ConfigrSelect stores: its options' values, widened to string and/or number, so
+// that e.g. [{ value: '', label: 'default' }, { value: 12 }] gives string | number, and an
+// overrideValue or validation need not name one of the literal option values.
+export type ConfigrSelectValue<O extends ConfigrSelectOption<string | number>> =
+  O['value'] extends infer V ? (V extends string ? string : number) : never;
+
+interface ISelectProps<
+  O extends ConfigrSelectOption<string | number>,
+> extends IConfigrProps<ConfigrSelectValue<O>> {
   indented?: boolean;
-  options: ConfigrSelectOption<T>[];
+  options: O[];
   enableWhen?: string | ((currentValues: object) => boolean);
 }
 
-export function ConfigrSelect<T extends string | number = string>(
-  originalProps: React.PropsWithChildren<ISelectProps<T>>,
+// Generic on the option type O, inferred from `options`, rather than on the value type: a value
+// type parameter would be inferred from the first option's literal value alone, so options with
+// values of mixed types (a '' default beside numbers, an enum beside a "--" divider) would not
+// compile.
+export function ConfigrSelect<O extends ConfigrSelectOption<string | number>>(
+  originalProps: React.PropsWithChildren<ISelectProps<O>>,
 ): React.ReactElement {
-  const props = useModifyForOverride(originalProps) as ISelectProps<T>;
+  type T = ConfigrSelectValue<O>;
+  const props = useModifyForOverride(originalProps) as ISelectProps<O>;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
   const [field, , helpers] = useField<T>(props.path);
   const validationMessage = useValidationMessageForValue(props, field.value, disabled);
