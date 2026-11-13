@@ -934,9 +934,27 @@ export function ConfigrCustomObjectInput<T>(
   );
 }
 
-interface ISelectProps extends IConfigrProps<string> {
+// An option of a ConfigrSelect. A bare number is shown as itself. An object whose value is a
+// number stores that number (not its string form) at the path, so a client can label numbers,
+// e.g. { value: 0, label: 'Auto' }.
+export type ConfigrSelectOption =
+  | { value: string; label?: string; description?: string }
+  | { value: number; label?: string; description?: string }
+  | number;
+
+interface ISelectProps extends Omit<
+  IConfigrProps<string | number>,
+  'validation' | 'overrideValue'
+> {
+  // A union rather than ConfigrValidation<string | number>, so a validation written for
+  // string options (or number options) still type-checks.
+  validation?:
+    | ConfigrValidation<string>
+    | ConfigrValidation<number>
+    | ConfigrValidation<string | number>;
+  overrideValue?: string | number;
   indented?: boolean;
-  options: Array<{ value: string; label?: string; description?: string } | number>;
+  options: ConfigrSelectOption[];
   enableWhen?: string | ((currentValues: object) => boolean);
   getErrorMessage?: ConfigrErrorMessageGetter;
 }
@@ -944,10 +962,47 @@ interface ISelectProps extends IConfigrProps<string> {
 export const ConfigrSelect: React.FunctionComponent<
   React.PropsWithChildren<ISelectProps>
 > = (props) => {
-  props = useModifyForOverride(props) as ISelectProps;
+  props = useModifyForOverride(props as IConfigrProps<string | number>) as ISelectProps;
   const disabled = props.disabled || !useBooleanBasedOnValues(true, props.enableWhen);
-  const [field] = useField<string>(props.path);
-  const validationMessage = useValidationMessageForValue(props, field.value, disabled);
+  const [field] = useField<string | number>(props.path);
+  const validationMessage = useValidationMessageForValue(
+    props as IConfigrProps<string | number>,
+    field.value,
+    disabled,
+  );
+  const { setFieldValue, setFieldTouched } = useFormikContext();
+  // formik-mui's Select, on closing the menu after a click, sets the field again from the clicked
+  // item's data-value attribute, which is always a string. This does the same, except that an
+  // option written as { value: <number> } keeps its number. (Bare number options are still
+  // stored as strings, as they always have been.)
+  const path = props.path;
+  const options = props.options;
+  const onClose = React.useCallback(
+    async (e: React.SyntheticEvent) => {
+      const dataValue = (e.target as HTMLElement | undefined)?.dataset?.value;
+      if (dataValue) {
+        const isStringOption = options.some(
+          (o) =>
+            typeof o === 'object' && typeof o.value === 'string' && o.value === dataValue,
+        );
+        const numberOption = isStringOption
+          ? undefined
+          : options.find(
+              (o) =>
+                typeof o === 'object' &&
+                typeof o.value === 'number' &&
+                String(o.value) === dataValue,
+            );
+        await setFieldValue(
+          path,
+          typeof numberOption === 'object' ? numberOption.value : dataValue,
+          false,
+        );
+      }
+      setFieldTouched(path, true, true);
+    },
+    [options, path, setFieldValue, setFieldTouched],
+  );
   return (
     <ConfigrRowTwoColumns
       {...props}
@@ -958,6 +1013,7 @@ export const ConfigrSelect: React.FunctionComponent<
           name={props.path}
           disabled={disabled}
           component={FormikMuiSelect}
+          onClose={onClose}
           // defaultValue and displayEmpty together allow the props.options to contain a {`value:""`, label:"default"} option
           // that will show if the value is undefined.
           // Note that none of the options has this empty string value, that's ok, the control will just not show any selected item.
@@ -989,9 +1045,11 @@ export const ConfigrSelect: React.FunctionComponent<
                 </MenuItem>
               );
             }
-            const labelToUse = o.label ?? o.value;
+            // A number value is passed to MenuItem as a number, so MUI stores it as one and
+            // shows it as selected when the stored value is that number (including 0).
+            const labelToUse = o.label ?? String(o.value);
             const valueToUse = o.value ?? o.label;
-            if (labelToUse?.startsWith('--')) {
+            if (labelToUse.startsWith('--')) {
               return <Divider key={labelToUse} />;
             }
             return (

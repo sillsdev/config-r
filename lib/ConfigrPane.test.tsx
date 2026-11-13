@@ -6,6 +6,7 @@ import {
   ConfigrGroup,
   ConfigrInput,
   ConfigrPage,
+  ConfigrSelect,
   ConfigrValues,
   useConfigrValue,
 } from './ContentPane';
@@ -397,5 +398,100 @@ describe('description markdown', () => {
     expect(screen.getByText('Use 2 * 3, or **this one')).toBeTruthy();
     expect(document.querySelector('strong')).toBeNull();
     expect(document.querySelector('em')).toBeNull();
+  });
+});
+
+describe('ConfigrSelect options', () => {
+  afterEach(cleanup);
+
+  const lineSpacingOptions = [
+    { value: 0, label: 'Auto' },
+    { value: 1.0, label: '1.0' },
+    { value: 1.5, label: '1.5' },
+  ];
+
+  function renderSelect(
+    options: React.ComponentProps<typeof ConfigrSelect>['options'],
+    initial: unknown,
+    onChange?: (values: ConfigrValues) => void,
+  ) {
+    render(
+      <ConfigrPane label="Test" initialValues={{ choice: initial }} onChange={onChange}>
+        <ConfigrPage key="p" label="Page" pageKey="p">
+          <ConfigrGroup label="Group">
+            <ConfigrSelect path="choice" label="Choice" options={options} />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    return document.querySelector<HTMLElement>('[aria-haspopup="listbox"]')!;
+  }
+
+  function choose(select: HTMLElement, optionName: string) {
+    fireEvent.mouseDown(select);
+    fireEvent.click(screen.getByRole('option', { name: optionName }));
+  }
+
+  it('shows the label of a numeric option for the stored number', () => {
+    const select = renderSelect(lineSpacingOptions, 1.5);
+    expect(select.textContent).toBe('1.5');
+    cleanup();
+    const select2 = renderSelect(
+      [
+        { value: 9, label: 'Nine' },
+        { value: 10, label: 'Ten' },
+      ],
+      10,
+    );
+    expect(select2.textContent).toBe('Ten');
+  });
+
+  it('stores a number, not its string form, when a numeric option is chosen', () => {
+    const changed = vi.fn();
+    const select = renderSelect(lineSpacingOptions, 1.0, changed);
+    choose(select, '1.5');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 1.5 });
+    expect(select.textContent).toBe('1.5');
+  });
+
+  it('treats 0 as a real value: it shows as selected and can be chosen', () => {
+    expect(renderSelect(lineSpacingOptions, 0).textContent).toBe('Auto');
+    cleanup();
+    const changed = vi.fn();
+    const select = renderSelect(lineSpacingOptions, 1.5, changed);
+    choose(select, 'Auto');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 0 });
+    expect(select.textContent).toBe('Auto');
+  });
+
+  it('still stores strings for string options', () => {
+    const changed = vi.fn();
+    const select = renderSelect(
+      [
+        { value: 'a', label: 'Apple' },
+        { value: 'b', label: 'Banana' },
+      ],
+      'a',
+      changed,
+    );
+    expect(select.textContent).toBe('Apple');
+    choose(select, 'Banana');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 'b' });
+  });
+
+  // Unchanged behavior: a bare number option shows a stored number, but picking one stores its
+  // string form, because formik-mui sets the value from the item's data-value attribute.
+  it('still shows bare number options, and stores the string of one picked, as before', () => {
+    const changed = vi.fn();
+    const select = renderSelect([9, 10, 11], 10, changed);
+    expect(select.textContent).toBe('10');
+    choose(select, '11');
+    expect(changed).toHaveBeenLastCalledWith({ choice: '11' });
+    expect(select.textContent).toBe('11');
+  });
+
+  it('still uses the value as the label when a string option has none', () => {
+    const select = renderSelect([{ value: 'plain' }], 'plain');
+    expect(select.textContent).toBe('plain');
   });
 });
