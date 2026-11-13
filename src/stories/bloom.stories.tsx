@@ -52,7 +52,9 @@ const initialBloomCollectionValues = {
         rtl: true,
         avoidAsianScriptWordBreaking: true,
         tallerLines: false,
-        fontSizeInTools: false,
+        // 0 means "Auto"; ConfigrSelect stores the number of a { value: <number> } option.
+        tallerLines_defaultLineSpacing: 0,
+        fontSizeInTools: 0,
       },
       fontFeatures: { silCharacterAlternates: { cv13: '1', cv43: '2' } },
     },
@@ -205,20 +207,11 @@ const BloomCollectionInner: React.FunctionComponent<{
                             path={`${prefix}.script.tallerLines_defaultLineSpacing`}
                             label="Line Spacing"
                             options={[
-                              { label: 'Default line spacing', value: '0' }, // todo
-                              1.0,
-                              1.1,
-                              1.2,
-                              1.3,
-                              1.4,
-                              1.5,
-                              1.6,
-                              1.7,
-                              1.8,
-                              1.9,
-                              2.0,
-                              2.5,
-                              3.0,
+                              { label: 'Auto', value: 0 },
+                              ...[
+                                1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
+                                2.5, 3.0,
+                              ].map((n) => ({ value: n, label: n.toFixed(1) })),
                             ]}
                           ></ConfigrSelect>
 
@@ -226,18 +219,10 @@ const BloomCollectionInner: React.FunctionComponent<{
                             path={`${prefix}.script.fontSizeInTools`}
                             label="Font size when displayed in tools"
                             options={[
-                              { label: 'Default size', value: '0' }, // todo
-                              9,
-                              10,
-                              11,
-                              12,
-                              14,
-                              16,
-                              18,
-                              20,
-                              22,
-                              24,
-                              26,
+                              { label: 'Auto', value: 0 },
+                              ...[9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26].map((n) => ({
+                                value: n,
+                              })),
                             ]}
                           ></ConfigrSelect>
                         </ConfigrGroup>

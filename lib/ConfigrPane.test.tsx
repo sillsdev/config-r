@@ -6,6 +6,7 @@ import {
   ConfigrGroup,
   ConfigrInput,
   ConfigrPage,
+  ConfigrSelect,
   ConfigrValues,
   useConfigrValue,
 } from './ContentPane';
@@ -397,5 +398,195 @@ describe('description markdown', () => {
     expect(screen.getByText('Use 2 * 3, or **this one')).toBeTruthy();
     expect(document.querySelector('strong')).toBeNull();
     expect(document.querySelector('em')).toBeNull();
+  });
+});
+
+describe('ConfigrSelect options', () => {
+  afterEach(cleanup);
+
+  const lineSpacingOptions = [
+    { value: 0, label: 'Auto' },
+    { value: 1.0, label: '1.0' },
+    { value: 1.5, label: '1.5' },
+  ];
+
+  function renderSelect(
+    options: React.ComponentProps<typeof ConfigrSelect>['options'],
+    initial: unknown,
+    onChange?: (values: ConfigrValues) => void,
+    validation?: React.ComponentProps<typeof ConfigrSelect>['validation'],
+  ) {
+    render(
+      <ConfigrPane label="Test" initialValues={{ choice: initial }} onChange={onChange}>
+        <ConfigrPage key="p" label="Page" pageKey="p">
+          <ConfigrGroup label="Group">
+            <ConfigrSelect
+              path="choice"
+              label="Choice"
+              options={options}
+              validation={validation}
+            />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    return document.querySelector<HTMLElement>('[aria-haspopup="listbox"]')!;
+  }
+
+  function choose(select: HTMLElement, optionName: string) {
+    fireEvent.mouseDown(select);
+    fireEvent.click(screen.getByRole('option', { name: optionName }));
+  }
+
+  it('shows the label of a numeric option for the stored number', () => {
+    const select = renderSelect(lineSpacingOptions, 1.5);
+    expect(select.textContent).toBe('1.5');
+    cleanup();
+    const select2 = renderSelect(
+      [
+        { value: 9, label: 'Nine' },
+        { value: 10, label: 'Ten' },
+      ],
+      10,
+    );
+    expect(select2.textContent).toBe('Ten');
+  });
+
+  it('stores a number, not its string form, when a numeric option is chosen', () => {
+    const changed = vi.fn();
+    const select = renderSelect(lineSpacingOptions, 1.0, changed);
+    choose(select, '1.5');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 1.5 });
+    expect(select.textContent).toBe('1.5');
+  });
+
+  it('treats 0 as a real value: it shows as selected and can be chosen', () => {
+    expect(renderSelect(lineSpacingOptions, 0).textContent).toBe('Auto');
+    cleanup();
+    const changed = vi.fn();
+    const select = renderSelect(lineSpacingOptions, 1.5, changed);
+    choose(select, 'Auto');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 0 });
+    expect(select.textContent).toBe('Auto');
+  });
+
+  it('still stores strings for string options', () => {
+    const changed = vi.fn();
+    const select = renderSelect(
+      [
+        { value: 'a', label: 'Apple' },
+        { value: 'b', label: 'Banana' },
+      ],
+      'a',
+      changed,
+    );
+    expect(select.textContent).toBe('Apple');
+    choose(select, 'Banana');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 'b' });
+  });
+
+  it('uses the number as the label of an unlabeled number option, and stores the number', () => {
+    const changed = vi.fn();
+    const select = renderSelect(
+      [{ value: 9 }, { value: 10 }, { value: 11 }],
+      10,
+      changed,
+    );
+    expect(select.textContent).toBe('10');
+    choose(select, '11');
+    expect(changed).toHaveBeenLastCalledWith({ choice: 11 });
+    expect(select.textContent).toBe('11');
+  });
+
+  it('shows a "" option for a missing value, and stores nothing until the user picks', () => {
+    const changed = vi.fn();
+    const select = renderSelect(
+      [{ value: '', label: 'default' }, { value: '3mm' }],
+      undefined,
+      changed,
+    );
+    expect(select.textContent).toBe('default');
+    expect(changed).not.toHaveBeenCalled();
+    choose(select, '3mm');
+    expect(changed).toHaveBeenLastCalledWith({ choice: '3mm' });
+  });
+
+  it('shows an option labelled "--" as a divider, not a choice', () => {
+    const select = renderSelect(
+      [
+        { value: 'a', label: 'Apple' },
+        { value: '', label: '--' },
+        { value: 'b', label: 'Banana' },
+      ],
+      'a',
+    );
+    fireEvent.mouseDown(select);
+    expect(screen.queryByText('--')).toBeNull();
+    expect(document.querySelector('.MuiDivider-root')).not.toBeNull();
+  });
+
+  it("types validation by the options' values", () => {
+    const numberOptions = [{ value: 0, label: 'Auto' }];
+    // A validation that takes the select's value type, or a wider one, is accepted.
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={numberOptions}
+        validation={(v: number) => v > 0}
+      />
+    );
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={numberOptions}
+        validation={(v: string | number) => v !== ''}
+      />
+    );
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={numberOptions}
+        // @ts-expect-error a string-only validation cannot be given to a select of numbers
+        validation={(v: string) => !!v}
+      />
+    );
+    // Values of mixed types (a '' default beside numbers) give string | number, and an
+    // overrideValue need not be one of the option values.
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={[{ value: '', label: 'default' }, { value: 12 }]}
+        validation={(v: string | number) => v !== 3}
+        overrideValue={7}
+      />
+    );
+    void (
+      <ConfigrSelect
+        path="p"
+        label="L"
+        options={[{ value: '', label: 'default' }, { value: 12 }]}
+        // @ts-expect-error a number-only validation cannot be given when a value can be ''
+        validation={(v: number) => v > 0}
+      />
+    );
+  });
+
+  it('passes the number of a chosen numeric option to the validation', () => {
+    const validation = vi.fn((value: string | number) =>
+      value === 0 ? 'Auto is not allowed here' : true,
+    );
+    const select = renderSelect(lineSpacingOptions, 1.5, undefined, validation);
+    choose(select, 'Auto');
+    expect(validation).toHaveBeenLastCalledWith(0);
+    expect(screen.getByText('Auto is not allowed here')).toBeTruthy();
+  });
+
+  it('still uses the value as the label when a string option has none', () => {
+    const select = renderSelect([{ value: 'plain' }], 'plain');
+    expect(select.textContent).toBe('plain');
   });
 });
