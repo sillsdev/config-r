@@ -32,7 +32,6 @@ import {
 } from '@mui/material';
 import { TextField, Switch, Checkbox, ToggleButtonGroup } from 'formik-mui';
 import { ConfigrLocalizationContext } from './ConfigrLocalizations';
-import { ConfigrCenterOnTextLine } from './ConfigrCenterOnTextLine';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
@@ -397,7 +396,7 @@ const ConfigrRowOneColumn: React.FunctionComponent<
       <div
         css={css`
           display: flex;
-          align-items: flex-start;
+          align-items: baseline;
         `}
       >
         {props.control}
@@ -493,6 +492,23 @@ type BooleanEditorComponent = React.FunctionComponent<{
   onChange: (value: boolean) => void;
 }>;
 
+interface ICenterControlOnLabelLineProps {
+  // A row lines up its label and its control on their first line of text (their baselines). A
+  // control with no text of its own, such as a checkbox, an icon or a color swatch, has no
+  // baseline, so the browser would line up its bottom edge with the label's text instead. Set
+  // this for such a control: the row gives it an invisible line of text and centres it on that
+  // line, the way an icon sits in a line of text.
+  centerControlOnLabelLine?: boolean;
+}
+
+const centerOnTextLineCss = css`
+  display: inline-flex;
+  align-items: center;
+  &::before {
+    content: '\\200b';
+  }
+`;
+
 const ConfigrRowTwoColumns: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
@@ -506,6 +522,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     onClick?: () => void;
     required?: boolean;
     validationMessage?: string;
+    // See ICenterControlOnLabelLineProps.
+    centerControlOnLabelLine?: boolean;
   }>
 > = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
@@ -523,13 +541,13 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
               gap: ${hasSupportingText ? '8px' : '0'};
             `}
           >
+            {/* Line up the label and the control on their first line of text, so they line up
+                whatever the control's height or padding, and a multi-line control keeps its
+                label by its first line. A control with no text gets a text line from
+                centerControlOnLabelLine. */}
             <div
               css={css`
                 display: flex;
-                // Line up the label and the control on their first line of text, so they line
-                // up whatever the control's height or padding, and a multi-line control keeps
-                // its label by its first line. A control with no text gets a text line from
-                // ConfigrCenterOnTextLine.
                 align-items: baseline;
                 gap: 16px;
                 width: 100%;
@@ -560,7 +578,11 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                   align-items: baseline;
                 `}
               >
-                {props.control}
+                {props.centerControlOnLabelLine ? (
+                  <span css={centerOnTextLineCss}>{props.control}</span>
+                ) : (
+                  props.control
+                )}
                 {renderRequiredIndicator(
                   props.required,
                   localizations.fieldRequiredMessage,
@@ -795,7 +817,8 @@ export const ConfigrInput: React.FunctionComponent<
   );
 };
 
-interface ICustomStringInputProps extends IConfigrProps<string> {
+interface ICustomStringInputProps
+  extends IConfigrProps<string>, ICenterControlOnLabelLineProps {
   control: React.FunctionComponent<{
     value: string;
     disabled?: boolean;
@@ -837,7 +860,8 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   );
 };
 
-interface ICustomBooleanInputProps extends IConfigrProps<boolean> {
+interface ICustomBooleanInputProps
+  extends IConfigrProps<boolean>, ICenterControlOnLabelLineProps {
   control: BooleanEditorComponent;
   getErrorMessage?: ConfigrErrorMessageGetter;
 }
@@ -864,7 +888,8 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   );
 };
 
-interface ICustomNumberInputProps extends IConfigrProps<number> {
+interface ICustomNumberInputProps
+  extends IConfigrProps<number>, ICenterControlOnLabelLineProps {
   control: React.FunctionComponent<
     React.PropsWithChildren<{
       value: number;
@@ -897,7 +922,8 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   );
 };
 
-interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
+interface ICustomObjectInputProps<T>
+  extends IConfigrProps<unknown>, ICenterControlOnLabelLineProps {
   control: React.FunctionComponent<
     React.PropsWithChildren<{
       value: T;
@@ -1163,11 +1189,8 @@ export const ConfigrPage: React.FunctionComponent<
                 if (props.disabled) return;
                 goToPage(key);
               }}
-              control={
-                <ConfigrCenterOnTextLine>
-                  <ArrowRightIcon />
-                </ConfigrCenterOnTextLine>
-              }
+              control={<ArrowRightIcon />}
+              centerControlOnLabelLine={true}
               disabled={props.disabled}
               {...props}
             />
@@ -1297,26 +1320,22 @@ export const ConfigrBoolean: React.FunctionComponent<
     // get a console error if we make this change while rendering
     window.setTimeout(() => helpers.setValue(false), 0);
   }
-  const control = (
-    <ConfigrCenterOnTextLine>
-      {props.immediateEffect ? (
-        <Field
-          component={Switch}
-          type="checkbox"
-          name={props.path}
-          label={props.label}
-          disabled={props.disabled || props.locked}
-        />
-      ) : (
-        <Field
-          component={Checkbox}
-          type="checkbox"
-          disabled={props.disabled || props.locked}
-          name={props.path}
-          label={props.label}
-        />
-      )}
-    </ConfigrCenterOnTextLine>
+  const control = props.immediateEffect ? (
+    <Field
+      component={Switch}
+      type="checkbox"
+      name={props.path}
+      label={props.label}
+      disabled={props.disabled || props.locked}
+    />
+  ) : (
+    <Field
+      component={Checkbox}
+      type="checkbox"
+      disabled={props.disabled || props.locked}
+      name={props.path}
+      label={props.label}
+    />
   );
 
   return (
@@ -1329,6 +1348,7 @@ export const ConfigrBoolean: React.FunctionComponent<
         helpers.setValue(!field.value);
       }}
       control={control}
+      centerControlOnLabelLine={true}
       {...props}
       validationMessage={validationMessage}
       // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is

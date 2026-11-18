@@ -3,7 +3,6 @@ import * as React from 'react';
 import { useState } from 'react';
 import { ChromePicker, type ColorResult } from 'react-color';
 import { Dialog } from '@mui/material';
-import { ConfigrCenterOnTextLine } from './ConfigrCenterOnTextLine';
 
 export const ConfigrColorPicker: React.FunctionComponent<{
   value: string;
@@ -27,7 +26,7 @@ export const ConfigrColorPicker: React.FunctionComponent<{
   };
 
   return (
-    <ConfigrCenterOnTextLine>
+    <div>
       <SwatchButton disabled={props.disabled} color={color} onClick={handleClick} />
 
       <Dialog open={displayColorPicker} onClose={handleClose}>
@@ -39,7 +38,7 @@ export const ConfigrColorPicker: React.FunctionComponent<{
           `}
         />
       </Dialog>
-    </ConfigrCenterOnTextLine>
+    </div>
   );
 };
 
