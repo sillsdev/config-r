@@ -32,6 +32,7 @@ import {
 } from '@mui/material';
 import { TextField, Switch, Checkbox, ToggleButtonGroup } from 'formik-mui';
 import { ConfigrLocalizationContext } from './ConfigrLocalizations';
+import { ConfigrCenterOnTextLine } from './ConfigrCenterOnTextLine';
 import { HighlightSearchTerms } from './HighlightSearchTerms';
 import { FilterForSearchText } from './FilterForSearch';
 import { SearchContext } from './SearchContextProvider';
@@ -336,7 +337,6 @@ function renderRequiredIndicator(required: boolean | undefined, tooltipTitle: st
           font-weight: 700;
           line-height: 1;
           margin-left: 8px;
-          padding-top: 6px;
         `}
       >
         *
@@ -529,7 +529,11 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
             <div
               css={css`
                 display: flex;
-                align-items: flex-start;
+                // Line up the label and the control on their first line of text, so they line
+                // up whatever the control's height or padding, and a multi-line control keeps
+                // its label by its first line. A control with no text gets a text line from
+                // ConfigrCenterOnTextLine.
+                align-items: baseline;
                 gap: 16px;
                 width: 100%;
               `}
@@ -556,7 +560,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
                 css={css`
                   flex: 0 0 auto;
                   display: flex;
-                  align-items: flex-start;
+                  align-items: baseline;
                 `}
               >
                 {props.control}
@@ -1162,7 +1166,11 @@ export const ConfigrPage: React.FunctionComponent<
                 if (props.disabled) return;
                 goToPage(key);
               }}
-              control={<ArrowRightIcon />}
+              control={
+                <ConfigrCenterOnTextLine>
+                  <ArrowRightIcon />
+                </ConfigrCenterOnTextLine>
+              }
               disabled={props.disabled}
               {...props}
             />
@@ -1319,7 +1327,7 @@ export const ConfigrBoolean: React.FunctionComponent<
         if (props.locked) return;
         helpers.setValue(!field.value);
       }}
-      control={control}
+      control={<ConfigrCenterOnTextLine>{control}</ConfigrCenterOnTextLine>}
       {...props}
       validationMessage={validationMessage}
       // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
