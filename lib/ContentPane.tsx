@@ -331,11 +331,8 @@ function renderRequiredIndicator(required: boolean | undefined, tooltipTitle: st
     <Tooltip title={tooltipTitle}>
       <span
         css={css`
-          display: inline-flex;
-          align-items: center;
           color: #d32f2f;
           font-weight: 700;
-          line-height: 1;
           margin-left: 8px;
         `}
       >
@@ -1300,22 +1297,26 @@ export const ConfigrBoolean: React.FunctionComponent<
     // get a console error if we make this change while rendering
     window.setTimeout(() => helpers.setValue(false), 0);
   }
-  const control = props.immediateEffect ? (
-    <Field
-      component={Switch}
-      type="checkbox"
-      name={props.path}
-      label={props.label}
-      disabled={props.disabled || props.locked}
-    />
-  ) : (
-    <Field
-      component={Checkbox}
-      type="checkbox"
-      disabled={props.disabled || props.locked}
-      name={props.path}
-      label={props.label}
-    />
+  const control = (
+    <ConfigrCenterOnTextLine>
+      {props.immediateEffect ? (
+        <Field
+          component={Switch}
+          type="checkbox"
+          name={props.path}
+          label={props.label}
+          disabled={props.disabled || props.locked}
+        />
+      ) : (
+        <Field
+          component={Checkbox}
+          type="checkbox"
+          disabled={props.disabled || props.locked}
+          name={props.path}
+          label={props.label}
+        />
+      )}
+    </ConfigrCenterOnTextLine>
   );
 
   return (
@@ -1327,7 +1328,7 @@ export const ConfigrBoolean: React.FunctionComponent<
         if (props.locked) return;
         helpers.setValue(!field.value);
       }}
-      control={<ConfigrCenterOnTextLine>{control}</ConfigrCenterOnTextLine>}
+      control={control}
       {...props}
       validationMessage={validationMessage}
       // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
