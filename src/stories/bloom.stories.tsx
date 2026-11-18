@@ -261,8 +261,18 @@ const BloomCollectionInner: React.FunctionComponent<{
                 path={'xmatterPck'}
                 label="Front/Back Matter Pack"
                 options={[
-                  { label: 'Paper Saver', value: 'Paper Saver' },
-                  { label: 'Super Paper Saver', value: 'Super Paper Saver' },
+                  {
+                    label: 'Paper Saver',
+                    value: 'Paper Saver',
+                    description:
+                      'Credits on the inside back cover before the title page.',
+                  },
+                  {
+                    label: 'Super Paper Saver',
+                    value: 'Super Paper Saver',
+                    description:
+                      'Title page on the inside front cover, credits on the inside back cover.',
+                  },
                   { label: '--', value: '' },
                   {
                     label: 'Traditional',
