@@ -1000,7 +1000,10 @@ export function ConfigrSelect<O extends ConfigrSelectOption<string | number>>(
             return (
               <MenuItem value={o.value} key={o.value}>
                 {o.description ? (
-                  <Tooltip title={o.description}>
+                  // disableInteractive: the tooltip opens below the label, on top of the
+                  // options below it, so an interactive one stays open while the pointer
+                  // moves down the list.
+                  <Tooltip title={o.description} disableInteractive>
                     <span>{labelToUse}</span>
                   </Tooltip>
                 ) : (
