@@ -535,13 +535,9 @@ function renderRequiredIndicator(required: boolean | undefined, tooltipTitle: st
     <Tooltip title={tooltipTitle}>
       <span
         css={css`
-          display: inline-flex;
-          align-items: center;
           color: #d32f2f;
           font-weight: 700;
-          line-height: 1;
           margin-left: 8px;
-          padding-top: 6px;
         `}
       >
         *
@@ -605,7 +601,7 @@ const ConfigrRowOneColumn: React.FunctionComponent<
       <div
         css={css`
           display: flex;
-          align-items: flex-start;
+          align-items: baseline;
         `}
       >
         {props.control}
@@ -701,6 +697,43 @@ type BooleanEditorComponent = React.FunctionComponent<{
   onChange: (value: boolean) => void;
 }>;
 
+interface IAlignControlLikeTextFieldProps {
+  // A row lines up its label with the first line of text in its control (their baselines). A
+  // control with no text of its own, such as a checkbox, an icon button or a color swatch, has
+  // no baseline, so the browser would line up its bottom edge with the label instead. Set this
+  // for such a control: the row gives it an invisible line of text where a one-line text field
+  // puts its text. So the label sits as far down a tall control as it does on a text field, and
+  // a control no taller than a text field gets the line across its middle.
+  alignControlLikeTextField?: boolean;
+}
+
+// Where MUI's outlined text field (the standard one, which Select also uses) puts its line of
+// text: below a 1px border and 8.5px of padding, 1.4375em high, at the body font size.
+const textFieldTextInset = '9.5px';
+const textFieldLineHeight = '1.4375em';
+
+// The control and an invisible line of text share one grid cell. The line is stretched to the
+// control's height, but no taller than a text field, and its text is centered in that, so it
+// lands where a text field's text would: across the middle of a short control, and at a text
+// field's depth in a tall one. Being the first item, the line gives the cell its baseline.
+const alignLikeTextFieldCss = css`
+  display: inline-grid;
+  &::before {
+    grid-area: 1 / 1;
+    content: '\\200b';
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    font-size: 1rem;
+    line-height: ${textFieldLineHeight};
+    max-height: calc(2 * ${textFieldTextInset} + ${textFieldLineHeight});
+  }
+  & > * {
+    grid-area: 1 / 1;
+    align-self: center;
+  }
+`;
+
 const ConfigrRowTwoColumns: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
@@ -714,6 +747,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
     onClick?: () => void;
     required?: boolean;
     validationMessage?: string;
+    // See IAlignControlLikeTextFieldProps.
+    alignControlLikeTextField?: boolean;
   }>
 > = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
@@ -751,10 +786,13 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
         gap: ${hasSupportingText ? '8px' : '0'};
       `}
     >
+      {/* Line up the label and the control on their first line of text, so they line up
+          whatever the control's height or padding, and a multi-line control keeps its label by
+          its first line. A control with no text gets a text line from alignControlLikeTextField. */}
       <div
         css={css`
           display: flex;
-          align-items: flex-start;
+          align-items: baseline;
           gap: 16px;
           width: 100%;
         `}
@@ -781,10 +819,14 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
           css={css`
             flex: 0 0 auto;
             display: flex;
-            align-items: flex-start;
+            align-items: baseline;
           `}
         >
-          {props.control}
+          {props.alignControlLikeTextField ? (
+            <span css={alignLikeTextFieldCss}>{props.control}</span>
+          ) : (
+            props.control
+          )}
           {renderRequiredIndicator(props.required, localizations.fieldRequiredMessage)}
         </div>
       </div>
@@ -1019,7 +1061,8 @@ export const ConfigrInput: React.FunctionComponent<
   );
 };
 
-interface ICustomStringInputProps extends IConfigrProps<string> {
+interface ICustomStringInputProps
+  extends IConfigrProps<string>, IAlignControlLikeTextFieldProps {
   control: React.FunctionComponent<{
     value: string;
     disabled?: boolean;
@@ -1061,7 +1104,8 @@ export const ConfigrCustomStringInput: React.FunctionComponent<
   );
 };
 
-interface ICustomBooleanInputProps extends IConfigrProps<boolean> {
+interface ICustomBooleanInputProps
+  extends IConfigrProps<boolean>, IAlignControlLikeTextFieldProps {
   control: BooleanEditorComponent;
   getErrorMessage?: ConfigrErrorMessageGetter;
 }
@@ -1088,7 +1132,8 @@ export const ConfigrCustomBooleanInput: React.FunctionComponent<
   );
 };
 
-interface ICustomNumberInputProps extends IConfigrProps<number> {
+interface ICustomNumberInputProps
+  extends IConfigrProps<number>, IAlignControlLikeTextFieldProps {
   control: React.FunctionComponent<
     React.PropsWithChildren<{
       value: number;
@@ -1121,7 +1166,8 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
   );
 };
 
-interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
+interface ICustomObjectInputProps<T>
+  extends IConfigrProps<unknown>, IAlignControlLikeTextFieldProps {
   valueText?(value: T): string | undefined;
   control: React.FunctionComponent<
     React.PropsWithChildren<{
@@ -1539,6 +1585,7 @@ export const ConfigrPage: React.FunctionComponent<
                 goToPage(key);
               }}
               control={<ArrowRightIcon />}
+              alignControlLikeTextField={true}
               disabled={props.disabled}
               {...props}
             />
@@ -1728,6 +1775,7 @@ export const ConfigrBoolean: React.FunctionComponent<
         helpers.setValue(!field.value);
       }}
       control={control}
+      alignControlLikeTextField={true}
       {...props}
       validationMessage={validationMessage}
       // If it is locked, we want it to BE disabled but not LOOK disabled (the checkbox is
