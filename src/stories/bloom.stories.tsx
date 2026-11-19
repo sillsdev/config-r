@@ -419,7 +419,7 @@ const BloomCollectionInner: React.FunctionComponent<{
                 path="page.colors.accent"
                 label="Accent Color"
                 control={ConfigrColorPicker}
-                centerControlOnLabelLine={true}
+                alignControlLikeTextField={true}
               />
               <ConfigrSelect
                 path="page.colors.theme"
@@ -595,7 +595,7 @@ const BloomBookInner: React.FunctionComponent<{
               overrideDescription="This is locked by Kyrgyzstan xmatter"
               description={'this is custom'}
               control={ConfigrColorPicker}
-              centerControlOnLabelLine={true}
+              alignControlLikeTextField={true}
             />
           </ConfigrGroup>
           <ConfigrGroup label="Spacing">
@@ -825,7 +825,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               control={ConfigrColorPicker}
-              centerControlOnLabelLine={true}
+              alignControlLikeTextField={true}
             />
           </ConfigrGroup>
         </ConfigrPage> */}
@@ -841,7 +841,7 @@ const BloomBookInnerV1: React.FunctionComponent<{
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               control={ConfigrColorPicker}
-              centerControlOnLabelLine={true}
+              alignControlLikeTextField={true}
             />
           </ConfigrGroup>
           <ConfigrGroup label="Margins">
