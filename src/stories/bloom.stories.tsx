@@ -825,7 +825,6 @@ const BloomBookInnerV1: React.FunctionComponent<{
               path={`appearance.cover.coverColor`}
               label="Cover Color"
               control={ConfigrColorPicker}
-              alignControlLikeTextField={true}
             />
           </ConfigrGroup>
         </ConfigrPage> */}

@@ -513,11 +513,8 @@ const textFieldLineHeight = '1.4375em';
 // field's depth in a tall one. Being the first item, the line gives the cell its baseline.
 const alignLikeTextFieldCss = css`
   display: inline-grid;
-  &::before,
-  & > * {
-    grid-area: 1 / 1;
-  }
   &::before {
+    grid-area: 1 / 1;
     content: '\\200b';
     display: flex;
     align-items: center;
@@ -527,6 +524,7 @@ const alignLikeTextFieldCss = css`
     max-height: calc(2 * ${textFieldTextInset} + ${textFieldLineHeight});
   }
   & > * {
+    grid-area: 1 / 1;
     align-self: center;
   }
 `;
