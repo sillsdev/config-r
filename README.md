@@ -23,6 +23,8 @@ pnpm install
 pnpm dev
 ```
 
+`pnpm test` runs the unit tests. `pnpm test:e2e` runs the Playwright tests in `tests/` against the demo app, which it starts with the vite dev server; the first time, install the browser with `pnpm exec playwright install chromium`.
+
 ## Installing
 
 ```
@@ -58,6 +60,8 @@ To provide languages other than English for the small set of built-in strings, p
     fieldRequiredMessage: 'Requiere un valor',
     invalidValueMessage: 'Valor no valido',
     searchLabel: 'Buscar',
+    clearSearchLabel: 'Borrar la busqueda',
+    noSearchMatchesLabel: 'No hay coincidencias',
     matchesLabel: (count) => `${count} coincidencias`,
   }}
 >
@@ -66,6 +70,12 @@ To provide languages other than English for the small set of built-in strings, p
 ```
 
 `searchLabel` is used for both the visible search placeholder and the input accessibility label.
+
+## Search
+
+`showAppBar={true}` together with `showSearch={true}` puts a search box in the pane's app bar. While it holds text, the pane shows every setting, on any enabled page or sub-page, whose label, description, `searchTerms`, or select option (its label, or its value when it has no label, and its description) contains that text, ignoring case, and highlights the matches. A page or group whose own label, description or `searchTerms` match shows all of its settings. The search ignores pages that are disabled or in a disabled area. When nothing matches, the pane says so (`noSearchMatchesLabel`). Clearing the search returns to the first enabled page, and clicking a page ends the search and opens that page.
+
+Search reads the props of the elements you pass, so text that a custom component renders for itself is found only through that component's `label`, `description` or `searchTerms` props.
 
 ## Knowing and choosing the page
 
