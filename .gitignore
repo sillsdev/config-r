@@ -5,3 +5,5 @@ dist
 dist-ssr
 *.local
 node_modules/*
+playwright-report
+test-results

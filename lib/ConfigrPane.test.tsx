@@ -3,6 +3,7 @@ import * as React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfigrPane, ConfigrPaneHandle } from './ConfigrPane';
 import {
+  ConfigrForEach,
   ConfigrGroup,
   ConfigrInput,
   ConfigrPage,
@@ -196,6 +197,151 @@ describe('ConfigrPane sub-pages and search', () => {
 
     expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
     expect(screen.queryByDisplayValue('Sunny')).toBeNull();
+  });
+});
+
+describe('ConfigrPane search', () => {
+  afterEach(cleanup);
+
+  function renderSearchablePane() {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{ dog: { name: 'Sanuk' }, cat: { name: 'Tom' }, bird: {} }}
+      >
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage key="cat" label="Cat" pageKey="cat">
+          <ConfigrGroup label="Cat details">
+            <ConfigrInput path="cat.name" label="Cat name" />
+            <ConfigrPage label="Cat extras" pageKey="catMore">
+              <ConfigrGroup label="More cat details">
+                <ConfigrSelect
+                  path="cat.lives"
+                  label="Lives"
+                  options={[
+                    { value: 0, label: 'Unknown' },
+                    { value: 9, label: 'Nine' },
+                  ]}
+                />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage key="bird" label="Bird" pageKey="bird" disabled={true}>
+          <ConfigrGroup label="Bird details">
+            <ConfigrInput path="bird.name" label="Bird name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    return (term: string) => fireEvent.change(search, { target: { value: term } });
+  }
+
+  it('leaves out the settings of a disabled page', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('name');
+    // Highlighting splits a label around the match, so look for headings by their
+    // accessible names, which span the split.
+    expect(screen.getByRole('heading', { name: 'Dog' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Cat' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Bird' })).toBeNull();
+  });
+
+  it('finds the label of a number-valued option on a sub-page', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('nine');
+    expect(screen.getByText('Lives')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Tom')).toBeNull();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+  });
+
+  it('says so when nothing matches', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('zebra');
+    expect(screen.getByText('No matches')).toBeTruthy();
+  });
+});
+
+describe('identifiesGroup', () => {
+  afterEach(cleanup);
+
+  // Two pets, each a group whose Name row says which pet the group is for.
+  function renderPets(options?: { valueText?: (name: string) => string }) {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{
+          pet1: { name: 'Sanuk', breed: 'Beagle', toy: 'Ball' },
+          pet2: { name: 'Tom', breed: 'Tabby', toy: 'Mouse' },
+        }}
+      >
+        <ConfigrPage key="pets" label="Pets" pageKey="pets">
+          {['pet1', 'pet2'].map((pet, index) => (
+            <ConfigrGroup key={pet} label={`Pet ${index + 1}`}>
+              <ConfigrInput
+                path={`${pet}.name`}
+                label="Name"
+                identifiesGroup={true}
+                valueText={options?.valueText}
+              />
+              <ConfigrInput path={`${pet}.breed`} label="Breed" />
+              <ConfigrPage label="More" pageKey={`${pet}More`}>
+                <ConfigrGroup label="Play">
+                  <ConfigrInput path={`${pet}.toy`} label="Favorite toy" />
+                </ConfigrGroup>
+              </ConfigrPage>
+            </ConfigrGroup>
+          ))}
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    return (term: string) => fireEvent.change(search, { target: { value: term } });
+  }
+
+  it('leaves the heading plain while the identifying row shows', () => {
+    renderPets();
+    expect(screen.getByRole('heading', { name: 'Pet 1' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: /Sanuk/ })).toBeNull();
+  });
+
+  it('adds the identifying row to the heading when search hides that row', () => {
+    const searchFor = renderPets();
+    searchFor('breed');
+    expect(screen.getByRole('heading', { name: 'Pet 1 · Sanuk' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Pet 2 · Tom' })).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+  });
+
+  it("finds the whole group by its identifying row's text", () => {
+    const searchFor = renderPets();
+    searchFor('tom');
+    expect(screen.getByDisplayValue('Tabby')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Beagle')).toBeNull();
+    // The identifying row shows, so the heading does not repeat it.
+    expect(screen.getByRole('heading', { name: 'Pet 2' })).toBeTruthy();
+  });
+
+  it("uses valueText for the row's text", () => {
+    const searchFor = renderPets({ valueText: (name) => `${name} the pet` });
+    searchFor('breed');
+    expect(screen.getByRole('heading', { name: 'Pet 1 · Sanuk the pet' })).toBeTruthy();
+  });
+
+  it('says which group a sub-page belongs to on its back button', () => {
+    renderPets();
+    fireEvent.click(screen.getAllByRole('button', { name: 'More' })[1]);
+    expect(screen.getByRole('button', { name: /Pet 2 · Tom › More/ })).toBeTruthy();
+    expect(screen.getByDisplayValue('Mouse')).toBeTruthy();
   });
 });
 
@@ -588,5 +734,174 @@ describe('ConfigrSelect options', () => {
   it('still uses the value as the label when a string option has none', () => {
     const select = renderSelect([{ value: 'plain' }], 'plain');
     expect(select.textContent).toBe('plain');
+  });
+});
+
+describe('search reaches only what the user can open and see', () => {
+  afterEach(cleanup);
+
+  function renderAndSearch(
+    children: React.ComponentProps<typeof ConfigrPane>['children'],
+    values: ConfigrValues,
+    term: string,
+  ) {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={values}
+      >
+        {children}
+      </ConfigrPane>,
+    );
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search...' }), {
+      target: { value: term },
+    });
+  }
+
+  const catWithDisabledSubPage = (
+    <ConfigrPage key="cat" label="Cat" pageKey="cat">
+      <ConfigrGroup label="Cat details">
+        <ConfigrInput path="cat.name" label="Cat name" />
+        <ConfigrPage label="Cat secrets" pageKey="catSecrets" disabled={true}>
+          <ConfigrGroup label="Hidden">
+            <ConfigrInput path="cat.secret" label="Secret word" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrGroup>
+    </ConfigrPage>
+  );
+
+  it('leaves out the settings of a disabled sub-page', () => {
+    renderAndSearch(
+      catWithDisabledSubPage,
+      { cat: { name: 'Tom', secret: 'Whiskers' } },
+      'secret',
+    );
+    expect(screen.queryByDisplayValue('Whiskers')).toBeNull();
+    expect(screen.getByText('No matches')).toBeTruthy();
+  });
+
+  it('leaves out a disabled sub-page whose own title matches', () => {
+    renderAndSearch(
+      catWithDisabledSubPage,
+      { cat: { name: 'Tom', secret: 'Whiskers' } },
+      'cat secrets',
+    );
+    expect(screen.queryByDisplayValue('Whiskers')).toBeNull();
+    expect(screen.getByText('No matches')).toBeTruthy();
+  });
+
+  it('finds the items of a ConfigrForEach by its searchTerms', () => {
+    renderAndSearch(
+      <ConfigrPage key="pets" label="Pets" pageKey="pets">
+        <ConfigrForEach
+          path="pets"
+          searchTerms="animals"
+          render={(prefix: string, index: number) => (
+            <ConfigrGroup label={`Pet ${index + 1}`}>
+              <ConfigrInput path={`${prefix}.name`} label="Name" />
+            </ConfigrGroup>
+          )}
+        />
+      </ConfigrPage>,
+      { pets: [{ name: 'Sanuk' }, { name: 'Tom' }] },
+      'animals',
+    );
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+    expect(screen.getByDisplayValue('Tom')).toBeTruthy();
+  });
+
+  it('finds a phrase that crosses bold text in a Markdown description', () => {
+    renderAndSearch(
+      <ConfigrPage key="dog" label="Dog" pageKey="dog">
+        <ConfigrGroup label="Dog details">
+          <ConfigrInput
+            path="dog.name"
+            label="Dog name"
+            description="If you are not **SURE**, ask."
+          />
+        </ConfigrGroup>
+      </ConfigrPage>,
+      initialValues,
+      'not sure',
+    );
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+  });
+
+  it('finds the alt text of an image in a Markdown description', () => {
+    renderAndSearch(
+      <ConfigrPage key="dog" label="Dog" pageKey="dog">
+        <ConfigrGroup label="Dog details">
+          <ConfigrInput
+            path="dog.name"
+            label="Dog name"
+            description="Look: ![a spotted hound](https://example.org/dog.png) here."
+          />
+        </ConfigrGroup>
+      </ConfigrPage>,
+      initialValues,
+      'spotted hound',
+    );
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+  });
+
+  it('finds a phrase that crosses bold text in a React description', () => {
+    renderAndSearch(
+      <ConfigrPage key="dog" label="Dog" pageKey="dog">
+        <ConfigrGroup
+          label="Dog details"
+          description={
+            <span>
+              the <strong>book</strong> was made
+            </span>
+          }
+        >
+          <ConfigrInput path="dog.name" label="Dog name" />
+        </ConfigrGroup>
+      </ConfigrPage>,
+      initialValues,
+      'the book',
+    );
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+  });
+
+  it("finds a group by its identifying row's overrideValue", () => {
+    renderAndSearch(
+      <ConfigrPage key="pets" label="Pets" pageKey="pets">
+        <ConfigrGroup label="Pet 1">
+          <ConfigrInput
+            path="pet.name"
+            label="Name"
+            identifiesGroup={true}
+            overrideValue="Felix"
+          />
+          <ConfigrInput path="pet.breed" label="Breed" />
+        </ConfigrGroup>
+      </ConfigrPage>,
+      { pet: { name: 'Tom', breed: 'Tabby' } },
+      'felix',
+    );
+    expect(screen.getByDisplayValue('Tabby')).toBeTruthy();
+  });
+});
+
+describe('ConfigrGroup headerAction when the group repeats its page label', () => {
+  afterEach(cleanup);
+
+  it('still shows the action', () => {
+    render(
+      <ConfigrPane label="Test" initialValues={initialValues}>
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog" headerAction={<button type="button">Remove</button>}>
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeTruthy();
+    // The page title already says "Dog"; the group does not repeat it.
+    expect(screen.getAllByRole('heading', { name: 'Dog' })).toHaveLength(1);
   });
 });

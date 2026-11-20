@@ -1,27 +1,21 @@
 import * as React from 'react';
 
-import { alpha, styled } from '@mui/material/styles';
-import { AppBar, Toolbar, Typography, InputBase, Box } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { AppBar, Toolbar, Typography, InputBase, Box, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { ConfigrLocalizationContext } from './ConfigrLocalizations';
+import CloseIcon from '@mui/icons-material/Close';
 import { SearchContext } from './SearchContextProvider';
 
 /* this is mostly copy/pasted from the example at https://material-ui.com/components/app-bar/#app-bar */
 
+// Each part of the search box carries a class name that a host can style. These names are part of
+// config-r's API: rename one and every host that styles it breaks. The README lists them.
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-  },
+  border: `1px solid ${theme.palette.divider}`,
+  marginLeft: 'auto',
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -34,19 +28,65 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
+const ClearSearchButton = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 1),
+  height: '100%',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
+    padding: theme.spacing(1, 4, 1, 0),
     // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
-    },
+    width: '20ch',
   },
 }));
+
+export const ConfigrSearchBox: React.FunctionComponent<{
+  searchValue: string | null;
+  setSearchString: (s: string) => void;
+}> = (props) => {
+  const localizations = React.useContext(ConfigrLocalizationContext);
+  return (
+    <Search className="configr-search-box">
+      <SearchIconWrapper className="configr-search-icon">
+        <SearchIcon />
+      </SearchIconWrapper>
+      <StyledInputBase
+        value={props.searchValue ?? ''}
+        placeholder={localizations.searchLabel}
+        inputProps={{
+          'aria-label': localizations.searchLabel,
+          className: 'configr-search-input',
+        }}
+        onChange={(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+          props.setSearchString(event.target.value)
+        }
+      />
+      {props.searchValue && (
+        <ClearSearchButton className="configr-search-clear">
+          <IconButton
+            aria-label={localizations.clearSearchLabel}
+            color="inherit"
+            size="small"
+            onClick={() => props.setSearchString('')}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </ClearSearchButton>
+      )}
+    </Search>
+  );
+};
+
 export const ConfigrAppBar: React.FunctionComponent<
   React.PropsWithChildren<{
     label: string;
@@ -55,12 +95,9 @@ export const ConfigrAppBar: React.FunctionComponent<
     setSearchString: (s: string) => void;
   }>
 > = (props) => {
-  console.log('Rendering appbar. searchValue=' + props.searchValue);
-  const localizations = React.useContext(ConfigrLocalizationContext);
-
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="static" color="transparent" elevation={0}>
         <Toolbar>
           <Typography
             variant="h6"
@@ -73,19 +110,10 @@ export const ConfigrAppBar: React.FunctionComponent<
           {
             // for now we'll treat undefined as 'show it'
             props.showSearch !== false && (
-              <Search>
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  value={props.searchValue ?? ''}
-                  placeholder={localizations.searchLabel}
-                  inputProps={{ 'aria-label': localizations.searchLabel }}
-                  onChange={(
-                    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-                  ) => props.setSearchString(event.target.value)}
-                />
-              </Search>
+              <ConfigrSearchBox
+                searchValue={props.searchValue}
+                setSearchString={props.setSearchString}
+              />
             )
           }
         </Toolbar>

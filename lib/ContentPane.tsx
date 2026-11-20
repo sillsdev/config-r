@@ -1,12 +1,12 @@
 import { css, SerializedStyles } from '@emotion/react';
 import * as React from 'react';
-import { useState, ReactElement, ReactNode, useEffect } from 'react';
+import { useState, ReactElement, ReactNode, useEffect, useContext } from 'react';
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import toPath from 'lodash/toPath';
-import Markdown, { MarkdownToJSX } from 'markdown-to-jsx/react';
+import Markdown, { compiler, MarkdownToJSX } from 'markdown-to-jsx/react';
 
 import { Field, Formik, useField, useFormikContext } from 'formik';
 import {
@@ -60,6 +60,179 @@ const FocusPageContext = React.createContext({
 const AlreadyFilteringContext = React.createContext({
   alreadyFiltering: false,
 });
+
+// True inside a page or group whose own text (label, description or searchTerms) matches the
+// search. Everything in it then shows, not just the settings that match.
+const SearchMatchedAncestorContext = React.createContext(false);
+
+// In search results, the labels of the sub-pages (and of the groups within them) that lie between
+// the top-level page's group and what is being drawn. A sub-page draws no heading of its own there;
+// instead each of its groups puts this path in front of its label, e.g. "More › Fonts", because a
+// separate heading for the sub-page cannot be indented to read as the parent of its groups.
+const SearchPathContext = React.createContext<string[]>([]);
+const kSearchPathSeparator = ' › ';
+// Between a group's label and the text of the row that identifies it, e.g.
+// "Written Language 1 · English".
+const kGroupIdentitySeparator = ' · ';
+
+// The label of the nearest enclosing group that has a row with identifiesGroup, and that row's
+// text, so that a sub-page shown on its own can say which group it belongs to.
+const GroupIdentityContext = React.createContext<
+  { groupLabel?: string; identityText: string } | undefined
+>(undefined);
+
+// The row among a group's children that has identifiesGroup, if any.
+function findIdentifyingRow(
+  children: React.ReactNode,
+): React.ReactElement<IConfigrProps<unknown>> | undefined {
+  return React.Children.toArray(children).find(
+    (child) => React.isValidElement(child) && (child.props as any).identifiesGroup,
+  ) as React.ReactElement<IConfigrProps<unknown>> | undefined;
+}
+
+// The text of a group's identifying row: its valueText of the row's current value, or else the
+// label of the chosen select option, or the value itself when it is a string or number.
+function getGroupIdentityText(
+  children: React.ReactNode,
+  currentValues: object | undefined,
+): string | undefined {
+  const row = findIdentifyingRow(children);
+  if (!row || !currentValues) return undefined;
+  const rowProps = row.props as IConfigrProps<unknown> & {
+    options?: SearchableSelectOption[];
+  };
+  // The row shows its overrideValue, when it has one, instead of the stored value.
+  const value =
+    rowProps.overrideValue !== undefined
+      ? rowProps.overrideValue
+      : getFormValueFromPath(currentValues, rowProps.path);
+  let text: string | undefined;
+  if (rowProps.valueText) {
+    text = rowProps.valueText(value);
+  } else if (rowProps.options) {
+    const option = rowProps.options.find((o) => o.value === value);
+    text = option ? (option.label ?? String(option.value)) : undefined;
+  } else if (typeof value === 'string' || typeof value === 'number') {
+    text = String(value);
+  }
+  return text || undefined;
+}
+
+type SearchableSelectOption = ConfigrSelectOption<string | number>;
+
+function getNodeText(node: React.ReactNode): string {
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) {
+    // React puts adjacent children together with nothing between them.
+    return node.map((child) => getNodeText(child)).join('');
+  }
+  if (React.isValidElement(node)) {
+    // A Markdown image shows its alt text, which is a prop, not a child.
+    if (node.type === ImageAltText) return (node.props as { alt?: string }).alt ?? '';
+    return getNodeText(node.props.children);
+  }
+  return '';
+}
+
+function matchesSearchableText(
+  searchRegEx: RegExp | null,
+  ...values: Array<React.ReactNode | string | undefined>
+): boolean {
+  if (!searchRegEx) return true;
+
+  return values.some((value) => {
+    const text = getNodeText(value);
+    return !!text && searchRegEx.test(text);
+  });
+}
+
+function getSearchableValuesFromProps(props: {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  searchTerms?: string;
+  overrideDescription?: string;
+  options?: SearchableSelectOption[];
+}) {
+  const values: Array<React.ReactNode | string | undefined> = [
+    props.label,
+    searchableDescription(props.description),
+    props.searchTerms,
+    props.overrideDescription,
+  ];
+
+  // Match what the select shows: an option's label, or its value when it has no label, and
+  // the description in its tooltip. A label starting with "--" is a divider.
+  props.options?.forEach((option) => {
+    const shownText = option.label ?? String(option.value);
+    if (shownText.startsWith('--')) return;
+    values.push(shownText, option.description);
+  });
+
+  return values;
+}
+
+// A description as the user sees it: a Markdown string rendered the way descriptionToReact
+// renders it, so that "not **SURE**" matches "not sure".
+function searchableDescription(description: React.ReactNode): React.ReactNode {
+  return typeof description === 'string'
+    ? compiler(description, descriptionMarkdownOptions)
+    : description;
+}
+
+function hasSearchMatch(
+  searchRegEx: RegExp | null,
+  node: React.ReactNode,
+  currentValues?: object,
+): boolean {
+  if (!searchRegEx) return true;
+  if (node === null || node === undefined || typeof node === 'boolean') return false;
+  if (typeof node === 'string' || typeof node === 'number') {
+    return searchRegEx.test(String(node));
+  }
+  if (Array.isArray(node)) {
+    return node.some((child) => hasSearchMatch(searchRegEx, child, currentValues));
+  }
+  if (!React.isValidElement(node)) return false;
+  // The user cannot open a disabled page, so search must not reach into it.
+  if (node.type === ConfigrPage && (node.props as { disabled?: boolean }).disabled)
+    return false;
+
+  const props = (node.props ?? {}) as {
+    label?: React.ReactNode;
+    description?: React.ReactNode;
+    searchTerms?: string;
+    overrideDescription?: string;
+    options?: SearchableSelectOption[];
+    children?: React.ReactNode;
+    path?: string;
+    render?: (pathPrefix: string, index: number) => React.ReactNode;
+  };
+
+  if (node.type === ConfigrForEach && currentValues && props.path && props.render) {
+    const items = getFormValueFromPath(currentValues, props.path, [] as unknown[]);
+    const renderedItems = (Array.isArray(items) ? items : []).map((_item, index) =>
+      props.render!(`${props.path}[${index}]`, index),
+    );
+
+    return (
+      matchesSearchableText(searchRegEx, ...getSearchableValuesFromProps(props)) ||
+      renderedItems.some((item) => hasSearchMatch(searchRegEx, item, currentValues))
+    );
+  }
+
+  return (
+    matchesSearchableText(searchRegEx, ...getSearchableValuesFromProps(props)) ||
+    (node.type === ConfigrGroup &&
+      matchesSearchableText(
+        searchRegEx,
+        getGroupIdentityText(props.children, currentValues),
+      )) ||
+    React.Children.toArray(props.children).some((child) =>
+      hasSearchMatch(searchRegEx, child, currentValues),
+    )
+  );
+}
 
 export const ConfigrArea: React.FunctionComponent<
   React.PropsWithChildren<{
@@ -193,15 +366,23 @@ export const ContentPane: React.FunctionComponent<
                   `}
                 >
                   <SearchContext.Consumer>
-                    {({ searchString }) => {
+                    {({ searchString, searchRegEx }) => {
                       if (searchString) {
+                        const topLevelPages = getTopLevelPages();
+                        if (
+                          !topLevelPages.some((page: React.ReactNode) =>
+                            hasSearchMatch(searchRegEx, page, values),
+                          )
+                        ) {
+                          return <NoSearchMatches />;
+                        }
                         return (
                           // This doesn't do any filtering, it just highlights matching things that something else is choosing to show.
                           <HighlightSearchTerms
                             searchString={searchString}
                             focussedPageKey={focussedPageKey}
                           >
-                            {getTopLevelPages()}
+                            {topLevelPages}
                           </HighlightSearchTerms>
                         );
                       } else {
@@ -216,6 +397,21 @@ export const ContentPane: React.FunctionComponent<
         </FocusPageContext.Provider>
       </ActiveFieldPathContext.Provider>
     </RequiredMessageContext.Provider>
+  );
+};
+
+const NoSearchMatches: React.FunctionComponent = () => {
+  const localizations = useContext(ConfigrLocalizationContext);
+  return (
+    <Typography
+      variant="body1"
+      css={css`
+        padding: 16px;
+        color: ${secondaryGrey};
+      `}
+    >
+      {localizations.noSearchMatchesLabel}
+    </Typography>
   );
 };
 
@@ -263,15 +459,16 @@ const BoxOfRows: React.FunctionComponent<
   React.PropsWithChildren<{
     label?: string;
     inFocussedPage?: boolean;
+    ancestorGroupLabel?: string;
   }>
 > = (props) => {
+  const visibleChildren = React.Children.toArray(props.children).filter((c) => c);
+
   if (props.inFocussedPage) {
     console.log(
       'RowCluster infocus' + 'children:' + React.Children.count(props.children),
     );
 
-    // count the number that we will actually show
-    const count = React.Children.toArray(props.children).filter((c) => c).length;
     return (
       <Paper
         // className="indentIfInSubPage"
@@ -286,21 +483,29 @@ const BoxOfRows: React.FunctionComponent<
         <List
           component="nav"
           css={css`
-            width: calc(100% - 20px);
+            box-sizing: border-box;
+            width: 100%;
+            padding-inline: 10px;
+
+            > .MuiTypography-root {
+              box-sizing: border-box;
+              padding-inline: 16px;
+            }
           `}
         >
-          {/* return clones of our children with our props.inFocussedPage */}
-          {React.Children.map(props.children, (child: any, index: number) => {
-            if (!child) return null;
+          {visibleChildren.map((child: any, index: number) => {
             return (
-              <>
-                {React.cloneElement(child, { inFocussedPage: true })}
-                {index < count - 1 && (
+              <React.Fragment key={child.key ?? index}>
+                {React.cloneElement(child, {
+                  inFocussedPage: true,
+                  ancestorGroupLabel: props.label ?? props.ancestorGroupLabel,
+                })}
+                {index < visibleChildren.length - 1 && (
                   <Divider component="li" key={'divider' + index.toString()} />
                 )}
-              </>
+              </React.Fragment>
             );
-          })?.filter((c: any) => c)}
+          })}
         </List>
       </Paper>
     );
@@ -512,114 +717,121 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
   }>
 > = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
-  const inner = (
-    <SearchContext.Consumer>
-      {({ searchRegEx }) => {
-        const description = descriptionToReact(props.description);
-        const hasSupportingText = description || props.validationMessage;
-        const row = (
-          <div
-            css={css`
-              display: flex;
-              flex-direction: column;
-              width: 100%;
-              gap: ${hasSupportingText ? '8px' : '0'};
-            `}
-          >
-            <div
-              css={css`
-                display: flex;
-                align-items: flex-start;
-                gap: 16px;
-                width: 100%;
-              `}
-            >
-              {/* Left side */}
-              <ListItemText
-                primaryTypographyProps={{ variant: 'h4' }}
-                title={props.path}
-                css={css`
-                  margin: 0;
-                  flex: 1 1 auto;
-                  min-width: 0;
-                  color: ${props.disabled ? disabledGrey : 'unset'};
-                  ${props.height ? 'height:' + props.height : ''}
-                  ${props.indented && 'margin-left: 30px;'}
-                  user-select: none;
-                  * {
-                    ${props.labelCss}
-                  }
-                `}
-                primary={renderFieldLabel(props.label)}
-              />
-              <div
-                css={css`
-                  flex: 0 0 auto;
-                  display: flex;
-                  align-items: flex-start;
-                `}
-              >
-                {props.control}
-                {renderRequiredIndicator(
-                  props.required,
-                  localizations.fieldRequiredMessage,
-                )}
-              </div>
-            </div>
-            {description && (
-              <Typography
-                variant="caption"
-                css={css`
-                  width: 100%;
-                  color: ${props.disabled ? disabledGrey : 'unset'};
-                `}
-              >
-                {description}
-              </Typography>
-            )}
-            {props.validationMessage && (
-              <Typography
-                variant="caption"
-                color="error"
-                css={css`
-                  width: 100%;
-                `}
-              >
-                {props.validationMessage}
-              </Typography>
-            )}
-          </div>
-        );
-        if (searchRegEx) {
-          const count = React.Children.toArray(props.children).filter(
-            (c) => c && searchRegEx.exec((c as any).props.label as string),
-          ).length;
-          if (count) {
-            return (
-              // I haven't managed to get this work yet
-              // <Tooltip open={true} title="hello">
-              //   {row}
-              // </Tooltip>
-              <div>
-                {row}
-                <span
-                  css={css`
-                    background-color: yellow;
-                  `}
-                >
-                  {localizations.matchesLabel(count)}
-                </span>
-              </div>
-            );
-          }
-        }
-        return row;
-      }}
-    </SearchContext.Consumer>
+  const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
+  const ownMatch = matchesSearchableText(
+    searchRegEx,
+    ...getSearchableValuesFromProps(
+      props as {
+        label?: React.ReactNode;
+        description?: React.ReactNode;
+        searchTerms?: string;
+        overrideDescription?: string;
+        options?: SearchableSelectOption[];
+      },
+    ),
   );
+  const matchingChildCount = searchRegEx
+    ? React.Children.toArray(props.children).filter((child) =>
+        hasSearchMatch(searchRegEx, child),
+      ).length
+    : 0;
+
+  if (searchRegEx && !ancestorMatched && !ownMatch && matchingChildCount === 0)
+    return null;
+
+  const description = descriptionToReact(props.description);
+  const hasSupportingText = description || props.validationMessage;
+  const inner = (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: ${hasSupportingText ? '8px' : '0'};
+      `}
+    >
+      <div
+        css={css`
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          width: 100%;
+        `}
+      >
+        {/* Left side */}
+        <ListItemText
+          primaryTypographyProps={{ variant: 'h4' }}
+          title={props.path}
+          css={css`
+            margin: 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            color: ${props.disabled ? disabledGrey : 'unset'};
+            ${props.height ? 'height:' + props.height : ''}
+            ${props.indented && 'margin-left: 30px;'}
+            user-select: none;
+            * {
+              ${props.labelCss}
+            }
+          `}
+          primary={renderFieldLabel(props.label)}
+        />
+        <div
+          css={css`
+            flex: 0 0 auto;
+            display: flex;
+            align-items: flex-start;
+          `}
+        >
+          {props.control}
+          {renderRequiredIndicator(props.required, localizations.fieldRequiredMessage)}
+        </div>
+      </div>
+      {description && (
+        <Typography
+          variant="caption"
+          css={css`
+            width: 100%;
+            color: ${props.disabled ? disabledGrey : 'unset'};
+          `}
+        >
+          {description}
+        </Typography>
+      )}
+      {props.validationMessage && (
+        <Typography
+          variant="caption"
+          color="error"
+          css={css`
+            width: 100%;
+          `}
+        >
+          {props.validationMessage}
+        </Typography>
+      )}
+    </div>
+  );
+
+  const content =
+    searchRegEx && matchingChildCount > 0 ? (
+      <div>
+        {inner}
+        <span
+          css={css`
+            background-color: yellow;
+          `}
+        >
+          {localizations.matchesLabel(matchingChildCount)}
+        </span>
+      </div>
+    ) : (
+      inner
+    );
+
   return props.onClick ? (
     <ListItemButton onClick={props.onClick} disabled={props.disabled}>
-      {inner}
+      {content}
     </ListItemButton>
   ) : (
     <ListItem
@@ -627,7 +839,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
         height: ${props.height};
       `}
     >
-      {inner}
+      {content}
     </ListItem>
   );
 };
@@ -652,6 +864,19 @@ interface IConfigrProps<T> {
   // explain why it is over-ridden
   overrideDescription?: string;
   pageKey?: string;
+  /**
+   * This row says what its group is about, e.g. which language a group of language settings is
+   * for. Wherever config-r shows the group's settings without this row (search results, and the
+   * group's sub-pages), it adds this row's text to the group's heading. Searching also matches
+   * that text, finding the whole group.
+   */
+  identifiesGroup?: boolean;
+  /**
+   * The text of this row's value, for identifiesGroup. Needed for a custom control, whose value
+   * config-r cannot show as text by itself. (Method syntax, so that a row with a narrower value
+   * type can declare it.)
+   */
+  valueText?(value: T): string | undefined;
 }
 
 // This hook implements the overrideValue prop. It does this by putting
@@ -897,6 +1122,7 @@ export const ConfigrCustomNumberInput: React.FunctionComponent<
 };
 
 interface ICustomObjectInputProps<T> extends IConfigrProps<unknown> {
+  valueText?(value: T): string | undefined;
   control: React.FunctionComponent<
     React.PropsWithChildren<{
       value: T;
@@ -1042,47 +1268,136 @@ export const ConfigrGroup: React.FunctionComponent<
     // like MUI CardHeader's action. It shows only when the heading does. To change a value,
     // it can use useConfigrValue().
     headerAction?: React.ReactNode;
+    parentPageLabel?: string;
+    ancestorGroupLabel?: string;
   }>
 > = (props) => {
+  const { values } = useFormikContext<object>();
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
+  const searchPath = useContext(SearchPathContext);
+  const outerGroupIdentity = useContext(GroupIdentityContext);
+  const identityText = getGroupIdentityText(props.children, values);
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
-
-  // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
-  // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
 
   // The description explains the whole group, so it goes under the group's heading, outside
   // the box of rows, in the style of a row's description.
   const description = descriptionToReact(props.description);
   return (
-    <>
-      {props.inFocussedPage &&
-        props.label &&
-        (props.headerAction ? (
-          <div
-            css={css`
-              display: flex;
-              justify-content: space-between;
-              align-items: baseline;
-            `}
-          >
-            <Typography variant="h3">{props.label}</Typography>
-            {props.headerAction}
-          </div>
-        ) : (
-          <Typography variant="h3">{props.label}</Typography>
-        ))}
-      {props.inFocussedPage && description && (
-        <Typography
-          variant="caption"
-          component="div"
-          css={css`
-            margin-bottom: 8px;
-          `}
-        >
-          {description}
-        </Typography>
-      )}
-      <BoxOfRows {...props}>{props.children}</BoxOfRows>
-    </>
+    <SearchContext.Consumer>
+      {({ searchRegEx }) => {
+        const inSearchResults = !!searchRegEx;
+        const showAllChildren =
+          !searchRegEx ||
+          ancestorMatched ||
+          matchesSearchableText(
+            searchRegEx,
+            props.label,
+            searchableDescription(props.description),
+            props.searchTerms,
+            identityText,
+          );
+        const matchingChildren = showAllChildren
+          ? React.Children.toArray(props.children).filter((child) => child)
+          : React.Children.toArray(props.children).filter((child) =>
+              hasSearchMatch(searchRegEx, child, values),
+            );
+        const hideRepeatedLabel =
+          props.label === props.parentPageLabel ||
+          props.label === props.ancestorGroupLabel ||
+          (!!props.label &&
+            matchingChildren.length === 1 &&
+            React.isValidElement(matchingChildren[0]) &&
+            matchingChildren[0].type === ConfigrPage &&
+            matchingChildren[0].props.label === props.label);
+
+        if (!showAllChildren && matchingChildren.length === 0) {
+          return null;
+        }
+
+        // Inside a sub-page in search results, the heading starts with the path to it. A label
+        // that repeats the end of the path, or a heading already shown above, adds nothing.
+        const pathForHeading = inSearchResults ? searchPath : [];
+        const ownLabelForPath =
+          props.label &&
+          !hideRepeatedLabel &&
+          props.label !== pathForHeading[pathForHeading.length - 1]
+            ? [props.label]
+            : [];
+        // When search hides the row that says what this group is about, the heading says it.
+        const identifyingRowShown = matchingChildren.some(
+          (child) => React.isValidElement(child) && (child.props as any).identifiesGroup,
+        );
+        const labelWithIdentity =
+          props.label && identityText && !identifyingRowShown
+            ? `${props.label}${kGroupIdentitySeparator}${identityText}`
+            : props.label;
+        const headingText =
+          pathForHeading.length > 0
+            ? [...pathForHeading, ...ownLabelForPath].join(kSearchPathSeparator)
+            : labelWithIdentity;
+        const showHeading =
+          (props.inFocussedPage || inSearchResults) &&
+          headingText &&
+          (pathForHeading.length > 0 || !hideRepeatedLabel);
+        // A sub-page inside this group continues the path only if this group's heading is part
+        // of it; a group outside any sub-page already shows its heading above the sub-page.
+        const pathForChildren =
+          pathForHeading.length > 0 ? [...pathForHeading, ...ownLabelForPath] : [];
+        // The action stays even when the heading's text is left out as a repeat, since
+        // nothing else offers it.
+        const showHeaderAction =
+          !!props.headerAction && (props.inFocussedPage || inSearchResults);
+        return (
+          <>
+            {showHeaderAction ? (
+              <div
+                css={css`
+                  display: flex;
+                  justify-content: ${showHeading ? 'space-between' : 'flex-end'};
+                  align-items: baseline;
+                `}
+              >
+                {showHeading && <Typography variant="h3">{headingText}</Typography>}
+                {props.headerAction}
+              </div>
+            ) : (
+              showHeading && <Typography variant="h3">{headingText}</Typography>
+            )}
+            {(props.inFocussedPage || inSearchResults) && description && (
+              <Typography
+                variant="caption"
+                component="div"
+                css={css`
+                  margin-bottom: 8px;
+                `}
+              >
+                {description}
+              </Typography>
+            )}
+            <SearchMatchedAncestorContext.Provider
+              value={inSearchResults && showAllChildren}
+            >
+              <SearchPathContext.Provider value={pathForChildren}>
+                <GroupIdentityContext.Provider
+                  value={
+                    identityText
+                      ? { groupLabel: props.label, identityText }
+                      : outerGroupIdentity
+                  }
+                >
+                  <BoxOfRows
+                    {...props}
+                    inFocussedPage={props.inFocussedPage || inSearchResults}
+                  >
+                    {matchingChildren}
+                  </BoxOfRows>
+                </GroupIdentityContext.Provider>
+              </SearchPathContext.Provider>
+            </SearchMatchedAncestorContext.Provider>
+          </>
+        );
+      }}
+    </SearchContext.Consumer>
   );
 
   // <FilterForSearchText {...props} kids={props.children}>
@@ -1130,10 +1445,16 @@ export const ConfigrPage: React.FunctionComponent<
     getErrorMessage?: ConfigrErrorMessageGetter;
     inFocussedPage?: boolean;
     disabled?: boolean;
+    ancestorGroupLabel?: string;
     children: PageChild | PageChild[];
   }>
 > = (props) => {
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
+  const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
+  const searchPath = useContext(SearchPathContext);
+  const groupIdentity = useContext(GroupIdentityContext);
+  const { values } = useFormikContext<object>();
 
   const childOfWrongType = React.Children.toArray(props.children).find(
     (child: any) =>
@@ -1155,6 +1476,59 @@ export const ConfigrPage: React.FunctionComponent<
         console.log(
           `<ConfigrPage pageKey='${key}' inFocussedPage=${props.inFocussedPage} focussedPageKey='${focussedPageKey}'>`,
         );
+        if (searchRegEx) {
+          // The user cannot open a disabled page, so search must not show its settings.
+          if (props.disabled) return null;
+          const showAllChildren =
+            ancestorMatched ||
+            matchesSearchableText(searchRegEx, props.label, props.searchTerms);
+          const matchingChildren = React.Children.toArray(props.children).filter(
+            (child) => showAllChildren || hasSearchMatch(searchRegEx, child, values),
+          );
+
+          if (matchingChildren.length === 0 && !showAllChildren) return null;
+
+          // A top-level page shows its title. A sub-page shows none: its groups put its label
+          // in front of theirs (see SearchPathContext).
+          const pathForChildren = props.topLevel
+            ? []
+            : props.label
+              ? [...searchPath, props.label]
+              : searchPath;
+
+          return (
+            <SearchPathContext.Provider value={pathForChildren}>
+              {props.topLevel && props.label && (
+                <Typography
+                  variant="h2"
+                  css={css`
+                    margin-bottom: 0.5em;
+                  `}
+                >
+                  {props.label}
+                </Typography>
+              )}
+              <SearchMatchedAncestorContext.Provider value={showAllChildren}>
+                <div
+                  css={css`
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5em;
+                  `}
+                >
+                  {matchingChildren.map((child) => {
+                    if (!child) return null;
+                    return React.cloneElement(child as any, {
+                      inFocussedPage: true,
+                      parentPageLabel: props.label,
+                      ancestorGroupLabel: props.ancestorGroupLabel,
+                    });
+                  })}
+                </div>
+              </SearchMatchedAncestorContext.Provider>
+            </SearchPathContext.Provider>
+          );
+        }
         if (props.inFocussedPage) {
           // We are in the focussed page, so the button that would activate us can be visible.
           // Show a row with a button that would make us the current page.
@@ -1177,10 +1551,26 @@ export const ConfigrPage: React.FunctionComponent<
             <>
               {!props.topLevel && (
                 <div css={props.labelCss}>
-                  <IconButton onClick={() => goBack()}>
-                    <ArrowBackIcon />{' '}
+                  <IconButton
+                    className="configr-subpage-back"
+                    // Lines the arrow up with the left edge of the content below.
+                    edge="start"
+                    onClick={() => goBack()}
+                  >
+                    <ArrowBackIcon className="configr-subpage-back-icon" />{' '}
                     <Typography variant={'h4'} component="span">
-                      {props.label}
+                      {
+                        // On its own, a sub-page no longer shows the row that says what its
+                        // group is about, so the back label says it.
+                        groupIdentity
+                          ? [
+                              groupIdentity.groupLabel
+                                ? `${groupIdentity.groupLabel}${kGroupIdentitySeparator}${groupIdentity.identityText}`
+                                : groupIdentity.identityText,
+                              props.label,
+                            ].join(kSearchPathSeparator)
+                          : props.label
+                      }
                     </Typography>
                   </IconButton>
                 </div>
@@ -1214,6 +1604,8 @@ export const ConfigrPage: React.FunctionComponent<
                     // we have to do this prop drilling because React Contexts can't be created recursively
                     return React.cloneElement(child as any, {
                       inFocussedPage: true,
+                      parentPageLabel: props.label,
+                      ancestorGroupLabel: props.ancestorGroupLabel,
                     });
                   } else return null;
                 })?.filter((c) => c)}
@@ -1258,9 +1650,15 @@ export const ConfigrForEach: React.FunctionComponent<
   }>
 > = (props) => {
   const { values } = useFormikContext();
+  const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
   const items = getFormValueFromPath(values, props.path);
+  // When the search matches this loop's own searchTerms, every item shows in full.
+  const showAllItems =
+    ancestorMatched ||
+    (!!searchRegEx && matchesSearchableText(searchRegEx, props.searchTerms));
   return (
-    <React.Fragment>
+    <SearchMatchedAncestorContext.Provider value={showAllItems}>
       {items.map((_item: any, index: number) => {
         const item = props.render(`${props.path}[${index}]`, index);
         // now clone and prop-drill in inFocussedPage
@@ -1269,7 +1667,7 @@ export const ConfigrForEach: React.FunctionComponent<
         });
         return cloned;
       })}
-    </React.Fragment>
+    </SearchMatchedAncestorContext.Provider>
   );
 };
 
@@ -1373,7 +1771,9 @@ const ConfigrRadioGroupRaw: React.FunctionComponent<
   // Enhance: it's not clear what are we using out of `field` in the RadioGroup below. Probably onchange, value
   const [field] = useField(props.path);
   return (
-    <RadioGroup row={props.row} {...field} {...props}>
+    // Pass only what RadioGroup uses: the row props it gets (e.g. inFocussedPage,
+    // overrideValue) would end up as unknown attributes on its <div>.
+    <RadioGroup row={props.row} {...field}>
       {props.children}
     </RadioGroup>
   );
@@ -1562,12 +1962,13 @@ function isParent(parentPath: string, childPath: string): boolean {
 // Inline markdown only: **bold**, *italic*, `code`, [text](link) and bare links. Raw HTML shows as
 // typed, as descriptions (often translated strings) always have, and an image shows only its alt
 // text, so a description can't make the dialog load an image from anywhere.
+const ImageAltText = ({ alt }: { alt?: string }) => <>{alt}</>;
 const descriptionMarkdownOptions: MarkdownToJSX.Options = {
   forceInline: true,
   disableParsingRawHTML: true,
   overrides: {
     a: { props: { target: '_blank', rel: 'noreferrer' } },
-    img: ({ alt }: { alt?: string }) => <>{alt}</>,
+    img: ImageAltText,
   },
 };
 

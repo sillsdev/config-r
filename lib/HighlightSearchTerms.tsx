@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Mark from 'mark.js';
 
 export const HighlightSearchTerms: React.FunctionComponent<
@@ -10,25 +10,27 @@ export const HighlightSearchTerms: React.FunctionComponent<
     focussedPageKey: any;
   }>
 > = (props) => {
-  const [markInstance, setMarkInstance] = useState<Mark>();
-  const highlightRoot = useRef(null);
+  const highlightRoot = useRef<HTMLDivElement>(null);
 
-  // Note, mark.js is not a react thing. It operates on the DOM
-  // that exists.
-  React.useEffect(() => {
-    if (highlightRoot.current) {
-      setMarkInstance(new Mark(highlightRoot.current));
-    }
-  }, [highlightRoot.current]);
-
+  // mark.js is not a React thing: it wraps matches in <mark> elements in the DOM that React
+  // has already rendered. So mark again after every render, which may have shown new rows or
+  // replaced the text of marked ones. Search the whole term, not each word, the same way the
+  // filter matches, so that every setting that shows has a highlight.
   useEffect(() => {
-    if (markInstance)
-      markInstance.unmark({
-        done: () => {
-          if (props.searchString) markInstance.mark(props.searchString);
-        },
-      });
-  }, [props.searchString, props.focussedPageKey]);
+    if (!highlightRoot.current) return;
+    const markInstance = new Mark(highlightRoot.current);
+    markInstance.unmark({
+      done: () => {
+        if (props.searchString)
+          markInstance.mark(props.searchString, {
+            separateWordSearch: false,
+            diacritics: false,
+            // Part of config-r's API, for hosts to style the highlight (see the README).
+            className: 'configr-search-match',
+          });
+      },
+    });
+  });
 
   return <div ref={highlightRoot}>{props.children}</div>;
 };
