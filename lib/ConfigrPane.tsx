@@ -2,7 +2,8 @@ import { css } from '@emotion/react';
 import { Tab, Tabs, ThemeOptions } from '@mui/material';
 import * as React from 'react';
 import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { ConfigrAppBar } from './ConfigrAppBar';
+import { createPortal } from 'react-dom';
+import { ConfigrAppBar, ConfigrSearchBox } from './ConfigrAppBar';
 import {
   ConfigrLocalizationContext,
   ConfigrLocalizationOverrides,
@@ -39,6 +40,11 @@ export const ConfigrPane = React.forwardRef<
     onChange?: (currentValues: ConfigrValues) => void;
     showAppBar?: boolean;
     showSearch?: boolean;
+    /**
+     * An element of the host's, such as its dialog's title bar, to show the search box
+     * in. The pane then needs neither showAppBar nor showSearch to offer search.
+     */
+    searchBoxContainer?: HTMLElement | null;
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     showRequiredMessage?: boolean;
@@ -100,6 +106,7 @@ export const ConfigrPane = React.forwardRef<
     onChange,
     onTopLevelPageChange,
     initiallySelectedTopLevelPageKey,
+    searchBoxContainer,
     ...propsToPass
   } = props;
 
@@ -179,25 +186,34 @@ export const ConfigrPane = React.forwardRef<
               <SearchContextProvider>
                 <SearchContext.Consumer>
                   {({ searchString, setSearchString }) => {
+                    const changeSearch = (s: string) => {
+                      if (searchString !== s) {
+                        setSearchString(s);
+                        // There should be no selected group if we
+                        // have a search term. If the user clears the search,
+                        // then we set the selected group to be the 1st one (0).
+                        setCurrentAreaIndex(undefined);
+                        setCurrentTopLevelPageIndex(
+                          s ? undefined : (firstEnabledIndex ?? 0),
+                        );
+                      }
+                    };
                     return (
                       <React.Fragment>
+                        {searchBoxContainer &&
+                          createPortal(
+                            <ConfigrSearchBox
+                              searchValue={searchString}
+                              setSearchString={changeSearch}
+                            />,
+                            searchBoxContainer,
+                          )}
                         {props.showAppBar && (
                           <ConfigrAppBar
                             label={props.label}
-                            showSearch={props.showSearch}
+                            showSearch={searchBoxContainer ? false : props.showSearch}
                             searchValue={searchString}
-                            setSearchString={(s: string) => {
-                              if (searchString !== s) {
-                                setSearchString(s);
-                                // There should be no selected group if we
-                                // have a search term. If the user clears the search,
-                                // then we set the selected group to be the 1st one (0).
-                                setCurrentAreaIndex(undefined);
-                                setCurrentTopLevelPageIndex(
-                                  s ? undefined : (firstEnabledIndex ?? 0),
-                                );
-                              }
-                            }}
+                            setSearchString={changeSearch}
                           />
                         )}
                         <div

@@ -256,4 +256,26 @@ test.describe('Bloom collection search', () => {
     await expect(pane.locator('mark')).toHaveCount(0);
     expect(pageErrors).toEqual([]);
   });
+
+  test('labels a sub-page match with the path to it, not a heading of its own', async ({
+    page,
+  }) => {
+    const pane = page.locator('#configr-pane');
+
+    // The taller-lines settings are on each language's "Script Settings" sub-page, in a group
+    // whose label repeats the language's, which already heads the language's results.
+    await searchFor(page, 'taller');
+
+    const localLanguage = pane.getByRole('heading', {
+      name: 'Local Language',
+      exact: true,
+    });
+    await expect(localLanguage).toHaveCount(1);
+    await expect(
+      pane.getByRole('heading', { name: 'Script Settings', exact: true }).first(),
+    ).toBeVisible();
+    await expect(
+      pane.getByRole('heading', { name: 'Script Settings › Local Language' }),
+    ).toHaveCount(0);
+  });
 });

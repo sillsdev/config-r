@@ -268,6 +268,82 @@ describe('ConfigrPane search', () => {
   });
 });
 
+describe('identifiesGroup', () => {
+  afterEach(cleanup);
+
+  // Two pets, each a group whose Name row says which pet the group is for.
+  function renderPets(options?: { valueText?: (name: string) => string }) {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{
+          pet1: { name: 'Sanuk', breed: 'Beagle', toy: 'Ball' },
+          pet2: { name: 'Tom', breed: 'Tabby', toy: 'Mouse' },
+        }}
+      >
+        <ConfigrPage key="pets" label="Pets" pageKey="pets">
+          {['pet1', 'pet2'].map((pet, index) => (
+            <ConfigrGroup key={pet} label={`Pet ${index + 1}`}>
+              <ConfigrInput
+                path={`${pet}.name`}
+                label="Name"
+                identifiesGroup={true}
+                valueText={options?.valueText}
+              />
+              <ConfigrInput path={`${pet}.breed`} label="Breed" />
+              <ConfigrPage label="More" pageKey={`${pet}More`}>
+                <ConfigrGroup label="Play">
+                  <ConfigrInput path={`${pet}.toy`} label="Favorite toy" />
+                </ConfigrGroup>
+              </ConfigrPage>
+            </ConfigrGroup>
+          ))}
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    return (term: string) => fireEvent.change(search, { target: { value: term } });
+  }
+
+  it('leaves the heading plain while the identifying row shows', () => {
+    renderPets();
+    expect(screen.getByRole('heading', { name: 'Pet 1' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: /Sanuk/ })).toBeNull();
+  });
+
+  it('adds the identifying row to the heading when search hides that row', () => {
+    const searchFor = renderPets();
+    searchFor('breed');
+    expect(screen.getByRole('heading', { name: 'Pet 1 · Sanuk' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Pet 2 · Tom' })).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+  });
+
+  it("finds the whole group by its identifying row's text", () => {
+    const searchFor = renderPets();
+    searchFor('tom');
+    expect(screen.getByDisplayValue('Tabby')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Beagle')).toBeNull();
+    // The identifying row shows, so the heading does not repeat it.
+    expect(screen.getByRole('heading', { name: 'Pet 2' })).toBeTruthy();
+  });
+
+  it("uses valueText for the row's text", () => {
+    const searchFor = renderPets({ valueText: (name) => `${name} the pet` });
+    searchFor('breed');
+    expect(screen.getByRole('heading', { name: 'Pet 1 · Sanuk the pet' })).toBeTruthy();
+  });
+
+  it('says which group a sub-page belongs to on its back button', () => {
+    renderPets();
+    fireEvent.click(screen.getAllByRole('button', { name: 'More' })[1]);
+    expect(screen.getByRole('button', { name: /Pet 2 · Tom › More/ })).toBeTruthy();
+    expect(screen.getByDisplayValue('Mouse')).toBeTruthy();
+  });
+});
+
 describe('ConfigrGroup description', () => {
   afterEach(cleanup);
 

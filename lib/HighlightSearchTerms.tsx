@@ -25,6 +25,8 @@ export const HighlightSearchTerms: React.FunctionComponent<
           markInstance.mark(props.searchString, {
             separateWordSearch: false,
             diacritics: false,
+            // Part of config-r's API, for hosts to style the highlight (see the README).
+            className: 'configr-search-match',
           });
       },
     });
