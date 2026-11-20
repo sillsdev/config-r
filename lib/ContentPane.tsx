@@ -61,6 +61,10 @@ const AlreadyFilteringContext = React.createContext({
   alreadyFiltering: false,
 });
 
+// True inside a page or group whose own text (label, description or searchTerms) matches the
+// search. Everything in it then shows, not just the settings that match.
+const SearchMatchedAncestorContext = React.createContext(false);
+
 type SearchableSelectOption = ConfigrSelectOption<string | number>;
 
 function getNodeText(node: React.ReactNode): string {
@@ -290,15 +294,23 @@ export const ContentPane: React.FunctionComponent<
                   `}
                 >
                   <SearchContext.Consumer>
-                    {({ searchString }) => {
+                    {({ searchString, searchRegEx }) => {
                       if (searchString) {
+                        const topLevelPages = getTopLevelPages();
+                        if (
+                          !topLevelPages.some((page: React.ReactNode) =>
+                            hasSearchMatch(searchRegEx, page, values),
+                          )
+                        ) {
+                          return <NoSearchMatches />;
+                        }
                         return (
                           // This doesn't do any filtering, it just highlights matching things that something else is choosing to show.
                           <HighlightSearchTerms
                             searchString={searchString}
                             focussedPageKey={focussedPageKey}
                           >
-                            {getTopLevelPages()}
+                            {topLevelPages}
                           </HighlightSearchTerms>
                         );
                       } else {
@@ -313,6 +325,21 @@ export const ContentPane: React.FunctionComponent<
         </FocusPageContext.Provider>
       </ActiveFieldPathContext.Provider>
     </RequiredMessageContext.Provider>
+  );
+};
+
+const NoSearchMatches: React.FunctionComponent = () => {
+  const localizations = useContext(ConfigrLocalizationContext);
+  return (
+    <Typography
+      variant="body1"
+      css={css`
+        padding: 16px;
+        color: ${secondaryGrey};
+      `}
+    >
+      {localizations.noSearchMatchesLabel}
+    </Typography>
   );
 };
 
@@ -619,6 +646,7 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
 > = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
   const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
   const ownMatch = matchesSearchableText(
     searchRegEx,
     ...getSearchableValuesFromProps(
@@ -637,7 +665,8 @@ const ConfigrRowTwoColumns: React.FunctionComponent<
       ).length
     : 0;
 
-  if (searchRegEx && !ownMatch && matchingChildCount === 0) return null;
+  if (searchRegEx && !ancestorMatched && !ownMatch && matchingChildCount === 0)
+    return null;
 
   const description = descriptionToReact(props.description);
   const hasSupportingText = description || props.validationMessage;
@@ -1158,6 +1187,7 @@ export const ConfigrGroup: React.FunctionComponent<
   }>
 > = (props) => {
   const { values } = useFormikContext<object>();
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
 
   // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
@@ -1170,11 +1200,20 @@ export const ConfigrGroup: React.FunctionComponent<
     <SearchContext.Consumer>
       {({ searchRegEx }) => {
         const inSearchResults = !!searchRegEx;
-        const matchingChildren = searchRegEx
-          ? React.Children.toArray(props.children).filter((child) =>
+        const showAllChildren =
+          !searchRegEx ||
+          ancestorMatched ||
+          matchesSearchableText(
+            searchRegEx,
+            props.label,
+            props.description,
+            props.searchTerms,
+          );
+        const matchingChildren = showAllChildren
+          ? React.Children.toArray(props.children).filter((child) => child)
+          : React.Children.toArray(props.children).filter((child) =>
               hasSearchMatch(searchRegEx, child, values),
-            )
-          : React.Children.toArray(props.children).filter((child) => child);
+            );
         const hideRepeatedLabel =
           props.label === props.parentPageLabel ||
           props.label === props.ancestorGroupLabel ||
@@ -1184,16 +1223,7 @@ export const ConfigrGroup: React.FunctionComponent<
             matchingChildren[0].type === ConfigrPage &&
             matchingChildren[0].props.label === props.label);
 
-        if (
-          searchRegEx &&
-          !matchesSearchableText(
-            searchRegEx,
-            props.label,
-            props.description,
-            props.searchTerms,
-          ) &&
-          matchingChildren.length === 0
-        ) {
+        if (!showAllChildren && matchingChildren.length === 0) {
           return null;
         }
 
@@ -1227,12 +1257,16 @@ export const ConfigrGroup: React.FunctionComponent<
                 {description}
               </Typography>
             )}
-            <BoxOfRows
-              {...props}
-              inFocussedPage={props.inFocussedPage || inSearchResults}
+            <SearchMatchedAncestorContext.Provider
+              value={inSearchResults && showAllChildren}
             >
-              {matchingChildren}
-            </BoxOfRows>
+              <BoxOfRows
+                {...props}
+                inFocussedPage={props.inFocussedPage || inSearchResults}
+              >
+                {matchingChildren}
+              </BoxOfRows>
+            </SearchMatchedAncestorContext.Provider>
           </>
         );
       }}
@@ -1290,6 +1324,7 @@ export const ConfigrPage: React.FunctionComponent<
 > = (props) => {
   const key = props.pageKey || props.label; // REVIEW. Shall we just remove pageKey?
   const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
   const { values } = useFormikContext<object>();
 
   const childOfWrongType = React.Children.toArray(props.children).find(
@@ -1313,21 +1348,16 @@ export const ConfigrPage: React.FunctionComponent<
           `<ConfigrPage pageKey='${key}' inFocussedPage=${props.inFocussedPage} focussedPageKey='${focussedPageKey}'>`,
         );
         if (searchRegEx) {
-          const ownMatch = matchesSearchableText(
-            searchRegEx,
-            props.label,
-            props.searchTerms,
-          );
-          const childMatches = React.Children.toArray(props.children).some((child) =>
-            hasSearchMatch(searchRegEx, child, values),
+          const showAllChildren =
+            ancestorMatched ||
+            matchesSearchableText(searchRegEx, props.label, props.searchTerms);
+          const matchingChildren = React.Children.toArray(props.children).filter(
+            (child) => showAllChildren || hasSearchMatch(searchRegEx, child, values),
           );
 
-          if (!ownMatch && !childMatches) return null;
+          if (matchingChildren.length === 0 && !showAllChildren) return null;
 
           const headingVariant = props.topLevel ? 'h2' : 'h3';
-          const matchingChildren = React.Children.toArray(props.children).filter(
-            (child) => hasSearchMatch(searchRegEx, child, values),
-          );
 
           return (
             <>
@@ -1341,22 +1371,24 @@ export const ConfigrPage: React.FunctionComponent<
                   {props.label}
                 </Typography>
               )}
-              <div
-                css={css`
-                  display: flex;
-                  flex-direction: column;
-                  gap: 0.5em;
-                `}
-              >
-                {matchingChildren.map((child) => {
-                  if (!child) return null;
-                  return React.cloneElement(child as any, {
-                    inFocussedPage: true,
-                    parentPageLabel: props.label,
-                    ancestorGroupLabel: props.ancestorGroupLabel,
-                  });
-                })}
-              </div>
+              <SearchMatchedAncestorContext.Provider value={showAllChildren}>
+                <div
+                  css={css`
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5em;
+                  `}
+                >
+                  {matchingChildren.map((child) => {
+                    if (!child) return null;
+                    return React.cloneElement(child as any, {
+                      inFocussedPage: true,
+                      parentPageLabel: props.label,
+                      ancestorGroupLabel: props.ancestorGroupLabel,
+                    });
+                  })}
+                </div>
+              </SearchMatchedAncestorContext.Provider>
             </>
           );
         }

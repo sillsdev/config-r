@@ -100,7 +100,7 @@ export const ConfigrAppBar: React.FunctionComponent<
                 {props.searchValue && (
                   <ClearSearchButton>
                     <IconButton
-                      aria-label="clear search"
+                      aria-label={localizations.clearSearchLabel}
                       color="inherit"
                       size="small"
                       onClick={() => props.setSearchString('')}
