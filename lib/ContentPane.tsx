@@ -1190,9 +1190,6 @@ export const ConfigrGroup: React.FunctionComponent<
   const ancestorMatched = useContext(SearchMatchedAncestorContext);
   //console.log(`configrgroup pageKey='${props.pageKey}'`);
 
-  // TODO: after the reorg to allow sub page hierarchy to be independent of data hierarchy, we have yet to
-  // TODO: re-install the search filter that shows a set of items (not sure what level) that match the search term.
-
   // The description explains the whole group, so it goes under the group's heading, outside
   // the box of rows, in the style of a row's description.
   const description = descriptionToReact(props.description);
