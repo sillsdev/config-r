@@ -6,7 +6,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import toPath from 'lodash/toPath';
-import Markdown, { MarkdownToJSX } from 'markdown-to-jsx/react';
+import Markdown, { compiler, MarkdownToJSX } from 'markdown-to-jsx/react';
 
 import { Field, Formik, useField, useFormikContext } from 'formik';
 import {
@@ -101,7 +101,11 @@ function getGroupIdentityText(
   const rowProps = row.props as IConfigrProps<unknown> & {
     options?: SearchableSelectOption[];
   };
-  const value = getFormValueFromPath(currentValues, rowProps.path);
+  // The row shows its overrideValue, when it has one, instead of the stored value.
+  const value =
+    rowProps.overrideValue !== undefined
+      ? rowProps.overrideValue
+      : getFormValueFromPath(currentValues, rowProps.path);
   let text: string | undefined;
   if (rowProps.valueText) {
     text = rowProps.valueText(value);
@@ -120,7 +124,8 @@ function getNodeText(node: React.ReactNode): string {
   if (node === null || node === undefined || typeof node === 'boolean') return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) {
-    return node.map((child) => getNodeText(child)).join(' ');
+    // React puts adjacent children together with nothing between them.
+    return node.map((child) => getNodeText(child)).join('');
   }
   if (React.isValidElement(node)) {
     return getNodeText(node.props.children);
@@ -149,7 +154,7 @@ function getSearchableValuesFromProps(props: {
 }) {
   const values: Array<React.ReactNode | string | undefined> = [
     props.label,
-    props.description,
+    searchableDescription(props.description),
     props.searchTerms,
     props.overrideDescription,
   ];
@@ -163,6 +168,14 @@ function getSearchableValuesFromProps(props: {
   });
 
   return values;
+}
+
+// A description as the user sees it: a Markdown string rendered the way descriptionToReact
+// renders it, so that "not **SURE**" matches "not sure".
+function searchableDescription(description: React.ReactNode): React.ReactNode {
+  return typeof description === 'string'
+    ? compiler(description, descriptionMarkdownOptions)
+    : description;
 }
 
 function hasSearchMatch(
@@ -179,6 +192,9 @@ function hasSearchMatch(
     return node.some((child) => hasSearchMatch(searchRegEx, child, currentValues));
   }
   if (!React.isValidElement(node)) return false;
+  // The user cannot open a disabled page, so search must not reach into it.
+  if (node.type === ConfigrPage && (node.props as { disabled?: boolean }).disabled)
+    return false;
 
   const props = (node.props ?? {}) as {
     label?: React.ReactNode;
@@ -1274,7 +1290,7 @@ export const ConfigrGroup: React.FunctionComponent<
           matchesSearchableText(
             searchRegEx,
             props.label,
-            props.description,
+            searchableDescription(props.description),
             props.searchTerms,
             identityText,
           );
@@ -1325,23 +1341,26 @@ export const ConfigrGroup: React.FunctionComponent<
         // of it; a group outside any sub-page already shows its heading above the sub-page.
         const pathForChildren =
           pathForHeading.length > 0 ? [...pathForHeading, ...ownLabelForPath] : [];
+        // The action stays even when the heading's text is left out as a repeat, since
+        // nothing else offers it.
+        const showHeaderAction =
+          !!props.headerAction && (props.inFocussedPage || inSearchResults);
         return (
           <>
-            {showHeading &&
-              (props.headerAction ? (
-                <div
-                  css={css`
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: baseline;
-                  `}
-                >
-                  <Typography variant="h3">{headingText}</Typography>
-                  {props.headerAction}
-                </div>
-              ) : (
-                <Typography variant="h3">{headingText}</Typography>
-              ))}
+            {showHeaderAction ? (
+              <div
+                css={css`
+                  display: flex;
+                  justify-content: ${showHeading ? 'space-between' : 'flex-end'};
+                  align-items: baseline;
+                `}
+              >
+                {showHeading && <Typography variant="h3">{headingText}</Typography>}
+                {props.headerAction}
+              </div>
+            ) : (
+              showHeading && <Typography variant="h3">{headingText}</Typography>
+            )}
             {(props.inFocussedPage || inSearchResults) && description && (
               <Typography
                 variant="caption"
@@ -1456,6 +1475,8 @@ export const ConfigrPage: React.FunctionComponent<
           `<ConfigrPage pageKey='${key}' inFocussedPage=${props.inFocussedPage} focussedPageKey='${focussedPageKey}'>`,
         );
         if (searchRegEx) {
+          // The user cannot open a disabled page, so search must not show its settings.
+          if (props.disabled) return null;
           const showAllChildren =
             ancestorMatched ||
             matchesSearchableText(searchRegEx, props.label, props.searchTerms);
@@ -1528,7 +1549,10 @@ export const ConfigrPage: React.FunctionComponent<
             <>
               {!props.topLevel && (
                 <div css={props.labelCss}>
-                  <IconButton className="configr-subpage-back" onClick={() => goBack()}>
+                  <IconButton
+                    className="configr-subpage-back"
+                    onClick={() => goBack()}
+                  >
                     <ArrowBackIcon className="configr-subpage-back-icon" />{' '}
                     <Typography variant={'h4'} component="span">
                       {
@@ -1622,9 +1646,15 @@ export const ConfigrForEach: React.FunctionComponent<
   }>
 > = (props) => {
   const { values } = useFormikContext();
+  const { searchRegEx } = useContext(SearchContext);
+  const ancestorMatched = useContext(SearchMatchedAncestorContext);
   const items = getFormValueFromPath(values, props.path);
+  // When the search matches this loop's own searchTerms, every item shows in full.
+  const showAllItems =
+    ancestorMatched ||
+    (!!searchRegEx && matchesSearchableText(searchRegEx, props.searchTerms));
   return (
-    <React.Fragment>
+    <SearchMatchedAncestorContext.Provider value={showAllItems}>
       {items.map((_item: any, index: number) => {
         const item = props.render(`${props.path}[${index}]`, index);
         // now clone and prop-drill in inFocussedPage
@@ -1633,7 +1663,7 @@ export const ConfigrForEach: React.FunctionComponent<
         });
         return cloned;
       })}
-    </React.Fragment>
+    </SearchMatchedAncestorContext.Provider>
   );
 };
 
