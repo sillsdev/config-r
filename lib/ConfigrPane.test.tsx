@@ -830,6 +830,23 @@ describe('search reaches only what the user can open and see', () => {
     expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
   });
 
+  it('finds the alt text of an image in a Markdown description', () => {
+    renderAndSearch(
+      <ConfigrPage key="dog" label="Dog" pageKey="dog">
+        <ConfigrGroup label="Dog details">
+          <ConfigrInput
+            path="dog.name"
+            label="Dog name"
+            description="Look: ![a spotted hound](https://example.org/dog.png) here."
+          />
+        </ConfigrGroup>
+      </ConfigrPage>,
+      initialValues,
+      'spotted hound',
+    );
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+  });
+
   it('finds a phrase that crosses bold text in a React description', () => {
     renderAndSearch(
       <ConfigrPage key="dog" label="Dog" pageKey="dog">

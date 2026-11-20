@@ -128,6 +128,8 @@ function getNodeText(node: React.ReactNode): string {
     return node.map((child) => getNodeText(child)).join('');
   }
   if (React.isValidElement(node)) {
+    // A Markdown image shows its alt text, which is a prop, not a child.
+    if (node.type === ImageAltText) return (node.props as { alt?: string }).alt ?? '';
     return getNodeText(node.props.children);
   }
   return '';
@@ -1960,12 +1962,13 @@ function isParent(parentPath: string, childPath: string): boolean {
 // Inline markdown only: **bold**, *italic*, `code`, [text](link) and bare links. Raw HTML shows as
 // typed, as descriptions (often translated strings) always have, and an image shows only its alt
 // text, so a description can't make the dialog load an image from anywhere.
+const ImageAltText = ({ alt }: { alt?: string }) => <>{alt}</>;
 const descriptionMarkdownOptions: MarkdownToJSX.Options = {
   forceInline: true,
   disableParsingRawHTML: true,
   overrides: {
     a: { props: { target: '_blank', rel: 'noreferrer' } },
-    img: ({ alt }: { alt?: string }) => <>{alt}</>,
+    img: ImageAltText,
   },
 };
 
