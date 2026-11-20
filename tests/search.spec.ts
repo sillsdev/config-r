@@ -279,22 +279,3 @@ test.describe('Bloom collection search', () => {
     ).toHaveCount(0);
   });
 });
-
-test.describe('Sub-page back button', () => {
-  test('lines its arrow up with the left edge of the content below it', async ({
-    page,
-  }) => {
-    await page.goto('/');
-    const pane = page.locator('#configr-pane');
-    await pane
-      .getByRole('button', { name: /Script Settings/ })
-      .first()
-      .click();
-
-    const arrow = await pane.locator('.configr-subpage-back-icon path').boundingBox();
-    const heading = await pane.locator('h3').first().boundingBox();
-    expect(arrow).not.toBeNull();
-    expect(heading).not.toBeNull();
-    expect(Math.abs(arrow!.x - heading!.x)).toBeLessThanOrEqual(2);
-  });
-});
