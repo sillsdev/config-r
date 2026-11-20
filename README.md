@@ -79,15 +79,15 @@ To show the search box somewhere of your own, such as your dialog's title bar, p
 
 The search box takes its border color, corner radius and text color from the MUI theme. To style it and other parts of the pane further, target these class names, which config-r keeps stable:
 
-| Class name | Element |
-| --- | --- |
-| `configr-search-box` | the search box, around the next three |
-| `configr-search-icon` | the wrapper around the magnifying glass |
-| `configr-search-input` | the `<input>` itself (its width, font and padding) |
-| `configr-search-clear` | the wrapper around the clear button, present only while the box holds text |
-| `configr-search-match` | each `<mark>` around matching text in the pane (the browser draws it yellow unless you style it) |
-| `configr-subpage-back` | the button at the top of a sub-page that goes back, holding the arrow and the sub-page's label |
-| `configr-subpage-back-icon` | the arrow in that button |
+| Class name                  | Element                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
+| `configr-search-box`        | the search box, around the next three                                                            |
+| `configr-search-icon`       | the wrapper around the magnifying glass                                                          |
+| `configr-search-input`      | the `<input>` itself (its width, font and padding)                                               |
+| `configr-search-clear`      | the wrapper around the clear button, present only while the box holds text                       |
+| `configr-search-match`      | each `<mark>` around matching text in the pane (the browser draws it yellow unless you style it) |
+| `configr-subpage-back`      | the button at the top of a sub-page that goes back, holding the arrow and the sub-page's label   |
+| `configr-subpage-back-icon` | the arrow in that button                                                                         |
 
 Config-R's own rules use two class selectors, so a host rule needs at least three to win, e.g. `.my-title .configr-search-box .configr-search-input`.
 
