@@ -1612,7 +1612,9 @@ const ConfigrRadioGroupRaw: React.FunctionComponent<
   // Enhance: it's not clear what are we using out of `field` in the RadioGroup below. Probably onchange, value
   const [field] = useField(props.path);
   return (
-    <RadioGroup row={props.row} {...field} {...props}>
+    // Pass only what RadioGroup uses: the row props it gets (e.g. inFocussedPage,
+    // overrideValue) would end up as unknown attributes on its <div>.
+    <RadioGroup row={props.row} {...field}>
       {props.children}
     </RadioGroup>
   );

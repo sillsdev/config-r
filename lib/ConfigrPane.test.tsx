@@ -199,6 +199,75 @@ describe('ConfigrPane sub-pages and search', () => {
   });
 });
 
+describe('ConfigrPane search', () => {
+  afterEach(cleanup);
+
+  function renderSearchablePane() {
+    render(
+      <ConfigrPane
+        label="Test"
+        showAppBar={true}
+        showSearch={true}
+        initialValues={{ dog: { name: 'Sanuk' }, cat: { name: 'Tom' }, bird: {} }}
+      >
+        <ConfigrPage key="dog" label="Dog" pageKey="dog">
+          <ConfigrGroup label="Dog details">
+            <ConfigrInput path="dog.name" label="Dog name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage key="cat" label="Cat" pageKey="cat">
+          <ConfigrGroup label="Cat details">
+            <ConfigrInput path="cat.name" label="Cat name" />
+            <ConfigrPage label="Cat extras" pageKey="catMore">
+              <ConfigrGroup label="More cat details">
+                <ConfigrSelect
+                  path="cat.lives"
+                  label="Lives"
+                  options={[
+                    { value: 0, label: 'Unknown' },
+                    { value: 9, label: 'Nine' },
+                  ]}
+                />
+              </ConfigrGroup>
+            </ConfigrPage>
+          </ConfigrGroup>
+        </ConfigrPage>
+        <ConfigrPage key="bird" label="Bird" pageKey="bird" disabled={true}>
+          <ConfigrGroup label="Bird details">
+            <ConfigrInput path="bird.name" label="Bird name" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    const search = screen.getByRole('textbox', { name: 'Search...' });
+    return (term: string) => fireEvent.change(search, { target: { value: term } });
+  }
+
+  it('leaves out the settings of a disabled page', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('name');
+    // Highlighting splits a label around the match, so look for headings by their
+    // accessible names, which span the split.
+    expect(screen.getByRole('heading', { name: 'Dog' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Cat' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Bird' })).toBeNull();
+  });
+
+  it('finds the label of a number-valued option on a sub-page', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('nine');
+    expect(screen.getByText('Lives')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Tom')).toBeNull();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
+  });
+
+  it('says so when nothing matches', () => {
+    const searchFor = renderSearchablePane();
+    searchFor('zebra');
+    expect(screen.getByText('No matches')).toBeTruthy();
+  });
+});
+
 describe('ConfigrGroup description', () => {
   afterEach(cleanup);
 

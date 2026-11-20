@@ -246,7 +246,12 @@ export const ConfigrPane = React.forwardRef<
                                 {...propsToPass}
                                 onChange={onChangeWrapper}
                               >
-                                {topLevelPages}
+                                {searchString
+                                  ? // A search must not reach pages the user cannot open.
+                                    topLevelPages.filter(
+                                      (_page, index) => !isIndexDisabled(areas, index),
+                                    )
+                                  : topLevelPages}
                               </ContentPane>
                             )}
                           </div>
