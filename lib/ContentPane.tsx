@@ -1551,6 +1551,8 @@ export const ConfigrPage: React.FunctionComponent<
                 <div css={props.labelCss}>
                   <IconButton
                     className="configr-subpage-back"
+                    // Lines the arrow up with the left edge of the content below.
+                    edge="start"
                     onClick={() => goBack()}
                   >
                     <ArrowBackIcon className="configr-subpage-back-icon" />{' '}
