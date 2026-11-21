@@ -8,7 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import toPath from 'lodash/toPath';
 import Markdown, { compiler, MarkdownToJSX } from 'markdown-to-jsx/react';
 
-import { Field, Formik, useField, useFormikContext } from 'formik';
+import { Field, Formik, getIn, useField, useFormikContext } from 'formik';
 import {
   Typography,
   Paper,
@@ -1688,10 +1688,15 @@ export const ConfigrBoolean: React.FunctionComponent<
 > = (props) => {
   props = useModifyForOverride(props);
   const [field, meta, helpers] = useField(props.path);
+  const { values } = useFormikContext<object>();
   const validationMessage = useValidationMessageForValue(props, field.value);
 
-  // we're not supporting indeterminate state here (yet), so treat an undefined value as false
-  if (field.value === undefined || field.value === null) {
+  // we're not supporting indeterminate state here (yet), so treat an undefined value as false.
+  // But not inside an object that the client has set to null (e.g. removed an optional item):
+  // storing false there would bring the object back. Such a checkbox is about to go away.
+  const parentPath = toPath(props.path).slice(0, -1);
+  const parentRemoved = parentPath.length > 0 && getIn(values, parentPath) === null;
+  if ((field.value === undefined || field.value === null) && !parentRemoved) {
     // get a console error if we make this change while rendering
     window.setTimeout(() => helpers.setValue(false), 0);
   }

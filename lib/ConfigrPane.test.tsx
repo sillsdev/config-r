@@ -3,6 +3,7 @@ import * as React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfigrPane, ConfigrPaneHandle } from './ConfigrPane';
 import {
+  ConfigrBoolean,
   ConfigrForEach,
   ConfigrGroup,
   ConfigrInput,
@@ -934,5 +935,62 @@ describe('ConfigrGroup headerAction when the group repeats its page label', () =
     expect(screen.getByRole('button', { name: 'Remove' })).toBeTruthy();
     // The page title already says "Dog"; the group does not repeat it.
     expect(screen.getAllByRole('heading', { name: 'Dog' })).toHaveLength(1);
+  });
+});
+
+describe('ConfigrBoolean', () => {
+  afterEach(cleanup);
+
+  // A button that removes the pet, as a client's Remove button sets an optional object to null.
+  const RemovePet: React.FunctionComponent = () => {
+    const [, setPet] = useConfigrValue<{ isGood?: boolean } | null>('pet');
+    return (
+      <button type="button" onClick={() => setPet(null)}>
+        Remove pet
+      </button>
+    );
+  };
+
+  it('does not bring back an object the client set to null', async () => {
+    const changed = vi.fn();
+    render(
+      <ConfigrPane
+        label="Test"
+        initialValues={{ pet: { isGood: true } }}
+        onChange={changed}
+      >
+        <ConfigrPage key="pet" label="Pet" pageKey="pet">
+          <ConfigrGroup label="Pet details" headerAction={<RemovePet />}>
+            <ConfigrBoolean path="pet.isGood" label="Good pet" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    expect(screen.getByRole<HTMLInputElement>('checkbox').checked).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove pet' }));
+    // The checkbox writes a missing value on a timer; give it the chance.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+
+    expect(changed).toHaveBeenLastCalledWith({ pet: null });
+  });
+
+  it('still stores false for a missing value in an object that exists', async () => {
+    const changed = vi.fn();
+    render(
+      <ConfigrPane
+        label="Test"
+        initialValues={{ pet: { name: 'Rex' } }}
+        onChange={changed}
+      >
+        <ConfigrPage key="pet" label="Pet" pageKey="pet">
+          <ConfigrGroup label="Pet details">
+            <ConfigrBoolean path="pet.isGood" label="Good pet" />
+          </ConfigrGroup>
+        </ConfigrPage>
+      </ConfigrPane>,
+    );
+    await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+    expect(changed).toHaveBeenLastCalledWith({ pet: { name: 'Rex', isGood: false } });
   });
 });
