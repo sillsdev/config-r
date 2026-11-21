@@ -8,6 +8,7 @@ import {
   ConfigrInput,
   ConfigrPage,
   ConfigrSelect,
+  ConfigrStatic,
   ConfigrValues,
   useConfigrValue,
 } from './ContentPane';
@@ -808,6 +809,19 @@ describe('search reaches only what the user can open and see', () => {
     );
     expect(screen.queryByDisplayValue('Whiskers')).toBeNull();
     expect(screen.getByText('No matches')).toBeTruthy();
+  });
+
+  it('finds a ConfigrStatic by its searchTerms', () => {
+    renderAndSearch(
+      <ConfigrPage key="about" label="About" pageKey="about">
+        <ConfigrStatic searchTerms="Bonjour">
+          <div>Hello</div>
+        </ConfigrStatic>
+      </ConfigrPage>,
+      {},
+      'bonjour',
+    );
+    expect(screen.getByText('Hello')).toBeTruthy();
   });
 
   it('finds the items of a ConfigrForEach by its searchTerms', () => {

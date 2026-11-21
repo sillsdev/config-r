@@ -1247,11 +1247,10 @@ export function ConfigrSelect<O extends ConfigrSelectOption<string | number>>(
 // this is typically used to an message, e.g. explaining something about hte page or why a group is disabled.
 export const ConfigrStatic: React.FunctionComponent<
   React.PropsWithChildren<{
-    // FOR NOW we aren't supporting searcing on these
-    // searchTerms?: string;
-    // description?: string | React.ReactNode;
-    // getErrorMessage?: (data: any) => string | undefined;
-    // inFocussedPage?: boolean;
+    // Search finds the text written in a ConfigrStatic's children. These are more words that
+    // find it, such as the text a child component shows in place of what was written, e.g. a
+    // translation.
+    searchTerms?: string;
   }>
 > = (props) => {
   return <>{props.children}</>;

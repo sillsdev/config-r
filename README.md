@@ -91,7 +91,7 @@ The search box takes its border color, corner radius and text color from the MUI
 
 Config-R's own rules use two class selectors, so a host rule needs at least three to win, e.g. `.my-title .configr-search-box .configr-search-input`.
 
-Search reads the props of the elements you pass, so text that a custom component renders for itself is found only through that component's `label`, `description` or `searchTerms` props.
+Search reads the props of the elements you pass, so text that a custom component renders for itself is found only through that component's `label`, `description` or `searchTerms` props. A `ConfigrStatic` is found by the text written in its children and by its `searchTerms`, e.g. the translation that a child component shows in place of that text.
 
 ## Knowing and choosing the page
 
