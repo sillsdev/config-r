@@ -75,19 +75,19 @@ To provide languages other than English for the small set of built-in strings, p
 
 `showAppBar={true}` together with `showSearch={true}` puts a search box in the pane's app bar. While it holds text, the pane shows every setting, on any enabled page or sub-page, whose label, description, `searchTerms`, or select option (its label, or its value when it has no label, and its description) contains that text, ignoring case, and highlights the matches. A page or group whose own label, description or `searchTerms` match shows all of its settings. The search ignores pages that are disabled or in a disabled area. When nothing matches, the pane says so (`noSearchMatchesLabel`). Clearing the search returns to the first enabled page, and clicking a page ends the search and opens that page.
 
-To show the search box somewhere of your own, such as your dialog's title bar, pass that element as `searchBoxContainer`. The pane then needs no app bar.
+To show the search box somewhere of your own, such as your dialog's title bar, pass that element as `searchBoxContainer`. The pane then needs no app bar. `searchBoxSize="small"` makes the box small enough for a title bar.
 
-The search box takes its border color, corner radius and text color from the MUI theme. To style it and other parts of the pane further, target these class names, which config-r keeps stable:
+The search box takes its border color, corner radius and text color from the MUI theme. Set `palette.searchMatch` in `themeOverrides` to color the highlight behind each match, e.g. `{ palette: { searchMatch: '#feeb5a' } }`. The arrow on a sub-page's back button is the theme's primary color. To style the search box and other parts of the pane further, target these class names, which config-r keeps stable:
 
-| Class name                  | Element                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------ |
-| `configr-search-box`        | the search box, around the next three                                                            |
-| `configr-search-icon`       | the wrapper around the magnifying glass                                                          |
-| `configr-search-input`      | the `<input>` itself (its width, font and padding)                                               |
-| `configr-search-clear`      | the wrapper around the clear button, present only while the box holds text                       |
-| `configr-search-match`      | each `<mark>` around matching text in the pane (the browser draws it yellow unless you style it) |
-| `configr-subpage-back`      | the button at the top of a sub-page that goes back, holding the arrow and the sub-page's label   |
-| `configr-subpage-back-icon` | the arrow in that button                                                                         |
+| Class name                  | Element                                                                                                                       |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `configr-search-box`        | the search box, around the next three                                                                                         |
+| `configr-search-icon`       | the wrapper around the magnifying glass                                                                                       |
+| `configr-search-input`      | the `<input>` itself (its width, font and padding)                                                                            |
+| `configr-search-clear`      | the wrapper around the clear button, present only while the box holds text                                                    |
+| `configr-search-match`      | each `<mark>` around matching text in the pane (the browser draws it yellow unless you set `palette.searchMatch` or style it) |
+| `configr-subpage-back`      | the button at the top of a sub-page that goes back, holding the arrow and the sub-page's label                                |
+| `configr-subpage-back-icon` | the arrow in that button                                                                                                      |
 
 Config-R's own rules use two class selectors, so a host rule needs at least three to win, e.g. `.my-title .configr-search-box .configr-search-input`.
 

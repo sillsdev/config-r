@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import Mark from 'mark.js';
+import { Box } from '@mui/material';
 
 export const HighlightSearchTerms: React.FunctionComponent<
   React.PropsWithChildren<{
@@ -32,5 +33,14 @@ export const HighlightSearchTerms: React.FunctionComponent<
     });
   });
 
-  return <div ref={highlightRoot}>{props.children}</div>;
+  return (
+    <Box
+      ref={highlightRoot}
+      sx={(theme) => ({
+        '& mark.configr-search-match': { backgroundColor: theme.palette.searchMatch },
+      })}
+    >
+      {props.children}
+    </Box>
+  );
 };

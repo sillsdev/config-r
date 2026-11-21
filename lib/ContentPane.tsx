@@ -1557,7 +1557,10 @@ export const ConfigrPage: React.FunctionComponent<
                     edge="start"
                     onClick={() => goBack()}
                   >
-                    <ArrowBackIcon className="configr-subpage-back-icon" />{' '}
+                    <ArrowBackIcon
+                      className="configr-subpage-back-icon"
+                      color="primary"
+                    />{' '}
                     <Typography variant={'h4'} component="span">
                       {
                         // On its own, a sub-page no longer shows the row that says what its

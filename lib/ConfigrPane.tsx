@@ -45,6 +45,8 @@ export const ConfigrPane = React.forwardRef<
      * in. The pane then needs neither showAppBar nor showSearch to offer search.
      */
     searchBoxContainer?: HTMLElement | null;
+    /** 'small' makes the search box small enough for a title bar. */
+    searchBoxSize?: 'small' | 'medium';
     themeOverrides?: ThemeOptions;
     showJson?: boolean;
     showRequiredMessage?: boolean;
@@ -205,6 +207,7 @@ export const ConfigrPane = React.forwardRef<
                             <ConfigrSearchBox
                               searchValue={searchString}
                               setSearchString={changeSearch}
+                              size={props.searchBoxSize}
                             />,
                             searchBoxContainer,
                           )}

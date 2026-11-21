@@ -1,3 +1,14 @@
+// The color behind each search match. Pass it in themeOverrides, e.g.
+// { palette: { searchMatch: '#feeb5a' } }; without it the browser draws its own yellow.
+declare module '@mui/material/styles' {
+  interface Palette {
+    searchMatch?: string;
+  }
+  interface PaletteOptions {
+    searchMatch?: string;
+  }
+}
+
 export const defaultConfigrTheme = {
   typography: {
     fontFamily: [

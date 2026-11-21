@@ -53,14 +53,29 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export const ConfigrSearchBox: React.FunctionComponent<{
   searchValue: string | null;
   setSearchString: (s: string) => void;
+  // 'small' fits a host's title bar.
+  size?: 'small' | 'medium';
 }> = (props) => {
   const localizations = React.useContext(ConfigrLocalizationContext);
+  const small = props.size === 'small';
   return (
     <Search className="configr-search-box">
-      <SearchIconWrapper className="configr-search-icon">
-        <SearchIcon />
+      <SearchIconWrapper
+        className="configr-search-icon"
+        sx={small ? { padding: '0 6px' } : undefined}
+      >
+        <SearchIcon fontSize={small ? 'small' : 'medium'} />
       </SearchIconWrapper>
       <StyledInputBase
+        sx={
+          small
+            ? {
+                fontSize: '13px',
+                fontWeight: 'normal',
+                '& .MuiInputBase-input': { width: '13ch', padding: '3px 24px 3px 28px' },
+              }
+            : undefined
+        }
         value={props.searchValue ?? ''}
         placeholder={localizations.searchLabel}
         inputProps={{
@@ -72,11 +87,15 @@ export const ConfigrSearchBox: React.FunctionComponent<{
         }
       />
       {props.searchValue && (
-        <ClearSearchButton className="configr-search-clear">
+        <ClearSearchButton
+          className="configr-search-clear"
+          sx={small ? { padding: '0 2px' } : undefined}
+        >
           <IconButton
             aria-label={localizations.clearSearchLabel}
             color="inherit"
             size="small"
+            sx={small ? { padding: '2px' } : undefined}
             onClick={() => props.setSearchString('')}
           >
             <CloseIcon fontSize="small" />
