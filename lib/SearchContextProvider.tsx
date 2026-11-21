@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useState } from 'react';
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -11,25 +10,29 @@ export const SearchContext = React.createContext({
   setSearchString: (searchString: string | null) => {},
 });
 
+// The search state belongs to the pane, which ends a search when a client selects a page, so
+// this provider takes it as props.
 export const SearchContextProvider: React.FunctionComponent<
-  React.PropsWithChildren<{}>
+  React.PropsWithChildren<{
+    searchString: string | null;
+    setSearchString: (searchString: string | null) => void;
+  }>
 > = (props) => {
-  const defaultSearch = ''; //   new RegExp('(foo)', 'gi'),
-  const [searchString, setSearchString] = useState<string | null>(defaultSearch);
-
   const handleSet = (value: string | null) => {
     if (!value || !value.trim()) {
-      setSearchString(null);
+      props.setSearchString(null);
     } else {
-      setSearchString(value);
+      props.setSearchString(value);
     }
   };
 
   return (
     <SearchContext.Provider
       value={{
-        searchString: searchString,
-        searchRegEx: searchString ? new RegExp(escapeRegExp(searchString), 'i') : null,
+        searchString: props.searchString,
+        searchRegEx: props.searchString
+          ? new RegExp(escapeRegExp(props.searchString), 'i')
+          : null,
         setSearchString: handleSet,
       }}
     >

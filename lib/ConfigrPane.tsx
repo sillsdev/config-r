@@ -86,6 +86,7 @@ export const ConfigrPane = React.forwardRef<
     getInitialTopLevelPageIndex(topLevelPages, props.initiallySelectedTopLevelPageKey),
   );
   const [currentAreaIndex, setCurrentAreaIndex] = useState<number | undefined>(undefined);
+  const [searchString, setSearchString] = useState<string | null>('');
 
   const wantAreaChooser = topLevelPages.length > 1;
   const firstEnabledIndex = useMemo(() => findFirstEnabledIndex(areas), [areas]);
@@ -123,13 +124,13 @@ export const ConfigrPane = React.forwardRef<
     onTopLevelPageChange?.(shownTopLevelPageKey);
   }, [shownTopLevelPageKey]);
 
-  // This does not end a search (the search lives in SearchContextProvider, below), and the
-  // handle is remade each render. Neither is worth the extra code: no client selects a page
-  // while searching, nor holds a callback ref.
+  // Selecting a page ends any search, as clicking a page does. The handle is remade each
+  // render; not worth the extra code, since no client holds a callback ref.
   useImperativeHandle(ref, () => ({
     selectTopLevelPage: (pageKey: string) => {
       const index = topLevelPages.findIndex((page) => page.props.pageKey === pageKey);
       if (index < 0 || isIndexDisabled(areas, index)) return;
+      setSearchString(null);
       setCurrentAreaIndex(undefined);
       setCurrentTopLevelPageIndex(index);
     },
@@ -185,7 +186,10 @@ export const ConfigrPane = React.forwardRef<
         >
           <ThemeProvider theme={mergedTheme}>
             <ConfigrLocalizationContext.Provider value={localizations}>
-              <SearchContextProvider>
+              <SearchContextProvider
+                searchString={searchString}
+                setSearchString={setSearchString}
+              >
                 <SearchContext.Consumer>
                   {({ searchString, setSearchString }) => {
                     const changeSearch = (s: string) => {

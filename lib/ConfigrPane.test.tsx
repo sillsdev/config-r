@@ -203,9 +203,10 @@ describe('ConfigrPane sub-pages and search', () => {
 describe('ConfigrPane search', () => {
   afterEach(cleanup);
 
-  function renderSearchablePane() {
+  function renderSearchablePane(ref?: React.Ref<ConfigrPaneHandle>) {
     render(
       <ConfigrPane
+        ref={ref}
         label="Test"
         showAppBar={true}
         showSearch={true}
@@ -266,6 +267,22 @@ describe('ConfigrPane search', () => {
     const searchFor = renderSearchablePane();
     searchFor('zebra');
     expect(screen.getByText('No matches')).toBeTruthy();
+  });
+
+  it('ends the search when a client selects a page', () => {
+    const ref = React.createRef<ConfigrPaneHandle>();
+    const searchFor = renderSearchablePane(ref);
+    searchFor('name');
+    // Sanity check: the results show both pages' settings.
+    expect(screen.getByDisplayValue('Sanuk')).toBeTruthy();
+    expect(screen.getByDisplayValue('Tom')).toBeTruthy();
+
+    act(() => ref.current!.selectTopLevelPage('cat'));
+    expect(
+      screen.getByRole<HTMLInputElement>('textbox', { name: 'Search...' }).value,
+    ).toBe('');
+    expect(screen.getByDisplayValue('Tom')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Sanuk')).toBeNull();
   });
 });
 

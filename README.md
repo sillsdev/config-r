@@ -95,7 +95,7 @@ Search reads the props of the elements you pass, so text that a custom component
 
 ## Knowing and choosing the page
 
-`onTopLevelPageChange` is called with the `pageKey` of the top-level page showing, when the pane mounts and whenever the page changes. To show a page from outside the pane, put a ref on it and call `selectTopLevelPage`, which shows that page and keeps the values being edited:
+`onTopLevelPageChange` is called with the `pageKey` of the top-level page showing, when the pane mounts and whenever the page changes. To show a page from outside the pane, put a ref on it and call `selectTopLevelPage`, which ends any search, shows that page and keeps the values being edited:
 
 ```tsx
 const paneRef = React.useRef<ConfigrPaneHandle>(null);
